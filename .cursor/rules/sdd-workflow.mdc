@@ -1,0 +1,129 @@
+---
+description: Workflow SDD (Specification-Driven Development) para o MVP Clínicas Web
+alwaysApply: true
+---
+
+# Workflow SDD — MVP Clínicas Web
+
+## O que é SDD neste projeto
+
+SDD significa escrever a **especificação (`.spec.tsx`) antes da implementação**. Cada componente, hook ou módulo de serviço novo deve ter seu contrato definido antes de existir código de produção.
+
+---
+
+## Agentes do workflow
+
+Este projeto usa cinco agentes especializados. Invoque-os nesta ordem:
+
+| Agente | Quando invocar | O que entrega |
+|--------|----------------|---------------|
+| `planner` | Antes de qualquer implementação | `plano.md` com contexto, passos e checklist |
+| `developer` | Após o `plano.md` existir | Implementação passo a passo conforme o plano (inclui specs unitárias e E2E previstas) |
+| `validator` | Após o `developer` concluir | Valida código, testes e padrões; aciona `developer` se falhar; aciona `qa` se aprovado |
+| `qa` | Acionado pelo `validator` após aprovação de código | Executa suíte E2E contra app local; valida fluxos funcionais; aciona `developer` se falhar |
+| `devops` | Deploy ou infraestrutura (fora do ciclo de feature) | Config de deploy (Vercel/Docker), `.github/workflows/`, documentação |
+
+```
+planner → plano.md → developer → validator → ❌ código → developer (loop até 3x)
+                                            → ✅ código → qa → ❌ funcional → developer (loop)
+                                                             → ✅ funcional → PR draft (hook automático)
+
+deploy (paralelo): devops → infra/plano-deploy.md → configs → deploy
+```
+
+### Responsabilidade dos testes E2E
+
+- **`planner`**: define se e quais E2E são necessários no `plano.md`.
+- **`developer`**: cria ou altera os arquivos `e2e/**/*.spec.ts` previstos no plano.
+- **`validator`**: valida aderência e executa `npm run test:e2e` quando aplicável.
+- **`qa`**: **não escreve** E2E novos; executa a suíte, valida fluxos e reporta falhas funcionais.
+
+Ao final do `qa` com aprovação, um **hook** dispara automaticamente e instrui o agente a fazer commit, push e abrir um **PR draft** descritivo para revisão humana.
+
+> Para o QA funcionar, adicione `QA_EMAIL` e `QA_PASSWORD` no `.env.local`.
+
+---
+
+## Fluxo obrigatório para qualquer nova funcionalidade
+
+```
+1. Spec → 2. Service/Hook → 3. Componente → 4. Página → 5. Route Handler (se necessário)
+```
+
+Ordem detalhada, exemplos e checklists técnicos estão nas skills — **não duplique regras aqui**.
+
+---
+
+## Fontes de verdade (skills)
+
+Regras React/Next.js:
+
+```txt
+.cursor/skills/react/SKILL.md
+.cursor/skills/react/architecture.md
+.cursor/skills/react/data-fetching.md
+.cursor/skills/react/forms.md
+.cursor/skills/react/testing.md
+.cursor/skills/react/conventions.md
+```
+
+UI e design system:
+
+```txt
+.cursor/skills/design-system/SKILL.md
+```
+
+Testes E2E:
+
+```txt
+.cursor/skills/playwright/SKILL.md
+.cursor/skills/playwright/setup.md
+.cursor/skills/playwright/auth.md
+.cursor/skills/playwright/writing-tests.md
+.cursor/skills/playwright/mcp.md
+```
+
+Documentação do projeto:
+
+```txt
+docs/architecture.md
+docs/api-contracts.md
+docs/decisions.md
+docs/running-locally.md
+```
+
+---
+
+## Regras essenciais (resumo)
+
+Estas regras estão detalhadas nas skills acima. Resumo para referência rápida:
+
+- Arquitetura por feature em `src/features/<feature>/` (hooks, services, schemas, components).
+- Infraestrutura compartilhada em `src/lib/` (API client, sessão, tipos globais).
+- UI compartilhada em `src/components/`.
+- Páginas em `src/app/` permanecem como camada fina (Server Component por padrão).
+- Token JWT em **cookie HTTP-only** — nunca em `localStorage`, Context API ou store client-side.
+- **Client Components não acessam token**; chamadas autenticadas passam por Client Service → Route Handler.
+- Server Components leem sessão via função server-side (ex.: `getServerSession()`).
+- Tipos derivados de `src/lib/api/types.ts`; erros mapeados via `src/lib/api/error-messages.ts`.
+- Imports híbridos: relativo para arquivos próximos, `@/` para áreas distantes.
+- UI prioriza componentes existentes e shadcn/ui.
+
+---
+
+## Checklist antes de abrir PR
+
+- [ ] Specs unitárias/componentes escritas e passando (`npm run test`)
+- [ ] Specs E2E previstas no plano escritas e passando (`npm run test:e2e`)
+- [ ] `npm run lint` e `npm run build` sem erros
+- [ ] QA aprovado (`.cursor/qa-result.json` com `"approved": true`)
+
+---
+
+## Referências do projeto
+
+- Arquitetura: `docs/architecture.md`
+- Contratos da API: `docs/api-contracts.md`
+- Decisões técnicas: `docs/decisions.md`
+- Roadmap: `docs/roadmap.md`
+- Como rodar localmente: `docs/running-locally.md`

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "subagentStop": [
+      {
+        "command": "node .cursor/hooks/create-pr-on-approval.js",
+        "matcher": "qa",
+        "timeout": 15
+      }
+    ]
+  }
+}
