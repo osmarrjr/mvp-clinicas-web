@@ -101,6 +101,8 @@ NestJS
 
 ## Autenticação
 
+Referência implementada: `.cursor/skills/react/auth.md`.
+
 Nunca usar:
 
 - localStorage;
@@ -115,6 +117,23 @@ Sempre usar:
 - cookies HTTP-only;
 - leitura de sessão no servidor;
 - Route Handler para intermediar chamadas autenticadas do client.
+
+### Login (referência)
+
+```txt
+LoginForm → useLogin → authClientService → POST /api/auth/login → loginServerService → NestJS
+```
+
+Arquivos:
+
+```txt
+src/features/auth/hooks/useLogin.ts
+src/features/auth/services/authClientService.ts
+src/features/auth/services/authServerService.ts
+src/app/api/auth/login/route.ts
+```
+
+O Route Handler grava cookies e retorna apenas `{ user }` ao client.
 
 ---
 

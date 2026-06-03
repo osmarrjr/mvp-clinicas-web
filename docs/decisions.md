@@ -121,6 +121,41 @@ Não recriar manualmente `Button`, `Input`, `Dialog`, `Select`, `Card`, `Table` 
 
 ---
 
+## Componentes compartilhados de UI
+
+Além dos primitivos em `src/components/ui`, o projeto possui componentes compostos reutilizáveis:
+
+| Componente | Caminho | Uso |
+|------------|---------|-----|
+| `GlobalModal` | `src/components/GlobalModal/` | Confirmações e feedback (warning, error, success) |
+| `Loading` | `src/components/Loader/` | Overlay de carregamento durante operações assíncronas |
+| `DataTable` | `src/components/Table/` | Listagens com sort, paginação manual e seleção de linhas |
+
+Regras:
+
+- Reutilizar esses componentes antes de criar modais, loaders ou tabelas ad hoc.
+- `DataTable` usa `@tanstack/react-table` sobre os primitivos shadcn/ui em `src/components/ui/table`.
+- `Loading` é usado em fluxos como login (`LoginForm` exibe overlay enquanto `isPending`).
+- `GlobalModal` compõe `Dialog` do shadcn/ui com ícones, estados de loading no botão confirmar e alinhamento configurável.
+
+Referência: `.cursor/skills/design-system/SKILL.md`.
+
+---
+
+## Auth — referência de implementação
+
+O login implementado em `src/features/auth/` é o padrão oficial para novos fluxos de autenticação:
+
+- schema Zod compartilhado entre formulário e Route Handler;
+- `authServerService` (server-only) + `authClientService` (client);
+- Route Handler em `src/app/api/auth/login/route.ts` grava cookies HTTP-only;
+- hook `useLogin` com estado local (sem TanStack Query);
+- resposta ao client sem expor tokens.
+
+Referência: `.cursor/skills/react/auth.md`.
+
+---
+
 ## Política híbrida de imports
 
 Imports próximos usam caminho relativo:

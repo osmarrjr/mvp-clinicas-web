@@ -61,6 +61,7 @@ Regras React/Next.js:
 ```txt
 .cursor/skills/react/SKILL.md
 .cursor/skills/react/architecture.md
+.cursor/skills/react/auth.md
 .cursor/skills/react/data-fetching.md
 .cursor/skills/react/forms.md
 .cursor/skills/react/testing.md
@@ -100,14 +101,15 @@ Estas regras estão detalhadas nas skills acima. Resumo para referência rápida
 
 - Arquitetura por feature em `src/features/<feature>/` (hooks, services, schemas, components).
 - Infraestrutura compartilhada em `src/lib/` (API client, sessão, tipos globais).
-- UI compartilhada em `src/components/`.
+- UI compartilhada em `src/components/` (`GlobalModal`, `Loader`, `Table`, `ui/`, `layout/`, `shared/`).
 - Páginas em `src/app/` permanecem como camada fina (Server Component por padrão).
 - Token JWT em **cookie HTTP-only** — nunca em `localStorage`, Context API ou store client-side.
 - **Client Components não acessam token**; chamadas autenticadas passam por Client Service → Route Handler.
 - Server Components leem sessão via função server-side (ex.: `getServerSession()`).
 - Tipos derivados de `src/lib/api/types.ts`; erros mapeados via `src/lib/api/error-messages.ts`.
 - Imports híbridos: relativo para arquivos próximos, `@/` para áreas distantes.
-- UI prioriza componentes existentes e shadcn/ui.
+- UI prioriza componentes existentes e shadcn/ui (`GlobalModal`, `Loading`, `DataTable` para modais, overlay e listagens).
+- Auth segue referência em `.cursor/skills/react/auth.md` (`LoginForm`, Route Handler, cookies HTTP-only).
 
 ---
 

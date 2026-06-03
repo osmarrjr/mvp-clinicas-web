@@ -84,6 +84,14 @@ Quando a tarefa envolver React, Next.js, páginas, componentes, hooks, services,
 Leia:
 
 ```txt
+.cursor/skills/react/auth.md
+```
+
+Quando a tarefa envolver login, logout, sessão, cookies, Route Handler em `/api/auth/*` ou fluxo autenticado no client.
+
+Leia:
+
+```txt
 .cursor/skills/react/forms.md
 ```
 
@@ -142,6 +150,7 @@ Antes de escrever o plano, verifique:
 
 - a tarefa pertence a uma feature existente ou exige nova feature?
 - já existe componente semelhante?
+- pode reutilizar `GlobalModal`, `Loading` ou `DataTable`?
 - já existe hook semelhante?
 - já existe service semelhante?
 - já existe schema semelhante?
@@ -191,6 +200,7 @@ Não explicar raciocínio intermediário.
 
 - Feature: <existente/nova>
 - Reutiliza componente existente: <sim/não/não aplicável>
+- Reutiliza GlobalModal / Loading / DataTable: <sim/não/não aplicável>
 - Reutiliza hook existente: <sim/não/não aplicável>
 - Reutiliza service existente: <sim/não/não aplicável>
 - Reutiliza schema existente: <sim/não/não aplicável>
@@ -271,6 +281,7 @@ Nenhum.
 - [ ] Client Components não acessam token
 - [ ] Route Handler usado para chamadas autenticadas do client
 - [ ] shadcn/ui ou componente existente priorizado quando houver UI
+- [ ] GlobalModal, Loading ou DataTable reutilizados quando aplicável
 - [ ] Acessibilidade considerada em formulários, botões, mensagens e navegação
 - [ ] Imports seguem regra híbrida: relativo perto, alias longe
 - [ ] Sem `any` nos tipos, exceto justificativa explícita

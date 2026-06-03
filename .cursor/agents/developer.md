@@ -31,6 +31,7 @@ Antes de qualquer edição:
 4. Ler os arquivos complementares da skill React conforme o escopo do plano:
    - `.cursor/skills/react/architecture.md`, se houver páginas, layouts, Server Components, Client Components, organização por feature ou estrutura de pastas;
    - `.cursor/skills/react/data-fetching.md`, se houver API, service, hook, TanStack Query, autenticação, cookies ou Route Handler;
+   - `.cursor/skills/react/auth.md`, se houver login, logout, sessão, cookies ou Route Handler em `/api/auth/*`;
    - `.cursor/skills/react/forms.md`, se houver formulário, validação, React Hook Form ou Zod;
    - `.cursor/skills/react/testing.md`, se houver teste unitário, teste de componente, spec `*.spec.tsx` ou componente interativo;
    - `.cursor/skills/react/conventions.md`, antes de finalizar.
@@ -135,8 +136,15 @@ Se a tarefa envolver UI, seguir `.cursor/skills/design-system/SKILL.md`.
 Antes de criar componente visual:
 
 1. Verificar se já existe componente adequado em `src/components/ui`.
-2. Se não existir, usar/adicionar componente shadcn/ui quando aplicável.
-3. Criar componente próprio somente se não houver equivalente adequado.
+2. Verificar componentes compostos em `src/components/GlobalModal`, `src/components/Loader` e `src/components/Table`.
+3. Se não existir, usar/adicionar componente shadcn/ui quando aplicável.
+4. Criar componente próprio somente se não houver equivalente adequado.
+
+Componentes compartilhados prioritários:
+
+- `GlobalModal` — confirmações e feedback (warning, error, success);
+- `Loading` — overlay de carregamento (`@/components/Loader/loaderView`);
+- `DataTable` — listagens com sort/paginação (`@/components/Table`).
 
 Não recriar manualmente componentes primitivos cobertos por shadcn/ui.
 

@@ -147,6 +147,138 @@ Exemplos:
 
 Para skeletons, priorizar `Skeleton` do shadcn/ui.
 
+Para overlay de carregamento em operações assíncronas (login, submit longo), usar:
+
+```txt
+src/components/Loader/loaderView.tsx   → exporta Loading
+```
+
+Import:
+
+```tsx
+import { Loading } from '@/components/Loader/loaderView';
+```
+
+Props: `isOpen: boolean`, `message: string`.
+
+---
+
+## GlobalModal
+
+Modal composto para confirmações e feedback ao usuário.
+
+```txt
+src/components/GlobalModal/GlobalModal.tsx
+```
+
+Import:
+
+```tsx
+import { GlobalModal } from '@/components/GlobalModal';
+```
+
+Tipos: `GlobalModalType = "warning" | "error" | "success" | "none"`.
+
+Props principais:
+
+| Prop | Descrição |
+|------|-----------|
+| `type` | Define ícone e cores (warning, error, success, none) |
+| `open` | Controla visibilidade |
+| `modalTitle` / `modalSubTitle` | Título e subtítulo |
+| `onConfirm` / `onCancel` | Callbacks dos botões |
+| `loading` | Spinner no botão confirmar |
+| `showCancel` / `showConfirm` | Exibir/ocultar botões |
+| `confirmLabel` / `cancelLabel` | Textos dos botões (padrão: "Continuar" / "Cancelar") |
+| `showContent` / `content` | Área de conteúdo extra |
+| `titleAlign` / `footerAlign` | Alinhamento do cabeçalho e rodapé |
+
+Regras:
+
+- Usar para confirmações destrutivas, erros de operação e sucesso pós-ação.
+- Não recriar modais ad hoc com `Dialog` quando `GlobalModal` atender.
+- Modal de warning não exibe botão de fechar (`showCloseButton` ignorado para `type="warning"`).
+
+---
+
+## DataTable
+
+Tabela composta com TanStack Table sobre primitivos shadcn/ui.
+
+```txt
+src/components/Table/
+  index.tsx              → DataTable (default export)
+  pagination.tsx         → DataTablePagination
+  header-sort-icon.tsx   → SortIcon
+```
+
+Import:
+
+```tsx
+import DataTable from '@/components/Table';
+```
+
+Dependência: `@tanstack/react-table`.
+
+Props principais:
+
+| Prop | Descrição |
+|------|-----------|
+| `data` / `columns` | Dados e definição de colunas (`ColumnDef[]`) |
+| `isLoading` | Exibe linha de loading com spinner |
+| `noResults` | Mensagem ou node quando vazio |
+| `pagination` / `setPagination` | Paginação manual (server-side) |
+| `sorting` / `setSorting` | Ordenação controlada |
+| `rowSelection` / `setRowSelection` | Seleção de linhas |
+| `rowCount` | Total de registros (paginação manual) |
+| `getRowId` | Função customizada de ID da linha |
+| `onRowSelectionChange` | Callback com linhas selecionadas |
+| `rowSize` | `"sm"` \| `"md"` \| `"lg"` — padding das células |
+| `centralizeInformation` | Centraliza conteúdo das células |
+
+`ColumnMeta` estendido:
+
+- `showDashWhenEmpty` — exibe `-` quando valor vazio;
+- `allowDashInExpanded` — aplica dash também em sub-rows expandidas.
+
+Regras:
+
+- Usar `DataTable` para listagens de domínio (pacientes, agendamentos, staff).
+- Paginação manual quando dados vêm paginados da API (`manualPagination: true`).
+- Paginação só aparece quando `rowCount > 10`.
+- Não recriar tabela com `Table` shadcn/ui diretamente para listagens paginadas/sortáveis.
+- Estado de loading inline na tabela; overlay global continua sendo `Loading`.
+
+Exemplo mínimo:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
+import DataTable from '@/components/Table';
+
+const columns: ColumnDef<Patient>[] = [/* ... */];
+
+export function PatientsTable({ data, total }: Props) {
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      rowCount={total}
+      pagination={pagination}
+      setPagination={setPagination}
+      sorting={sorting}
+      setSorting={setSorting}
+      isLoading={false}
+    />
+  );
+}
+```
+
 ---
 
 ## Formulários
@@ -225,5 +357,8 @@ Dentro da mesma pasta ou feature, usar import relativo.
 - [ ] Inputs possuem label acessível.
 - [ ] Botões de ícone possuem `aria-label`.
 - [ ] Estados loading/error/empty/success foram tratados.
+- [ ] Listagens usam `DataTable` quando aplicável.
+- [ ] Confirmações/feedback usam `GlobalModal` quando aplicável.
+- [ ] Overlay de carregamento usa `Loading` quando aplicável.
 - [ ] Não há valores arbitrários desnecessários.
 - [ ] O padrão visual está consistente com o restante do projeto.

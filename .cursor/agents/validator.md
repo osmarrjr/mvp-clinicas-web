@@ -53,6 +53,7 @@ Ler também quando aplicável:
 
 ```txt
 .cursor/skills/react/architecture.md
+.cursor/skills/react/auth.md
 .cursor/skills/react/data-fetching.md
 .cursor/skills/react/forms.md
 .cursor/skills/react/testing.md
@@ -123,6 +124,7 @@ Validar quando houver páginas, layouts, componentes, hooks, services, providers
 Validar quando houver API, service, hook, TanStack Query, autenticação, cookies ou Route Handler.
 
 - [ ] Segue `.cursor/skills/react/data-fetching.md`.
+- [ ] Segue `.cursor/skills/react/auth.md` quando envolver login/sessão.
 - [ ] Componentes não fazem HTTP direto para API NestJS autenticada.
 - [ ] Client Components não acessam token.
 - [ ] Chamadas autenticadas iniciadas no client passam por Client Service e Route Handler.
@@ -150,6 +152,7 @@ Validar quando houver UI, layout, Tailwind CSS, shadcn/ui, formulário ou compon
 
 - [ ] Segue `.cursor/skills/design-system/SKILL.md`.
 - [ ] Componentes existentes ou shadcn/ui foram priorizados.
+- [ ] `GlobalModal`, `Loading` ou `DataTable` reutilizados quando aplicável.
 - [ ] Não recriou manualmente primitivos já cobertos por shadcn/ui.
 - [ ] Estados loading, erro, vazio e sucesso foram tratados quando aplicável.
 - [ ] Formulários usam React Hook Form + Zod quando aplicável.

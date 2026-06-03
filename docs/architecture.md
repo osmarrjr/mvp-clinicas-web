@@ -31,14 +31,32 @@ src/
 
 ## Fluxo de autenticação
 
-1. Usuário faz login no frontend.
-2. O frontend envia credenciais para um **Route Handler** interno do Next.js.
-3. O Route Handler chama `POST /auth/login` na API NestJS.
-4. A API retorna `{ accessToken, refreshToken, user }`.
-5. O Route Handler grava os tokens em cookies HTTP-only.
-6. Middleware/Proxy Next.js verifica o cookie nas rotas protegidas.
-7. Server Components leem sessão/token via função server-side, como `getServerSession()`.
-8. Client Components **não acessam token**; quando precisam de dados autenticados, chamam Route Handlers internos.
+1. Usuário faz login no frontend (`LoginForm` → `useLogin` → `authClientService`).
+2. O frontend envia credenciais para o Route Handler interno `POST /api/auth/login`.
+3. O Route Handler valida com `loginSchema` e chama `loginServerService`.
+4. O Server Service chama `POST /auth/login` na API NestJS.
+5. A API retorna `{ accessToken, refreshToken, user }`.
+6. O Route Handler grava `accessToken` e `refreshToken` em cookies HTTP-only e responde ao client apenas com `{ user }`.
+7. Middleware/Proxy Next.js verifica o cookie nas rotas protegidas.
+8. Server Components leem sessão/token via função server-side, como `getServerSession()`.
+9. Client Components **não acessam token**; quando precisam de dados autenticados, chamam Route Handlers internos.
+
+### Feature Auth (implementada)
+
+```txt
+src/features/auth/
+  components/LoginForm.tsx
+  hooks/useLogin.ts
+  schemas/loginSchema.ts
+  services/authClientService.ts
+  services/authServerService.ts
+
+src/app/
+  (auth)/login/page.tsx
+  api/auth/login/route.ts
+```
+
+Referência detalhada: `.cursor/skills/react/auth.md`.
 
 Fluxo obrigatório para chamadas autenticadas feitas pelo client:
 
@@ -127,12 +145,17 @@ src/features/patients/components/PatientForm.tsx
 Componentes compartilhados ficam em:
 
 ```txt
-src/components/ui/
-src/components/layout/
-src/components/shared/
+src/components/ui/           → primitivos shadcn/ui
+src/components/layout/       → AppLayout, Header, Sidebar, PageContainer
+src/components/shared/       → LoadingState, ErrorState, EmptyState, PageHeader
+src/components/GlobalModal/  → modal de confirmação/feedback (warning, error, success)
+src/components/Loader/       → overlay de carregamento global (Loading)
+src/components/Table/        → DataTable com TanStack Table (sort, paginação, seleção)
 ```
 
-Antes de criar componente visual próprio, verificar se já existe em `src/components/ui` ou se pode ser adicionado via shadcn/ui.
+Antes de criar componente visual próprio, verificar se já existe em `src/components/ui`, nos componentes compartilhados acima ou se pode ser adicionado via shadcn/ui.
+
+Referência de uso: `.cursor/skills/design-system/SKILL.md`.
 
 ---
 

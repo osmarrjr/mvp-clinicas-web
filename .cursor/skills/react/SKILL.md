@@ -48,6 +48,7 @@ Este arquivo é apenas um índice. Os detalhes ficam nos arquivos complementares
 .cursor/skills/react/
   SKILL.md
   architecture.md
+  auth.md
   data-fetching.md
   forms.md
   testing.md
@@ -69,6 +70,14 @@ Antes de implementar qualquer tarefa React/Next.js, leia:
 ---
 
 ## Leitura condicional
+
+Leia também:
+
+```txt
+.cursor/skills/react/auth.md
+```
+
+Quando a tarefa envolver login, logout, sessão, cookies, Route Handler em `/api/auth/*` ou fluxo autenticado no client.
 
 Leia também:
 
@@ -113,6 +122,7 @@ Antes de finalizar qualquer implementação.
 - Usar imports relativos para arquivos próximos e alias `@/` para arquivos fora da área imediata.
 - Todo carregamento de dados deve tratar loading, error, empty e success.
 - Usar shadcn/ui ou componentes existentes antes de criar componentes visuais próprios.
+- Reutilizar `GlobalModal`, `Loading` e `DataTable` de `src/components/` quando aplicável.
 - Não criar abstrações prematuras.
 - Não refatorar fora do escopo da tarefa.
 

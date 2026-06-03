@@ -26,7 +26,7 @@ Se faltar cobertura E2E prevista no plano, reprove e devolva ao `developer` com 
    - `.cursor/skills/playwright/writing-tests.md`
    - `.cursor/skills/playwright/mcp.md` (exploração interativa, se necessário)
 5. Verificar `.env.local`:
-   - `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_API_URL`, `API_URL` (Route Handlers de auth), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `QA_EMAIL`, `QA_PASSWORD` (obrigatórios para fluxos autenticados)
    - Se faltar variável, reportar quais faltam e encerrar.
 6. Verificar Playwright: `npx playwright --version`.
