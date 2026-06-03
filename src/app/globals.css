@@ -132,3 +132,32 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  @keyframes auth-card-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(28px) scale(0.96);
+      filter: blur(6px);
+    }
+
+    40% {
+      opacity: 0.5;
+    }
+
+    70% {
+      opacity: 0.8;
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+
+  .animate-auth-card {
+    animation: auth-card-enter 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform, filter;
+  }
+}

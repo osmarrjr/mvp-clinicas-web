@@ -32,7 +32,7 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3 animate-auth-card">
         {CLINIC_PLAN_OPTIONS.map((plan) => (
           <Card key={plan.id} className={planCardClassName}>
             <CardHeader className="space-y-2 pb-2 text-center">
