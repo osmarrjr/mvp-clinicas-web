@@ -1,101 +1,179 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { LoginForm } from './LoginForm';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
-describe('LoginForm', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
+import { LoginForm } from "./LoginForm";
+import { useLogin } from "../hooks/useLogin";
+
+vi.mock("../hooks/useLogin", () => ({
+  useLogin: vi.fn(),
+}));
+
+vi.mock("@/components/Loader/loaderView", () => ({
+  Loading: ({ isOpen, message }: { isOpen: boolean; message: string }) =>
+    isOpen ? <div>{message}</div> : null,
+}));
+
+const useLoginMock = vi.mocked(useLogin);
+
+function setupUseLoginMock(overrides?: Partial<ReturnType<typeof useLogin>>) {
+  const loginMock = vi.fn(
+    async (_payload: Parameters<ReturnType<typeof useLogin>["login"]>[0]) =>
+      null,
+  );
+
+  const clearErrorMock = vi.fn();
+
+  const mockValue: ReturnType<typeof useLogin> = {
+    login: loginMock,
+    isPending: false,
+    isSuccess: false,
+    errorMessage: null,
+    clearError: clearErrorMock,
+    ...overrides,
+  };
+
+  useLoginMock.mockReturnValue(mockValue);
+
+  return {
+    loginMock,
+    clearErrorMock,
+  };
+}
+
+describe("LoginForm", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('renderiza campos e texto obrigatório abaixo do botão', () => {
+  it("renderiza os campos principais e o texto de cadastro", () => {
+    setupUseLoginMock();
+
     render(<LoginForm />);
 
-    expect(screen.getByLabelText(/email/i)).toBeTruthy();
-    expect(screen.getByLabelText(/senha/i)).toBeTruthy();
-    expect(
-      screen.getByText('Ainda não possui um cadastro? Clique aqui'),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
+    expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
+
+    expect(screen.getByText(/ainda não possui cadastro/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /clique aqui/i })).toBeTruthy();
   });
 
-  it('mantém botão desabilitado até formulário ficar válido', async () => {
-    vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          data: {
-            accessToken: 'token',
-            refreshToken: 'refresh',
-            user: {
-              id: '1',
-              clinicId: 'clinic-1',
-              name: 'Usuário',
-              email: 'user@example.com',
-              role: 'clinic_admin',
-              phone: null,
-              sex: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          },
-        }),
-        { status: 200 },
-      ),
-    );
+  it("mantém o botão desabilitado quando o formulário está vazio", () => {
+    setupUseLoginMock();
+
+    render(<LoginForm />);
+
+    const submitButton = screen.getByRole("button", { name: /^login$/i });
+
+    expect(submitButton).toHaveProperty("disabled", true);
+  });
+
+  it("mantém o botão desabilitado com email inválido", async () => {
+    setupUseLoginMock();
+
     const user = userEvent.setup();
 
     render(<LoginForm />);
 
-    const submitButton = screen.getByRole('button', { name: /login/i });
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^senha$/i);
+    const submitButton = screen.getByRole("button", { name: /^login$/i });
 
-    expect(submitButton).toHaveProperty('disabled', true);
+    await user.type(emailInput, "email-invalido");
+    await user.type(passwordInput, "123456");
 
-    await user.type(screen.getByLabelText(/email/i), 'email-invalido');
-    await user.type(screen.getByLabelText(/senha/i), '123456');
-
-    expect(submitButton).toHaveProperty('disabled', true);
-
-    await user.clear(screen.getByLabelText(/email/i));
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-
-    await waitFor(() => {
-      expect(submitButton).toHaveProperty('disabled', false);
-    });
+    expect(submitButton).toHaveProperty("disabled", true);
   });
 
-  it('submete formulário válido no fluxo de login', async () => {
-    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          ok: true,
-          data: {
-            accessToken: 'token',
-            refreshToken: 'refresh',
-            user: {
-              id: '1',
-              clinicId: 'clinic-1',
-              name: 'Usuário',
-              email: 'user@example.com',
-              role: 'clinic_admin',
-              phone: null,
-              sex: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          },
-        }),
-        { status: 200 },
-      ),
-    );
+  it("habilita o botão quando email e senha são válidos", async () => {
+    setupUseLoginMock();
+
     const user = userEvent.setup();
 
     render(<LoginForm />);
 
-    await user.type(screen.getByLabelText(/email/i), 'user@example.com');
-    await user.type(screen.getByLabelText(/senha/i), '123456');
-    await user.click(screen.getByRole('button', { name: /login/i }));
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^senha$/i);
+    const submitButton = screen.getByRole("button", { name: /^login$/i });
+
+    await user.type(emailInput, "user@example.com");
+    await user.type(passwordInput, "123456");
 
     await waitFor(() => {
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(submitButton).toHaveProperty("disabled", false);
     });
+  });
+
+  it("chama login com email e senha ao submeter formulário válido", async () => {
+    const { loginMock } = setupUseLoginMock();
+
+    const user = userEvent.setup();
+
+    render(<LoginForm />);
+
+    const emailInput = screen.getByLabelText(/^email$/i);
+    const passwordInput = screen.getByLabelText(/^senha$/i);
+    const submitButton = screen.getByRole("button", { name: /^login$/i });
+
+    await user.type(emailInput, "user@example.com");
+    await user.type(passwordInput, "123456");
+
+    await waitFor(() => {
+      expect(submitButton).toHaveProperty("disabled", false);
+    });
+
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(loginMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(loginMock).toHaveBeenCalledWith({
+      email: "user@example.com",
+      password: "123456",
+    });
+  });
+
+  it("alterna a visibilidade da senha", async () => {
+    setupUseLoginMock();
+
+    const user = userEvent.setup();
+
+    render(<LoginForm />);
+
+    const passwordInput = screen.getByLabelText(/^senha$/i);
+
+    expect(passwordInput.getAttribute("type")).toBe("password");
+
+    await user.click(screen.getByRole("button", { name: /exibir senha/i }));
+
+    expect(passwordInput.getAttribute("type")).toBe("text");
+
+    await user.click(screen.getByRole("button", { name: /ocultar senha/i }));
+
+    expect(passwordInput.getAttribute("type")).toBe("password");
+  });
+
+  it("exibe mensagem de erro quando houver errorMessage", () => {
+    setupUseLoginMock({
+      errorMessage: "E-mail ou senha inválidos.",
+    });
+
+    render(<LoginForm />);
+
+    expect(screen.getByText("E-mail ou senha inválidos.")).toBeTruthy();
+  });
+
+  it("exibe estado de carregamento quando isPending é true", () => {
+    setupUseLoginMock({
+      isPending: true,
+    });
+
+    render(<LoginForm />);
+
+    const submitButton = screen.getByRole("button", { name: /entrando/i });
+
+    expect(submitButton).toHaveProperty("disabled", true);
+    expect(screen.getByText("Carregando")).toBeTruthy();
   });
 });

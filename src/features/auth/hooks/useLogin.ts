@@ -21,6 +21,7 @@ export function useLogin() {
     setErrorMessage(null);
 
     try {
+      console.log("payload", payload);
       const response = await loginClientService(payload);
 
       if (!response.ok) {

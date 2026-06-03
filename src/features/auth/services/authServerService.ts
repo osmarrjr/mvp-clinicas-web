@@ -1,5 +1,6 @@
-import 'server-only';
-import type { LoginFormValues } from '../schemas/loginSchema';
+import "server-only";
+
+import type { LoginFormValues } from "../schemas/loginSchema";
 
 type LoginSuccessData = {
   accessToken: string;
@@ -29,26 +30,48 @@ export type LoginServerResponse =
 export async function loginServerService(
   payload: LoginFormValues,
 ): Promise<LoginServerResponse> {
-  const response = await fetch(`${process.env.API_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-    cache: 'no-store',
-  });
+  const apiUrl = process.env.API_URL;
 
-  const body = (await response.json()) as LoginServerResponse;
-
-  if (!response.ok && body.ok) {
+  if (!apiUrl) {
     return {
       ok: false,
       error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Erro inesperado no login.',
+        code: "ENV_ERROR",
+        message: "API_URL não configurada.",
       },
     };
   }
 
-  return body;
+  try {
+    const response = await fetch(`${apiUrl}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    const body = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        error: {
+          code: body?.error?.code ?? "LOGIN_ERROR",
+          message: body?.error?.message ?? "Não foi possível realizar o login.",
+        },
+      };
+    }
+
+    return body as LoginServerResponse;
+  } catch {
+    return {
+      ok: false,
+      error: {
+        code: "NETWORK_ERROR",
+        message: "Erro de conexão com o servidor.",
+      },
+    };
+  }
 }
