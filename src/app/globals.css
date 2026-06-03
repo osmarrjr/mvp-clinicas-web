@@ -141,14 +141,6 @@
       filter: blur(6px);
     }
 
-    40% {
-      opacity: 0.5;
-    }
-
-    70% {
-      opacity: 0.8;
-    }
-
     100% {
       opacity: 1;
       transform: translateY(0) scale(1);

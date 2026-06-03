@@ -32,9 +32,15 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-3 animate-auth-card">
-        {CLINIC_PLAN_OPTIONS.map((plan) => (
-          <Card key={plan.id} className={planCardClassName}>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        {CLINIC_PLAN_OPTIONS.map((plan, index) => (
+          <Card
+            key={plan.id}
+            className={`${planCardClassName} animate-auth-card`}
+            style={{
+              animationDelay: `${index * 180}ms`,
+            }}
+          >
             <CardHeader className="space-y-2 pb-2 text-center">
               <CardTitle className="text-2xl font-bold capitalize text-white">
                 {plan.name}
