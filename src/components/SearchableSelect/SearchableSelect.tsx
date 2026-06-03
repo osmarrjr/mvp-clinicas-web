@@ -18,6 +18,8 @@ type SearchableSelectProps = {
   options: SearchableSelectOption[];
   placeholder: string;
   searchPlaceholder?: string;
+  /** Exibe o campo de busca no dropdown. Ativo por padrão. */
+  showSearch?: boolean;
   disabled?: boolean;
   triggerClassName?: string;
   "aria-invalid"?: boolean;
@@ -30,6 +32,7 @@ export function SearchableSelect({
   options,
   placeholder,
   searchPlaceholder = "Buscar...",
+  showSearch = true,
   disabled = false,
   triggerClassName,
   "aria-invalid": ariaInvalid,
@@ -87,7 +90,7 @@ export function SearchableSelect({
           disabled={disabled}
           aria-invalid={ariaInvalid}
           className={cn(
-            "flex h-12 w-full items-center justify-between gap-2 rounded-2xl border border-white/20 bg-white/15 cursor-pointer px-4 text-sm text-white shadow-sm backdrop-blur-md transition outline-none focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm backdrop-blur-md transition outline-none focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 disabled:cursor-not-allowed disabled:opacity-50",
             !selectedLabel && "text-blue-100/50",
             triggerClassName,
           )}
@@ -101,28 +104,40 @@ export function SearchableSelect({
 
       <Popover.Portal>
         <Popover.Content
+          side="bottom"
           align="start"
           sideOffset={4}
-          className="z-50 rounded-lg border border-slate-200 bg-white p-0 text-slate-900 shadow-md ring-1 ring-foreground/10"
+          collisionPadding={8}
+          avoidCollisions={false}
+          className={cn(
+            "z-50 flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-0 text-slate-900 shadow-md ring-1 ring-foreground/10",
+            "max-h-[min(300px,var(--radix-popover-content-available-height))]",
+          )}
           style={{ width: triggerWidth }}
-          onOpenAutoFocus={(event) => event.preventDefault()}
+          onOpenAutoFocus={(event) => {
+            if (!showSearch) {
+              event.preventDefault();
+            }
+          }}
         >
-          <div className="border-b border-slate-100 p-2">
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={searchPlaceholder}
-              className="h-9 w-full text-sm"
-              aria-label={searchPlaceholder}
-            />
-          </div>
+          {showSearch ? (
+            <div className="shrink-0 border-b border-slate-100 p-2">
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+                className="h-9 w-full text-sm"
+                aria-label={searchPlaceholder}
+              />
+            </div>
+          ) : null}
 
           <ul
-            className="max-h-60 overflow-y-auto overflow-x-hidden p-1"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-1"
             role="listbox"
           >
             {filteredOptions.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-slate-500">
+              <li className="cursor-default px-3 py-2 text-sm text-slate-500">
                 {emptyMessage}
               </li>
             ) : (
@@ -138,14 +153,16 @@ export function SearchableSelect({
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-slate-100",
+                        "flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-slate-100",
                         isSelected && "bg-slate-100 font-medium",
                       )}
                       onClick={() => handleSelect(option.value)}
                     >
-                      <span className="flex-1 truncate">{option.label}</span>
+                      <span className="min-w-0 flex-1 wrap-break-word whitespace-normal">
+                        {option.label}
+                      </span>
                       {isSelected ? (
-                        <CheckIcon className="size-4 shrink-0 text-primary" />
+                        <CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
                       ) : null}
                     </button>
                   </li>

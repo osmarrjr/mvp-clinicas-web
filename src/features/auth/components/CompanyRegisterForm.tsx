@@ -21,8 +21,8 @@ import {
 import { Info } from "lucide-react";
 import { formatTaxId } from "@/lib/validators/cpfCnpj";
 
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { PlanSelectionStep } from "./PlanSelectionStep";
-import { SearchableSelect } from "./SearchableSelect";
 
 import { CLINIC_PLAN_OPTIONS } from "../constants/plans";
 import { useCompanyRegister } from "../hooks/useCompanyRegister";
