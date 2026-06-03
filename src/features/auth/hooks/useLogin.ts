@@ -23,7 +23,7 @@ export function useLogin() {
     try {
       console.log("payload", payload);
       const response = await loginClientService(payload);
-
+      console.log("response", response);
       if (!response.ok) {
         const message =
           LOGIN_ERROR_MESSAGES[response.error.code] ??

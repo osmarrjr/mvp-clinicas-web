@@ -29,7 +29,7 @@ export const Loading = ({ isOpen, message }: LoadingProps) => {
             alt="Loading"
             className="w-[265px] h-auto"
           />
-          <Loader2 className="mr-2 h-9 w-9 animate-spin" color="#1C5DB7" />
+          <Loader2 className="mr-2 animate-spin" color="#1C5DB7" />
           <p className="text-center text-sm" style={{ color: "#1C5DB7" }}>
             {message} ...<span className="animate-spin">⏳</span>
           </p>

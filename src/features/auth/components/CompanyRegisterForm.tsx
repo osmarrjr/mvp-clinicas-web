@@ -408,12 +408,11 @@ export function CompanyRegisterForm() {
           </form>
         </CardContent>
       </Card>
-
       <Loading
         isOpen={isLoadingOverlay}
         message={loadingMessage || "Carregando"}
       />
-
+      //inserir campo de senha
       <GlobalModal
         type="error"
         open={errorModalOpen}
@@ -434,7 +433,6 @@ export function CompanyRegisterForm() {
           clearCitiesError();
         }}
       />
-
       <GlobalModal
         type="success"
         open={successModalOpen}

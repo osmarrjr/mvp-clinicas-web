@@ -116,7 +116,7 @@ function LandingImage({
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 640px"
         className="object-cover"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/35 via-transparent to-transparent" />
     </div>
   );
 }
@@ -128,8 +128,12 @@ export function LandingPage() {
 
       <main>
         <section id="home" className={LANDING_HERO_CLASS}>
-          <div className={`${LANDING_GLOW_PRIMARY} -top-32 -left-32 h-96 w-96`} />
-          <div className={`${LANDING_GLOW_SECONDARY} right-0 bottom-0 h-[420px] w-[420px]`} />
+          <div
+            className={`${LANDING_GLOW_PRIMARY} -top-32 -left-32 h-96 w-96`}
+          />
+          <div
+            className={`${LANDING_GLOW_SECONDARY} right-0 bottom-0 h-[420px] w-[420px]`}
+          />
 
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-12 lg:py-28">
             <div className="text-center lg:text-left">
@@ -166,262 +170,268 @@ export function LandingPage() {
               src={LANDING_IMAGES.hero}
               alt="Painel de gestão de clínica médica com agenda, pacientes e indicadores"
               priority
-              className="mx-auto w-full lg:origin-center"
+              className="mx-auto w-[70%] lg:w-full lg:origin-center"
             />
           </div>
         </section>
 
         <div className={LANDING_SECTION_CLASS}>
-        <section id="quem-somos" className="py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Quem somos
-              </h2>
-              <p className="mt-4 text-blue-100/80">
-                Conheça a proposta por trás da nossa plataforma
-              </p>
-            </div>
+          <section id="quem-somos" className="py-20 sm:py-24">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <div className="mx-auto max-w-3xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Quem somos
+                </h2>
+                <p className="mt-4 text-blue-100/80">
+                  Conheça a proposta por trás da nossa plataforma
+                </p>
+              </div>
 
-            <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+              <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+                <LandingImage
+                  src={LANDING_IMAGES.about}
+                  alt="Equipe de saúde colaborando com tecnologia para gestão de clínicas"
+                  aspect="compact"
+                  className="mx-auto w-full max-w-[500px] lg:aspect-3/2 lg:max-w-none lg:w-full"
+                />
+
+                <div className="space-y-6 text-base leading-relaxed text-blue-50/90 sm:text-lg">
+                  <p>
+                    Nascemos com a missão de simplificar a rotina de clínicas e
+                    consultórios médicos por meio de tecnologia acessível,
+                    moderna e pensada para o dia a dia de quem cuida de pessoas.
+                  </p>
+                  <p>
+                    Acreditamos que a gestão de uma clínica deve ser tão
+                    eficiente quanto o atendimento prestado aos pacientes. Por
+                    isso, desenvolvemos uma solução completa que reúne agenda,
+                    prontuário, financeiro e indicadores em uma experiência
+                    intuitiva — do profissional autônomo à rede com múltiplas
+                    unidades.
+                  </p>
+                  <p>
+                    Nossa equipe combina expertise em saúde e engenharia de
+                    software para entregar um produto confiável, seguro e em
+                    constante evolução, sempre alinhado às necessidades reais de
+                    quem trabalha na linha de frente do cuidado.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="funcionalidades" className="py-20 sm:py-24">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <div className="mx-auto max-w-3xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Funcionalidades
+                </h2>
+                <p className="mt-4 text-blue-100/80">
+                  Tudo o que sua clínica precisa para crescer com organização e
+                  eficiência
+                </p>
+              </div>
+
               <LandingImage
-                src={LANDING_IMAGES.about}
-                alt="Equipe de saúde colaborando com tecnologia para gestão de clínicas"
-                aspect="square"
-                className="mx-auto w-full max-w-[240px] sm:max-w-[280px] lg:max-w-xs lg:justify-self-center"
+                src={LANDING_IMAGES.features}
+                alt="Funcionalidades do software: agenda, prontuário, financeiro e relatórios"
+                aspect="compact"
+                className="mx-auto mt-12 max-w-xl"
               />
 
-              <div className="space-y-6 text-base leading-relaxed text-blue-50/90 sm:text-lg">
-                <p>
-                  Nascemos com a missão de simplificar a rotina de clínicas e
-                  consultórios médicos por meio de tecnologia acessível, moderna
-                  e pensada para o dia a dia de quem cuida de pessoas.
+              <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {FEATURES.map((feature) => (
+                  <Card
+                    key={feature.title}
+                    className="border-white/15 bg-white/5 shadow-lg shadow-blue-950/20 backdrop-blur-sm"
+                  >
+                    <CardHeader className="space-y-3">
+                      <div className="flex size-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                        <feature.icon className="size-5" aria-hidden />
+                      </div>
+                      <CardTitle className="text-xl text-white">
+                        {feature.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm leading-relaxed text-blue-100/85">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section id="suporte" className="py-20 sm:py-24">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <div className="mx-auto max-w-3xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Suporte
+                </h2>
+                <p className="mt-4 text-blue-100/80">
+                  Estamos prontos para ajudar você e sua equipe
                 </p>
-                <p>
-                  Acreditamos que a gestão de uma clínica deve ser tão eficiente
-                  quanto o atendimento prestado aos pacientes. Por isso,
-                  desenvolvemos uma solução completa que reúne agenda,
-                  prontuário, financeiro e indicadores em uma experiência
-                  intuitiva — do profissional autônomo à rede com múltiplas
-                  unidades.
+              </div>
+
+              <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:items-stretch">
+                <LandingImage
+                  src={LANDING_IMAGES.support}
+                  alt="Equipe de suporte pronta para ajudar clínicas e consultórios"
+                  aspect="fill"
+                  className="sm:col-span-2 lg:col-span-1"
+                />
+
+                <Card className="h-full border-white/15 bg-white/5">
+                  <CardContent className="flex flex-col items-center gap-4 px-6 py-8 text-center">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                      <Mail className="size-5" aria-hidden />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">E-mail</p>
+                      <a
+                        href={`mailto:${SUPPORT_EMAIL}`}
+                        className="mt-1 block text-sm text-sky-200 transition hover:text-sky-100 hover:underline"
+                      >
+                        {SUPPORT_EMAIL}
+                      </a>
+                    </div>
+                    <p className="text-sm text-blue-100/75">
+                      Atendimento em horário comercial, de segunda a sexta.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="h-full border-white/15 bg-white/5">
+                  <CardContent className="flex flex-col items-center gap-4 px-6 py-8 text-center">
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
+                      <MessageCircle className="size-5" aria-hidden />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">WhatsApp</p>
+                      <a
+                        href={SUPPORT_WHATSAPP_LINK}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 block text-sm text-sky-200 transition hover:text-sky-100 hover:underline"
+                      >
+                        {SUPPORT_WHATSAPP}
+                      </a>
+                    </div>
+                    <p className="text-sm text-blue-100/75">
+                      Fale conosco para dúvidas rápidas sobre planos e
+                      funcionalidades.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="mx-auto mt-8 flex max-w-3xl items-center justify-center gap-2 text-sm text-blue-100/70">
+                <Headphones className="size-4 shrink-0" aria-hidden />
+                <span>
+                  Planos Pro incluem suporte dedicado 24/7 para operações
+                  críticas.
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <section id="planos" className="py-20 sm:py-24">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <div className="mx-auto max-w-3xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Planos
+                </h2>
+                <p className="mt-4 text-lg leading-relaxed text-blue-100/90">
+                  Gostou de algum plano? Confira abaixo uma prévia das opções e{" "}
+                  <Link
+                    href="/register"
+                    className="font-semibold text-white underline-offset-4 hover:text-sky-200 hover:underline"
+                  >
+                    cadastre sua clínica agora
+                  </Link>{" "}
+                  — leva poucos minutos para começar.
                 </p>
-                <p>
-                  Nossa equipe combina expertise em saúde e engenharia de
-                  software para entregar um produto confiável, seguro e em
-                  constante evolução, sempre alinhado às necessidades reais de
-                  quem trabalha na linha de frente do cuidado.
+              </div>
+
+              <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
+                {CLINIC_PLAN_OPTIONS.map((plan) => (
+                  <Card
+                    key={plan.id}
+                    className="flex h-full flex-col border-white/20 bg-white/10 shadow-xl shadow-blue-950/30 backdrop-blur-2xl"
+                  >
+                    <CardHeader className="space-y-2 pb-2 text-center">
+                      <CardTitle className="text-2xl font-bold capitalize text-white">
+                        {plan.name}
+                      </CardTitle>
+                      <p className="text-lg font-semibold text-sky-200">
+                        {plan.priceLabel}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="flex flex-1 flex-col px-6 pb-6">
+                      <ul className="mb-6 flex-1 space-y-2.5 text-left text-sm text-blue-50/90">
+                        {plan.features.slice(0, 4).map((feature) => (
+                          <li key={feature} className="flex gap-2">
+                            <Check
+                              className="mt-0.5 size-4 shrink-0 text-sky-300"
+                              aria-hidden
+                            />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                        {plan.features.length > 4 ? (
+                          <li className="text-xs text-blue-100/60">
+                            + {plan.features.length - 4} funcionalidades
+                          </li>
+                        ) : null}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="mt-12 flex flex-col items-center gap-4 text-center">
+                <p className="max-w-2xl text-base text-blue-100/85">
+                  Escolha o plano ideal, preencha o cadastro da sua clínica e
+                  comece a transformar a gestão do seu consultório hoje mesmo.
+                </p>
+                <Button
+                  asChild
+                  className="h-11 rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] px-8 text-base font-semibold text-white shadow-lg shadow-blue-950/40"
+                >
+                  <Link href="/register">
+                    Quero cadastrar minha clínica
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <p className="text-sm text-blue-100/70">
+                  Já possui conta?{" "}
+                  <Link
+                    href="/login"
+                    className="font-semibold text-white underline-offset-4 hover:text-sky-200 hover:underline"
+                  >
+                    Faça login
+                  </Link>
                 </p>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section id="funcionalidades" className="py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Funcionalidades
-              </h2>
-              <p className="mt-4 text-blue-100/80">
-                Tudo o que sua clínica precisa para crescer com organização e
-                eficiência
+          <footer className="py-8">
+            <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-blue-100/60 sm:flex-row sm:px-6">
+              <div className="flex items-center gap-2">
+                <FileText className="size-4" aria-hidden />
+                <span>
+                  MVP Clínicas — gestão inteligente para clínicas médicas
+                </span>
+              </div>
+              <p>
+                © {new Date().getFullYear()} MVP Clínicas. Todos os direitos
+                reservados.
               </p>
             </div>
-
-            <LandingImage
-              src={LANDING_IMAGES.features}
-              alt="Funcionalidades do software: agenda, prontuário, financeiro e relatórios"
-              aspect="compact"
-              className="mx-auto mt-12 max-w-xl"
-            />
-
-            <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((feature) => (
-                <Card
-                  key={feature.title}
-                  className="border-white/15 bg-white/5 shadow-lg shadow-blue-950/20 backdrop-blur-sm"
-                >
-                  <CardHeader className="space-y-3">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
-                      <feature.icon className="size-5" aria-hidden />
-                    </div>
-                    <CardTitle className="text-xl text-white">
-                      {feature.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm leading-relaxed text-blue-100/85">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="suporte" className="py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Suporte
-              </h2>
-              <p className="mt-4 text-blue-100/80">
-                Estamos prontos para ajudar você e sua equipe
-              </p>
-            </div>
-
-            <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:items-stretch">
-              <LandingImage
-                src={LANDING_IMAGES.support}
-                alt="Equipe de suporte pronta para ajudar clínicas e consultórios"
-                aspect="fill"
-                className="sm:col-span-2 lg:col-span-1"
-              />
-
-              <Card className="h-full border-white/15 bg-white/5">
-                <CardContent className="flex flex-col items-center gap-4 px-6 py-8 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
-                    <Mail className="size-5" aria-hidden />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">E-mail</p>
-                    <a
-                      href={`mailto:${SUPPORT_EMAIL}`}
-                      className="mt-1 block text-sm text-sky-200 transition hover:text-sky-100 hover:underline"
-                    >
-                      {SUPPORT_EMAIL}
-                    </a>
-                  </div>
-                  <p className="text-sm text-blue-100/75">
-                    Atendimento em horário comercial, de segunda a sexta.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="h-full border-white/15 bg-white/5">
-                <CardContent className="flex flex-col items-center gap-4 px-6 py-8 text-center">
-                  <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
-                    <MessageCircle className="size-5" aria-hidden />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">WhatsApp</p>
-                    <a
-                      href={SUPPORT_WHATSAPP_LINK}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 block text-sm text-sky-200 transition hover:text-sky-100 hover:underline"
-                    >
-                      {SUPPORT_WHATSAPP}
-                    </a>
-                  </div>
-                  <p className="text-sm text-blue-100/75">
-                    Fale conosco para dúvidas rápidas sobre planos e
-                    funcionalidades.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mx-auto mt-8 flex max-w-3xl items-center justify-center gap-2 text-sm text-blue-100/70">
-              <Headphones className="size-4 shrink-0" aria-hidden />
-              <span>
-                Planos Pro incluem suporte dedicado 24/7 para operações críticas.
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <section id="planos" className="py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Planos
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-blue-100/90">
-                Gostou de algum plano? Confira abaixo uma prévia das opções e{" "}
-                <Link
-                  href="/register"
-                  className="font-semibold text-white underline-offset-4 hover:text-sky-200 hover:underline"
-                >
-                  cadastre sua clínica agora
-                </Link>{" "}
-                — leva poucos minutos para começar.
-              </p>
-            </div>
-
-            <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-              {CLINIC_PLAN_OPTIONS.map((plan) => (
-                <Card
-                  key={plan.id}
-                  className="flex h-full flex-col border-white/20 bg-white/10 shadow-xl shadow-blue-950/30 backdrop-blur-2xl"
-                >
-                  <CardHeader className="space-y-2 pb-2 text-center">
-                    <CardTitle className="text-2xl font-bold capitalize text-white">
-                      {plan.name}
-                    </CardTitle>
-                    <p className="text-lg font-semibold text-sky-200">
-                      {plan.priceLabel}
-                    </p>
-                  </CardHeader>
-                  <CardContent className="flex flex-1 flex-col px-6 pb-6">
-                    <ul className="mb-6 flex-1 space-y-2.5 text-left text-sm text-blue-50/90">
-                      {plan.features.slice(0, 4).map((feature) => (
-                        <li key={feature} className="flex gap-2">
-                          <Check
-                            className="mt-0.5 size-4 shrink-0 text-sky-300"
-                            aria-hidden
-                          />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                      {plan.features.length > 4 ? (
-                        <li className="text-xs text-blue-100/60">
-                          + {plan.features.length - 4} funcionalidades
-                        </li>
-                      ) : null}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-12 flex flex-col items-center gap-4 text-center">
-              <p className="max-w-2xl text-base text-blue-100/85">
-                Escolha o plano ideal, preencha o cadastro da sua clínica e
-                comece a transformar a gestão do seu consultório hoje mesmo.
-              </p>
-              <Button
-                asChild
-                className="h-11 rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] px-8 text-base font-semibold text-white shadow-lg shadow-blue-950/40"
-              >
-                <Link href="/register">
-                  Quero cadastrar minha clínica
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-              <p className="text-sm text-blue-100/70">
-                Já possui conta?{" "}
-                <Link
-                  href="/login"
-                  className="font-semibold text-white underline-offset-4 hover:text-sky-200 hover:underline"
-                >
-                  Faça login
-                </Link>
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <footer className="py-8">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-blue-100/60 sm:flex-row sm:px-6">
-            <div className="flex items-center gap-2">
-              <FileText className="size-4" aria-hidden />
-              <span>MVP Clínicas — gestão inteligente para clínicas médicas</span>
-            </div>
-            <p>© {new Date().getFullYear()} MVP Clínicas. Todos os direitos reservados.</p>
-          </div>
-        </footer>
+          </footer>
         </div>
       </main>
     </div>

@@ -11,7 +11,7 @@ export async function loginClientService(
     },
     body: JSON.stringify(payload),
   });
-
+  console.log("response", response);
   const body = (await response.json()) as LoginServerResponse;
 
   if (!response.ok || !body.ok) {
