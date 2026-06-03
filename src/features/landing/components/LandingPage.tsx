@@ -18,6 +18,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CLINIC_PLAN_OPTIONS } from "@/features/auth/constants/plans";
+import {
+  LANDING_GLOW_PRIMARY,
+  LANDING_GLOW_SECONDARY,
+  LANDING_HERO_CLASS,
+  LANDING_PAGE_CLASS,
+  LANDING_SECTION_CLASS,
+} from "@/features/landing/constants/theme";
 
 import { LandingHeader } from "./LandingHeader";
 
@@ -116,16 +123,13 @@ function LandingImage({
 
 export function LandingPage() {
   return (
-    <div className="scroll-smooth bg-slate-950 text-white">
+    <div className={LANDING_PAGE_CLASS}>
       <LandingHeader />
 
       <main>
-        <section
-          id="home"
-          className="relative overflow-hidden bg-[radial-gradient(circle_at_top,#1d4ed8_0%,#0f172a_35%,#1e3a8a_65%,#60a5fa_100%)]"
-        >
-          <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-500/30 blur-3xl" />
-          <div className="pointer-events-none absolute right-0 bottom-0 h-[420px] w-[420px] rounded-full bg-sky-300/30 blur-3xl" />
+        <section id="home" className={LANDING_HERO_CLASS}>
+          <div className={`${LANDING_GLOW_PRIMARY} -top-32 -left-32 h-96 w-96`} />
+          <div className={`${LANDING_GLOW_SECONDARY} right-0 bottom-0 h-[420px] w-[420px]`} />
 
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-12 lg:py-28">
             <div className="text-center lg:text-left">
@@ -167,10 +171,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section
-          id="quem-somos"
-          className="border-t border-white/10 bg-slate-950 py-20 sm:py-24"
-        >
+        <div className={LANDING_SECTION_CLASS}>
+        <section id="quem-somos" className="py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -214,10 +216,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section
-          id="funcionalidades"
-          className="border-t border-white/10 bg-slate-900/60 py-20 sm:py-24"
-        >
+        <section id="funcionalidades" className="py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -261,10 +260,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section
-          id="suporte"
-          className="border-t border-white/10 bg-slate-950 py-20 sm:py-24"
-        >
+        <section id="suporte" className="py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -336,10 +332,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section
-          id="planos"
-          className="border-t border-white/10 bg-[radial-gradient(circle_at_bottom,#1d4ed8_0%,#0f172a_40%,#1e3a8a_100%)] py-20 sm:py-24"
-        >
+        <section id="planos" className="py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -419,17 +412,18 @@ export function LandingPage() {
             </div>
           </div>
         </section>
-      </main>
 
-      <footer className="border-t border-white/10 bg-slate-950 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-blue-100/60 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2">
-            <FileText className="size-4" aria-hidden />
-            <span>MVP Clínicas — gestão inteligente para clínicas médicas</span>
+        <footer className="py-8">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-blue-100/60 sm:flex-row sm:px-6">
+            <div className="flex items-center gap-2">
+              <FileText className="size-4" aria-hidden />
+              <span>MVP Clínicas — gestão inteligente para clínicas médicas</span>
+            </div>
+            <p>© {new Date().getFullYear()} MVP Clínicas. Todos os direitos reservados.</p>
           </div>
-          <p>© {new Date().getFullYear()} MVP Clínicas. Todos os direitos reservados.</p>
+        </footer>
         </div>
-      </footer>
+      </main>
     </div>
   );
 }

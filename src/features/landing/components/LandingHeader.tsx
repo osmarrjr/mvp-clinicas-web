@@ -4,6 +4,11 @@ import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import {
+  LANDING_HEADER_CLASS,
+  LANDING_SHEET_CLASS,
+} from "@/features/landing/constants/theme";
+
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -25,7 +30,7 @@ export function LandingHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
+    <header className={LANDING_HEADER_CLASS}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="#home" className="shrink-0">
           <img
@@ -64,10 +69,7 @@ export function LandingHeader() {
               </Button>
             </SheetTrigger>
 
-            <SheetContent
-              side="right"
-              className="w-1/2! max-w-[240px]! border-white/10 bg-[#1e3a8a]/65 px-2 py-4 text-white backdrop-blur-xl"
-            >
+            <SheetContent side="right" className={LANDING_SHEET_CLASS}>
               <SheetHeader className="space-y-0">
                 <SheetTitle className="text-left text-base font-semibold text-white">
                   Menu
