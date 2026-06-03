@@ -95,6 +95,10 @@ function setupIbgeMock(overrides?: Partial<ReturnType<typeof useIbgeLocations>>)
   });
 }
 
+async function goToFormStep(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: /selecionar basic/i }));
+}
+
 describe("CompanyRegisterForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -102,26 +106,42 @@ describe("CompanyRegisterForm", () => {
     setupCompanyRegisterMock();
   });
 
-  it("renderiza campos principais do cadastro", () => {
+  it("exibe seleção de planos antes do formulário", () => {
     render(<CompanyRegisterForm />);
+
+    expect(screen.getByText(/escolha seu plano/i)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /selecionar pro/i })).toBeTruthy();
+    expect(screen.queryByLabelText(/nome da empresa/i)).toBeNull();
+    expect(screen.queryByText(/^plano$/i)).toBeNull();
+  });
+
+  it("renderiza campos do cadastro após selecionar plano", async () => {
+    const user = userEvent.setup();
+    render(<CompanyRegisterForm />);
+
+    await goToFormStep(user);
 
     expect(screen.getByLabelText(/nome da empresa/i)).toBeTruthy();
     expect(screen.getByLabelText(/cpf ou cnpj/i)).toBeTruthy();
     expect(screen.getByText(/^estado$/i)).toBeTruthy();
     expect(screen.getByText(/^cidade$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
-    expect(screen.getByText(/^plano$/i)).toBeTruthy();
+    expect(screen.getByText(/plano selecionado/i)).toBeTruthy();
+    expect(screen.getByText(/basic — r\$ 35,00\/mês/i)).toBeTruthy();
+    expect(screen.queryByText(/^plano$/i)).toBeNull();
     expect(
       screen.getByRole("button", { name: /cadastrar empresa/i }),
     ).toHaveProperty("disabled", true);
   });
 
-  it("exibe modal de erro da API", () => {
+  it("exibe modal de erro da API", async () => {
     setupCompanyRegisterMock({
       errorMessage: "Já existe um cadastro com este email.",
     });
 
+    const user = userEvent.setup();
     render(<CompanyRegisterForm />);
+    await goToFormStep(user);
 
     expect(
       screen.getByText("Já existe um cadastro com este email."),
@@ -133,6 +153,7 @@ describe("CompanyRegisterForm", () => {
 
     const user = userEvent.setup();
     render(<CompanyRegisterForm />);
+    await goToFormStep(user);
 
     expect(screen.getByText(/cadastro realizado com sucesso/i)).toBeTruthy();
 
@@ -141,11 +162,24 @@ describe("CompanyRegisterForm", () => {
     expect(pushMock).toHaveBeenCalledWith("/login");
   });
 
-  it("exibe loading ao carregar estados", () => {
+  it("exibe loading ao carregar estados", async () => {
     setupIbgeMock({ isLoadingStates: true });
 
+    const user = userEvent.setup();
     render(<CompanyRegisterForm />);
+    await goToFormStep(user);
 
     expect(screen.getByText("Carregando estados")).toBeTruthy();
+  });
+
+  it("volta para seleção de planos ao clicar em alterar", async () => {
+    const user = userEvent.setup();
+    render(<CompanyRegisterForm />);
+
+    await goToFormStep(user);
+    await user.click(screen.getByRole("button", { name: /alterar/i }));
+
+    expect(screen.getByText(/escolha seu plano/i)).toBeTruthy();
+    expect(screen.queryByLabelText(/nome da empresa/i)).toBeNull();
   });
 });

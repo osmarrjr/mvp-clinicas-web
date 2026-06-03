@@ -21,21 +21,26 @@ import {
 import { Info } from "lucide-react";
 import { formatTaxId } from "@/lib/validators/cpfCnpj";
 
+import { PlanSelectionStep } from "./PlanSelectionStep";
 import { SearchableSelect } from "./SearchableSelect";
 
-import { CLINIC_PLANS } from "../constants/plans";
+import { CLINIC_PLAN_OPTIONS } from "../constants/plans";
 import { useCompanyRegister } from "../hooks/useCompanyRegister";
 import { useIbgeLocations } from "../hooks/useIbgeLocations";
 import {
   companyRegisterSchema,
   type CompanyRegisterFormValues,
 } from "../schemas/companyRegisterSchema";
+import type { ClinicPlan } from "../types";
 
 const inputClassName =
   "h-12 w-full rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 md:text-sm";
 
+type RegisterStep = "plan" | "form";
+
 export function CompanyRegisterForm() {
   const router = useRouter();
+  const [step, setStep] = useState<RegisterStep>("plan");
   const {
     register: submitRegister,
     isPending,
@@ -62,6 +67,13 @@ export function CompanyRegisterForm() {
     },
   });
 
+  const selectedPlan = form.watch("plan");
+
+  const selectedPlanDetails = useMemo(
+    () => CLINIC_PLAN_OPTIONS.find((plan) => plan.id === selectedPlan),
+    [selectedPlan],
+  );
+
   const stateUf = form.watch("stateUf");
   const {
     states,
@@ -81,7 +93,7 @@ export function CompanyRegisterForm() {
     return "";
   }, [isPending, isLoadingCities, isLoadingStates]);
 
-  const isLoadingOverlay = Boolean(loadingMessage);
+  const isLoadingOverlay = step === "form" && Boolean(loadingMessage);
 
   useEffect(() => {
     if (statesError) {
@@ -109,6 +121,15 @@ export function CompanyRegisterForm() {
       setSuccessModalOpen(true);
     }
   }, [isSuccess]);
+
+  function handleSelectPlan(plan: ClinicPlan) {
+    form.setValue("plan", plan, { shouldValidate: true, shouldDirty: true });
+    setStep("form");
+  }
+
+  function handleChangePlan() {
+    setStep("plan");
+  }
 
   function handleStateChange(value: string) {
     form.setValue("stateUf", value, { shouldValidate: true });
@@ -155,14 +176,9 @@ export function CompanyRegisterForm() {
     [cities],
   );
 
-  const planOptions = useMemo(
-    () =>
-      CLINIC_PLANS.map((plan) => ({
-        value: plan.value,
-        label: plan.label,
-      })),
-    [],
-  );
+  if (step === "plan") {
+    return <PlanSelectionStep onSelectPlan={handleSelectPlan} />;
+  }
 
   return (
     <>
@@ -186,11 +202,37 @@ export function CompanyRegisterForm() {
         </CardHeader>
 
         <CardContent className="px-7 pb-8">
+          {selectedPlanDetails ? (
+            <div className="mb-5 rounded-2xl border border-white/20 bg-white/10 px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-blue-100/70">
+                    Plano selecionado
+                  </p>
+                  <p className="text-base font-semibold text-white">
+                    {selectedPlanDetails.name} —{" "}
+                    {selectedPlanDetails.priceLabel}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-auto shrink-0 px-2 py-1 text-xs text-sky-200 hover:bg-white/10 hover:text-white"
+                  onClick={handleChangePlan}
+                >
+                  Alterar
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           <form
             className="space-y-4"
             onSubmit={form.handleSubmit(onSubmit)}
             noValidate
           >
+            <input type="hidden" {...form.register("plan")} />
+
             <div className="space-y-2">
               <Label
                 htmlFor="companyName"
@@ -342,29 +384,6 @@ export function CompanyRegisterForm() {
               {form.formState.errors.email?.message ? (
                 <p className="text-sm font-medium text-red-200" role="alert">
                   {form.formState.errors.email.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-blue-50">Plano</Label>
-              <Controller
-                name="plan"
-                control={form.control}
-                render={({ field }) => (
-                  <SearchableSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    options={planOptions}
-                    placeholder="Selecione o plano"
-                    searchPlaceholder="Buscar plano..."
-                    aria-invalid={Boolean(form.formState.errors.plan)}
-                  />
-                )}
-              />
-              {form.formState.errors.plan?.message ? (
-                <p className="text-sm font-medium text-red-200" role="alert">
-                  {form.formState.errors.plan.message}
                 </p>
               ) : null}
             </div>

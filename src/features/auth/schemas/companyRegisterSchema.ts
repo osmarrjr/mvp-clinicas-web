@@ -118,7 +118,7 @@ export const companyRegisterSchema = z.object({
 
   email: z.string().min(1, "Email é obrigatório.").email("Email inválido."),
 
-  plan: z.enum(["basic", "assistant", "pro"], {
+  plan: z.enum(["basic", "medium", "pro"], {
     error: "Plano é obrigatório.",
   }),
 });

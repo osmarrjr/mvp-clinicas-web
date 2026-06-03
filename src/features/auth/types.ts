@@ -1,4 +1,4 @@
-export type ClinicPlan = "basic" | "assistant" | "pro";
+export type ClinicPlan = "basic" | "medium" | "pro";
 
 export interface RegisterClinicDto {
   clinicName: string;
