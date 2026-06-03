@@ -161,20 +161,43 @@ export interface EffectivePermissions {
 
 ### POST /auth/register-admin
 
-Cria o dono da clínica (`clinic_admin`) e a clínica no onboarding inicial.
+Cria a clínica no onboarding inicial (cadastro de empresa).
 
 **Request:**
 ```typescript
+interface RegisterClinicDto {
+  clinicName: string;       // mínimo 3 caracteres na UI
+  taxId: string;            // apenas dígitos — 11 (CPF) ou 14 (CNPJ)
+  taxIdType: 'cpf' | 'cnpj';
+  stateUf: string;          // sigla IBGE, ex.: 'SP'
+  city: string;             // nome do município
+  cityIbgeId?: number;      // id do município (opcional)
+  email: string;
+  plan: 'basic' | 'assistant' | 'pro';
+}
+```
+
+**Response (201):**
+```typescript
+{ ok: true, data: { clinicId: string } }
+```
+
+> O frontend consome este endpoint via `POST /api/auth/register` (Route Handler), sem gravar cookies nem expor token ao client.
+
+---
+
+### POST /auth/register-admin (legado — admin com senha)
+
+> Contrato anterior para criação simultânea de admin + clínica. Mantido para referência de integrações legadas.
+
+```typescript
 interface RegisterAdminDto {
-  // Dados da clínica
-  clinicName: string;          // mínimo 2 caracteres
-  // Dados do usuário admin
+  clinicName: string;
   name: string;
   email: string;
-  password: string;            // mínimo 8 caracteres
+  password: string;
   phone?: string;
   sex?: Sex;
-  // Dados profissionais (opcional para admin)
   council?: string;
   councilNumber?: string;
   councilUf?: string;

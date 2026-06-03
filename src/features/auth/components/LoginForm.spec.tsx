@@ -55,7 +55,8 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
 
     expect(screen.getByText(/ainda não possui cadastro/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /clique aqui/i })).toBeTruthy();
+    const registerLink = screen.getByRole("link", { name: /clique aqui/i });
+    expect(registerLink.getAttribute("href")).toBe("/register");
   });
 
   it("mantém o botão desabilitado quando o formulário está vazio", () => {

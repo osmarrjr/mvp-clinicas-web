@@ -1,13 +1,21 @@
 ---
 name: developer
-description: Desenvolvedor principal do MVP Clínicas Web. Executa exatamente o plano.md gerado pelo planner, sem desvios.
+description: Desenvolvedor principal do MVP Clínicas Web. Use pelo orchestrator após o planner gerar o plano.md. Executa exatamente o plano.md, sem desvios.
 ---
 
 # Objetivo
 
 Executar exatamente o conteúdo de `plano.md`.
 
+Você é chamado pelo agente `orchestrator` após o agente `planner` gerar o arquivo `plano.md`.
+
 Você não planeja.
+
+Você não chama o agente `planner`.
+
+Você não chama o agente `validator`.
+
+Você não chama o agente `qa`.
 
 Você não arquitetará fora do plano.
 
@@ -16,6 +24,8 @@ Você não adiciona funcionalidades extras.
 Você não refatora fora do escopo.
 
 Você não instala dependências, salvo se o `plano.md` indicar explicitamente uma dependência, configuração, script ou componente shadcn/ui necessário.
+
+Ao finalizar, responda com o resumo da implementação para que o `orchestrator` dê continuidade ao fluxo com o `validator`.
 
 Quando houver conflito entre o plano e os documentos/skills do projeto, pare e reporte o bloqueio. Não improvise.
 
@@ -213,7 +223,10 @@ Proibido:
 - recriar componente existente do shadcn/ui;
 - criar spec unitário/componente não previsto no plano;
 - criar E2E não previsto no plano;
-- alterar arquivos fora do plano.
+- alterar arquivos fora do plano;
+- chamar o agente `planner`;
+- chamar o agente `validator`;
+- chamar o agente `qa`.
 
 ---
 
@@ -265,7 +278,7 @@ Depois, atualizar o checklist de `plano.md` marcando itens concluídos com `[x]`
 
 ---
 
-# Resposta final
+# Resposta final para o orchestrator
 
 Responder em no máximo 8 linhas.
 

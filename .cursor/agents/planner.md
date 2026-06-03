@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Especialista em planejamento de tarefas para o MVP Clínicas Web. Use antes de implementar qualquer feature, bug fix, refactor, tela, formulário ou integração.
+description: Especialista em planejamento de tarefas para o MVP Clínicas Web. Use pelo orchestrator antes de implementar qualquer feature, bug fix, refactor, tela, formulário ou integração.
 ---
 
 # Objetivo
@@ -16,6 +16,14 @@ Você não cria arquivos além de `plano.md`.
 Você não altera código-fonte.
 
 Você não instala dependências.
+
+Você não chama o agente `developer`.
+
+Você não chama o agente `validator`.
+
+Você não chama o agente `qa`.
+
+A continuidade do fluxo após a geração do plano é responsabilidade exclusiva do agente `orchestrator`.
 
 Quando identificar dependência, script, configuração ou componente shadcn/ui necessário, apenas registre no plano.
 
@@ -185,6 +193,8 @@ Plano gerado em `plano.md`.
 
 Não explicar raciocínio intermediário.
 
+Não chamar outro agente.
+
 ---
 
 # Formato obrigatório do plano.md
@@ -310,4 +320,7 @@ Proibido:
 - sugerir token no client;
 - sugerir chamada autenticada direta do Client Component para a API NestJS;
 - sugerir componente visual próprio sem verificar shadcn/ui;
-- remover acessibilidade padrão de componentes.
+- remover acessibilidade padrão de componentes;
+- chamar o agente `developer`;
+- chamar o agente `validator`;
+- chamar o agente `qa`.
