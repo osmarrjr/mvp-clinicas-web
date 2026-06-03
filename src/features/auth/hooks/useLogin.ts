@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import type { LoginFormValues } from '../schemas/loginSchema';
-import { loginClientService } from '../services/authClientService';
+import type { LoginFormValues } from "../schemas/loginSchema";
+import { loginClientService } from "../services/authClientService";
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  INVALID_CREDENTIALS: 'Email ou senha incorretos.',
-  INTERNAL_ERROR: 'Ocorreu um erro inesperado. Tente novamente.',
+  INVALID_CREDENTIALS: "Email ou senha incorretos.",
+  INTERNAL_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
 };
 
 export function useLogin() {
@@ -20,19 +20,30 @@ export function useLogin() {
     setIsSuccess(false);
     setErrorMessage(null);
 
-    const response = await loginClientService(payload);
+    try {
+      const response = await loginClientService(payload);
 
-    if (!response.ok) {
-      setErrorMessage(
-        LOGIN_ERROR_MESSAGES[response.error.code] ?? LOGIN_ERROR_MESSAGES.INTERNAL_ERROR,
-      );
+      if (!response.ok) {
+        const message =
+          LOGIN_ERROR_MESSAGES[response.error.code] ??
+          LOGIN_ERROR_MESSAGES.INTERNAL_ERROR;
+
+        setErrorMessage(message);
+        return null;
+      }
+
+      setIsSuccess(true);
+      return response.data;
+    } catch {
+      setErrorMessage(LOGIN_ERROR_MESSAGES.INTERNAL_ERROR);
+      return null;
+    } finally {
       setIsPending(false);
-      throw new Error(response.error.code);
     }
+  }
 
-    setIsSuccess(true);
-    setIsPending(false);
-    return response.data;
+  function clearError() {
+    setErrorMessage(null);
   }
 
   return {
@@ -40,5 +51,6 @@ export function useLogin() {
     isPending,
     isSuccess,
     errorMessage,
+    clearError,
   };
 }
