@@ -135,8 +135,10 @@ Antes de criar o Pull Request:
 2. Confirmar que a branch atual não é `main`.
 3. Verificar se há alterações locais não commitadas.
 4. Se houver alterações locais não commitadas, parar e reportar bloqueio.
-5. Fazer push da branch atual para o repositório remoto.
-6. Criar Pull Request com base `main` e head na branch atual.
+5. Confirmar que a GitHub CLI (`gh`) está no PATH e autenticada.
+6. Fazer push da branch atual para o repositório remoto.
+7. Confirmar que existem commits entre `origin/main` e a branch atual.
+8. Criar Pull Request com base `main` e head na branch atual.
 
 Comandos recomendados:
 
@@ -153,7 +155,20 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+if ! command -v gh >/dev/null 2>&1; then
+  echo "GitHub CLI (gh) não encontrada no PATH."
+  exit 1
+fi
+
+gh auth status || exit 1
+
+git fetch origin main
 git push -u origin "$BRANCH_ATUAL"
+
+if [ "$(git rev-list --count origin/main..HEAD)" -eq 0 ]; then
+  echo "Não há commits entre origin/main e a branch atual. PR não necessário ou branch desatualizada."
+  exit 1
+fi
 
 gh pr create \
   --base main \
@@ -162,7 +177,17 @@ gh pr create \
   --body "Implementação concluída pelo fluxo orchestrator → planner → developer → validator → qa."
 ```
 
+**Shell no Windows (Git Bash / Cursor):** se `gh` não for encontrado em shell não interativo, o PATH pode não ter sido recarregado. Valide com shell de login:
+
+```bash
+bash -l -c 'command -v gh && gh auth status'
+```
+
+Se funcionar apenas no shell de login, execute os comandos de PR dentro de `bash -l -c '...'` ou reinicie o terminal após adicionar `C:\Program Files\GitHub CLI` ao PATH do sistema.
+
 Se o comando `gh pr create` falhar porque a GitHub CLI não está instalada, autenticada ou configurada, parar e reportar o bloqueio.
+
+Se retornar `No commits between main and <branch>`, a branch já foi integrada na `main` ou está atrás dela — não criar PR duplicado; sincronize a `main` e abra nova feature branch para o próximo trabalho.
 
 Formato de bloqueio:
 
