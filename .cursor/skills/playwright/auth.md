@@ -17,7 +17,27 @@ Padronizar fluxos E2E autenticados usando `storageState`, preservando a arquitet
 
 ---
 
-## Variáveis necessárias
+## UI de login (implementada)
+
+A tela de login usa `LoginForm` em `src/features/auth/components/LoginForm.tsx`:
+
+- labels acessíveis: "Email" e "Senha";
+- botão submit: texto "Login" (desabilitado quando formulário inválido);
+- overlay `Loading` com mensagem "Carregando" durante submit;
+- erro de credenciais exibido via `Alert`.
+
+Seletores recomendados nos testes E2E:
+
+```ts
+page.getByLabel(/^email$/i)
+page.getByLabel(/^senha$/i)
+page.getByRole('button', { name: /^login$/i })
+page.getByText(/email ou senha incorretos/i)  // INVALID_CREDENTIALS
+```
+
+Referência de implementação: `.cursor/skills/react/auth.md`.
+
+---
 
 Para fluxos autenticados, configurar no `.env.local`:
 
@@ -42,10 +62,11 @@ const AUTH_FILE = path.join(__dirname, '../.playwright/auth.json');
 setup('autenticar usuário de QA', async ({ page }) => {
   await page.goto('/login');
 
-  await page.getByLabel(/email/i).fill(process.env.QA_EMAIL!);
-  await page.getByLabel(/senha/i).fill(process.env.QA_PASSWORD!);
-  await page.getByRole('button', { name: /entrar|login/i }).click();
+  await page.getByLabel(/^email$/i).fill(process.env.QA_EMAIL!);
+  await page.getByLabel(/^senha$/i).fill(process.env.QA_PASSWORD!);
+  await page.getByRole('button', { name: /^login$/i }).click();
 
+  // LoginForm exibe overlay Loading durante submit — aguardar redirecionamento
   await page.waitForURL(/\/dashboard/);
   await expect(page).toHaveURL(/\/dashboard/);
 

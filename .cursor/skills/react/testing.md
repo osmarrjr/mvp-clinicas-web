@@ -106,7 +106,20 @@ Todo componente que carrega dados deve ter teste, quando aplicável, para:
 
 ---
 
-## Teste primeiro
+## Referências de spec no projeto
+
+```txt
+src/features/auth/schemas/loginSchema.spec.ts   → validação Zod
+src/features/auth/components/LoginForm.spec.tsx → formulário + mock de hook/service
+```
+
+Padrão do `LoginForm.spec.tsx`:
+
+- mock de hook de domínio (`useLogin`);
+- mock de componentes compartilhados pesados (`Loading`);
+- testes por comportamento visível (labels, botão desabilitado, mensagens de erro, submit).
+
+---
 
 Ao seguir plano de implementação:
 

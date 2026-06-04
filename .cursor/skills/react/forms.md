@@ -122,6 +122,17 @@ Durante envio:
 - impedir envio duplicado;
 - exibir erro amigável em caso de falha.
 
+Para operações assíncronas com overlay global, usar `Loading` de `@/components/Loader/loaderView`:
+
+```tsx
+import { Loading } from '@/components/Loader/loaderView';
+
+// ...
+<Loading isOpen={isPending} message="Carregando" />
+```
+
+Referência: `src/features/auth/components/LoginForm.tsx`.
+
 ---
 
 ## O que evitar
@@ -148,3 +159,18 @@ Durante envio:
 - [ ] Submit trata erro.
 - [ ] Não há validação duplicada no componente.
 - [ ] Não usa `any`.
+
+---
+
+## Referência — LoginForm
+
+Implementação de referência em `src/features/auth/components/LoginForm.tsx`:
+
+- schema em `loginSchema.ts`;
+- hook `useLogin` delega chamada ao service;
+- validação com `mode: "onChange"` e botão desabilitado quando inválido;
+- erros de campo com `role="alert"`;
+- erro de API via `Alert`;
+- overlay `Loading` durante `isPending`.
+
+Spec de referência: `LoginForm.spec.tsx` (mock de hook e de `Loading`).

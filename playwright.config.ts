@@ -3,10 +3,10 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const AUTH_FILE = path.join(__dirname, '.playwright/auth.json');
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3001';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './e2e',

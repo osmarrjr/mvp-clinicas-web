@@ -38,7 +38,7 @@ O alias padrão `@/*` será mantido.
 ## Instalar dependências do projeto
 
 ```bash
-npm install @tanstack/react-query react-hook-form zod @hookform/resolvers
+npm install @tanstack/react-query @tanstack/react-table react-hook-form zod @hookform/resolvers
 npm install clsx tailwind-merge lucide-react
 npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event @vitest/ui
 npm install -D @playwright/test
@@ -65,6 +65,7 @@ Copie `.env.example` para `.env.local` e preencha:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000
+API_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
@@ -207,6 +208,15 @@ Prettier está instalado como devDependency; não há script `format` no `packag
 ## Estrutura esperada
 
 A estrutura de código nasce conforme as features forem implementadas pelos agentes.
+
+Componentes compartilhados já disponíveis:
+
+```txt
+src/components/GlobalModal/   → modal de confirmação/feedback
+src/components/Loader/        → overlay Loading
+src/components/Table/         → DataTable (TanStack Table)
+src/features/auth/            → login (referência de auth)
+```
 
 ```txt
 docs/

@@ -177,7 +177,18 @@ Exemplos:
 components/ui/
 components/layout/
 components/shared/
+components/GlobalModal/
+components/Loader/
+components/Table/
 ```
+
+Componentes compostos disponíveis:
+
+- `GlobalModal` — modal de confirmação/feedback (`warning`, `error`, `success`, `none`);
+- `Loading` — overlay de carregamento com logo e spinner;
+- `DataTable` — tabela com TanStack Table (sort, paginação manual, seleção, sub-rows).
+
+Referência de uso: `.cursor/skills/design-system/SKILL.md`.
 
 Não colocar componentes específicos de domínio.
 
