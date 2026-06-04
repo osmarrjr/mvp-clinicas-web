@@ -40,20 +40,29 @@ export function LandingHeader() {
           />
         </Link>
 
-        <nav
-          aria-label="Navegação principal"
-          className="hidden items-center gap-1 md:flex"
-        >
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-blue-100/90 transition hover:bg-white/10 hover:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="hidden items-center gap-2 md:flex">
+          <nav
+            aria-label="Navegação principal"
+            className="flex items-center gap-1"
+          >
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-blue-100/90 transition hover:bg-white/10 hover:text-white"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <Button
+            asChild
+            className="ml-2 h-10 rounded-2xl bg-white px-5 text-sm font-semibold text-blue-950 shadow-md transition hover:bg-blue-50"
+          >
+            <Link href="/login">Sou cliente</Link>
+          </Button>
+        </div>
 
         <div className="flex items-center md:hidden">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -76,7 +85,10 @@ export function LandingHeader() {
                 </SheetTitle>
               </SheetHeader>
 
-              <nav aria-label="Navegação mobile" className="mt-2 flex flex-col">
+              <nav
+                aria-label="Navegação mobile"
+                className="mt-4 flex flex-col gap-1"
+              >
                 {NAV_ITEMS.map((item) => (
                   <Link
                     key={item.href}
@@ -87,6 +99,15 @@ export function LandingHeader() {
                     {item.label}
                   </Link>
                 ))}
+
+                <Button
+                  asChild
+                  className="mt-4 h-10 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-blue-950 shadow-md transition hover:bg-blue-50"
+                >
+                  <Link href="/login" onClick={() => setMobileOpen(false)}>
+                    Sou cliente
+                  </Link>
+                </Button>
               </nav>
             </SheetContent>
           </Sheet>
