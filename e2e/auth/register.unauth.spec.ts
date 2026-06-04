@@ -28,6 +28,11 @@ async function pickSearchableOption(
   await page.getByRole("option", { name: optionName }).click();
 }
 
+async function goToRegisterForm(page: import("@playwright/test").Page) {
+  await page.getByRole("button", { name: "Selecionar Basic" }).click();
+  await expect(page.getByText("Cadastro de empresa")).toBeVisible();
+}
+
 test.describe("Cadastro de empresa", () => {
   test.beforeEach(async ({ page }) => {
     await page.route(
@@ -59,8 +64,10 @@ test.describe("Cadastro de empresa", () => {
     await page.goto("/register");
 
     await expect(
-      page.getByRole("heading", { name: "Cadastro de empresa" }),
+      page.getByRole("heading", { name: "Escolha seu plano" }),
     ).toBeVisible();
+
+    await goToRegisterForm(page);
 
     await expect(
       page.getByRole("button", { name: "Cadastrar empresa" }),
@@ -74,7 +81,7 @@ test.describe("Cadastro de empresa", () => {
 
     await expect(page).toHaveURL(/\/register$/);
     await expect(
-      page.getByRole("heading", { name: "Cadastro de empresa" }),
+      page.getByRole("heading", { name: "Escolha seu plano" }),
     ).toBeVisible();
   });
 
@@ -91,10 +98,12 @@ test.describe("Cadastro de empresa", () => {
     });
 
     await page.goto("/register");
+    await goToRegisterForm(page);
 
     await page.getByLabel("Nome da empresa").fill("Clínica Exemplo");
     await page.getByLabel("CPF ou CNPJ").fill("52998224725");
     await page.getByLabel("Email").fill("contato@clinica.com");
+    await page.getByRole("textbox", { name: "Senha" }).fill("Senha@123");
 
     await pickSearchableOption(
       page,
@@ -107,12 +116,6 @@ test.describe("Cadastro de empresa", () => {
       "Selecione a cidade",
       "Buscar cidade...",
       "São Paulo",
-    );
-    await pickSearchableOption(
-      page,
-      "Selecione o plano",
-      "Buscar plano...",
-      /Plano basic/i,
     );
 
     await expect(
@@ -146,10 +149,12 @@ test.describe("Cadastro de empresa", () => {
     });
 
     await page.goto("/register");
+    await goToRegisterForm(page);
 
     await page.getByLabel("Nome da empresa").fill("Clínica Exemplo");
     await page.getByLabel("CPF ou CNPJ").fill("52998224725");
     await page.getByLabel("Email").fill("contato@clinica.com");
+    await page.getByRole("textbox", { name: "Senha" }).fill("Senha@123");
 
     await pickSearchableOption(
       page,
@@ -162,12 +167,6 @@ test.describe("Cadastro de empresa", () => {
       "Selecione a cidade",
       "Buscar cidade...",
       "São Paulo",
-    );
-    await pickSearchableOption(
-      page,
-      "Selecione o plano",
-      "Buscar plano...",
-      /Plano basic/i,
     );
 
     await page.getByRole("button", { name: "Cadastrar empresa" }).click();

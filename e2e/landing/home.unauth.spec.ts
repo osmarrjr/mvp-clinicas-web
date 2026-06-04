@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+test.use({
+  storageState: { cookies: [], origins: [] },
+});
+
 test.describe("Landing page", () => {
   test("exibe seções principais e permite ir para cadastro", async ({
     page,
@@ -21,7 +25,9 @@ test.describe("Landing page", () => {
       page.getByRole("navigation", { name: "Navegação principal" }),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: /cadastrar minha clínica/i }).click();
+    await page
+      .getByRole("link", { name: "Cadastrar minha clínica", exact: true })
+      .click();
     await expect(page).toHaveURL(/\/register$/);
   });
 });

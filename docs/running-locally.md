@@ -69,10 +69,27 @@ API_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
+# Mock de autenticação (somente desenvolvimento/QA — nunca em produção)
+AUTH_MOCK_ENABLED=true
+
 QA_EMAIL=
 QA_PASSWORD=
 PLAYWRIGHT_BASE_URL=http://localhost:3001
 ```
+
+### Mock de autenticação (`AUTH_MOCK_ENABLED`)
+
+Com `AUTH_MOCK_ENABLED=true` no `.env.local`, o Route Handler `POST /api/auth/login` tenta a API NestJS normalmente. Se a chamada falhar (credenciais inválidas, API indisponível ou `API_URL` ausente), o servidor grava cookies mock (`accessToken` / `refreshToken`) e responde `{ ok: true, data: { user } }` — permitindo entrar na área autenticada sem backend integrado.
+
+Fluxo resumido:
+
+```txt
+LoginForm → POST /api/auth/login → loginServerService (NestJS)
+  → sucesso: cookies reais da API
+  → falha + AUTH_MOCK_ENABLED=true: cookies mock + redirecionamento para /dashboard
+```
+
+`QA_EMAIL` e `QA_PASSWORD` são opcionais com mock ativo (qualquer email/senha válidos no formulário funcionam nos E2E). Use credenciais reais apenas quando testar contra API integrada com `AUTH_MOCK_ENABLED=false`.
 
 Nunca commitar `.env.local`.
 

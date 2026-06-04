@@ -177,4 +177,12 @@ describe("LoginForm", () => {
     expect(submitButton).toHaveProperty("disabled", true);
     expect(screen.getByText("Carregando")).toBeTruthy();
   });
+
+  it("renderiza título Bem-vindo", () => {
+    setupUseLoginMock();
+
+    render(<LoginForm />);
+
+    expect(screen.getByText("Bem-vindo")).toBeTruthy();
+  });
 });

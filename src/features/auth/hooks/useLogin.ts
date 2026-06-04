@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { LoginFormValues } from "../schemas/loginSchema";
 import { loginClientService } from "../services/authClientService";
@@ -11,6 +12,7 @@ const LOGIN_ERROR_MESSAGES: Record<string, string> = {
 };
 
 export function useLogin() {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -21,9 +23,8 @@ export function useLogin() {
     setErrorMessage(null);
 
     try {
-      console.log("payload", payload);
       const response = await loginClientService(payload);
-      console.log("response", response);
+
       if (!response.ok) {
         const message =
           LOGIN_ERROR_MESSAGES[response.error.code] ??
@@ -34,6 +35,8 @@ export function useLogin() {
       }
 
       setIsSuccess(true);
+      router.push("/dashboard");
+      router.refresh();
       return response.data;
     } catch {
       setErrorMessage(LOGIN_ERROR_MESSAGES.INTERNAL_ERROR);

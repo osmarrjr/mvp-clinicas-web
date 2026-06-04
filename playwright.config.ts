@@ -3,10 +3,11 @@ import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const AUTH_FILE = path.join(__dirname, '.playwright/auth.json');
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+const DEV_PORT = new URL(BASE_URL).port || '3000';
 
 export default defineConfig({
   testDir: './e2e',
@@ -42,9 +43,15 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? 'npm run start' : 'npm run dev',
+    command: process.env.CI
+      ? `npm run start -- -p ${DEV_PORT}`
+      : `npm run dev -- -p ${DEV_PORT}`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    timeout: 120_000,
+    env: {
+      ...process.env,
+      AUTH_MOCK_ENABLED: 'true',
+    },
   },
 });

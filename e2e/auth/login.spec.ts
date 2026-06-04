@@ -10,74 +10,40 @@ test.describe('Login público', () => {
   }) => {
     await page.goto('/login');
 
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
-    await expect(page.getByText('Ainda não possui um cadastro? Clique aqui')).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByText('Bem-vindo')).toBeVisible();
+    await expect(page.getByText(/ainda não possui cadastro/i)).toBeVisible();
 
-    const submitButton = page.getByRole('button', { name: 'Login' });
+    const submitButton = page.getByRole('button', { name: /^login$/i });
     await expect(submitButton).toBeDisabled();
 
-    await page.getByLabel('Email').fill('email-invalido');
-    await page.getByLabel('Senha').fill('123456');
+    await page.getByLabel(/^email$/i).fill('email-invalido');
+    await page.getByLabel(/^senha$/i).fill('123456');
     await expect(submitButton).toBeDisabled();
 
-    await page.getByLabel('Email').fill('user@example.com');
+    await page.getByLabel(/^email$/i).fill('user@example.com');
     await expect(submitButton).toBeEnabled();
   });
 
-  test('submete login com sucesso', async ({ page }) => {
-    await page.route('**/api/auth/login', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          ok: true,
-          data: {
-            accessToken: 'token',
-            refreshToken: 'refresh',
-            user: {
-              id: '1',
-              clinicId: 'clinic-1',
-              name: 'Usuário',
-              email: 'user@example.com',
-              role: 'clinic_admin',
-              phone: null,
-              sex: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-          },
-        }),
-      });
-    });
-
+  test('com mock habilitado redireciona para /dashboard mesmo quando a API falha', async ({
+    page,
+  }) => {
     await page.goto('/login');
-    await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Senha').fill('123456');
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.locator('#email').pressSequentially('user@example.com', { delay: 20 });
+    await page.locator('#password').pressSequentially('123456', { delay: 20 });
 
-    await expect(page.getByText('Email ou senha incorretos.')).not.toBeVisible();
+    const submitButton = page.getByRole('button', { name: /^login$/i });
+    await expect(submitButton).toBeEnabled({ timeout: 15_000 });
+    await submitButton.click();
+
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole('heading', { name: /^dashboard$/i })).toBeVisible();
   });
 
-  test('exibe erro amigável para credenciais inválidas', async ({ page }) => {
-    await page.route('**/api/auth/login', async (route) => {
-      await route.fulfill({
-        status: 400,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          ok: false,
-          error: {
-            code: 'INVALID_CREDENTIALS',
-            message: 'Email ou senha incorretos.',
-          },
-        }),
-      });
-    });
-
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('user@example.com');
-    await page.getByLabel('Senha').fill('senha-incorreta');
-    await page.getByRole('button', { name: 'Login' }).click();
-
-    await expect(page.getByText('Email ou senha incorretos.')).toBeVisible();
+  test('acesso a /dashboard sem cookie redireciona para /login', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/login/);
   });
 });

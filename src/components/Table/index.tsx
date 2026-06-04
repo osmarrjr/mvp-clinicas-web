@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useEffect, ReactNode } from "react";
 import {
   ColumnDef,
   PaginationState,
+  Row,
   RowData,
   SortingState,
   RowSelectionState,
@@ -29,7 +30,8 @@ import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData, TValue> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
     showDashWhenEmpty?: boolean;
     allowDashInExpanded?: boolean;
   }
@@ -61,8 +63,11 @@ interface DataTableProps<T extends RowData> {
 
   tableClassName?: string;
   headerClassName?: string;
-  rowClassName?: string | ((row: any) => string);
+  rowClassName?: string | ((row: Row<T>) => string);
 }
+
+type RowWithId = RowData & { id?: string | number };
+type RowWithSubRecords<T extends RowData> = T & { subRecords?: T[] };
 
 type RowSize = "sm" | "md" | "lg";
 
@@ -107,7 +112,7 @@ export default function DataTable<T extends RowData>({
 
       return parent
         ? `${parent.id}.${index}`
-        : (row as any).id ?? index.toString();
+        : String((row as RowWithId).id ?? index);
     },
 
     getCoreRowModel: getCoreRowModel(),
@@ -134,7 +139,7 @@ export default function DataTable<T extends RowData>({
       ...(hasPagination ? { pagination } : {}),
     },
 
-    getSubRows: (row) => (row as any).subRecords || [],
+    getSubRows: (row) => (row as RowWithSubRecords<T>).subRecords ?? [],
   });
 
   useEffect(() => {

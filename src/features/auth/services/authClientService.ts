@@ -11,7 +11,7 @@ export async function loginClientService(
     },
     body: JSON.stringify(payload),
   });
-  console.log("response", response);
+
   const body = (await response.json()) as LoginServerResponse;
 
   if (!response.ok || !body.ok) {
@@ -25,4 +25,16 @@ export async function loginClientService(
   }
 
   return body;
+}
+
+export async function logoutClientService(): Promise<{ ok: true }> {
+  const response = await fetch("/api/auth/logout", {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao encerrar sessão.");
+  }
+
+  return response.json() as Promise<{ ok: true }>;
 }

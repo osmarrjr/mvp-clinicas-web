@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 
 import { loginSchema } from "@/features/auth/schemas/loginSchema";
 import { loginServerService } from "@/features/auth/services/authServerService";
+import {
+  isAuthMockEnabled,
+  MOCK_ACCESS_TOKEN,
+  MOCK_REFRESH_TOKEN,
+  MOCK_USER,
+} from "@/lib/auth/mock";
 
 function getStatusByErrorCode(code: string) {
   const statusMap: Record<string, number> = {
@@ -28,6 +34,28 @@ function errorResponse(code: string, message: string, status = 500) {
   );
 }
 
+function setAuthCookies(
+  response: NextResponse,
+  accessToken: string,
+  refreshToken: string,
+) {
+  response.cookies.set("accessToken", accessToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  response.cookies.set("refreshToken", refreshToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
+
 export async function POST(request: Request) {
   let json: unknown;
 
@@ -49,36 +77,39 @@ export async function POST(request: Request) {
 
   const response = await loginServerService(parsed.data);
 
-  if (!response.ok) {
-    return errorResponse(
-      response.error.code,
-      response.error.message,
-      getStatusByErrorCode(response.error.code),
+  if (response.ok) {
+    const nextResponse = NextResponse.json({
+      ok: true,
+      data: {
+        user: response.data.user,
+      },
+    });
+
+    setAuthCookies(
+      nextResponse,
+      response.data.accessToken,
+      response.data.refreshToken,
     );
+
+    return nextResponse;
   }
 
-  const nextResponse = NextResponse.json({
-    ok: true,
-    data: {
-      user: response.data.user,
-    },
-  });
+  if (isAuthMockEnabled()) {
+    const nextResponse = NextResponse.json({
+      ok: true,
+      data: {
+        user: MOCK_USER,
+      },
+    });
 
-  nextResponse.cookies.set("accessToken", response.data.accessToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 15 minutos
-  });
+    setAuthCookies(nextResponse, MOCK_ACCESS_TOKEN, MOCK_REFRESH_TOKEN);
 
-  nextResponse.cookies.set("refreshToken", response.data.refreshToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 dias
-  });
+    return nextResponse;
+  }
 
-  return nextResponse;
+  return errorResponse(
+    response.error.code,
+    response.error.message,
+    getStatusByErrorCode(response.error.code),
+  );
 }

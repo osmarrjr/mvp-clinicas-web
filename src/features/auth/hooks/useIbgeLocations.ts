@@ -57,14 +57,11 @@ export function useIbgeLocations(stateUf?: string) {
   }, []);
 
   useEffect(() => {
-    const requestId = ++citiesRequestIdRef.current;
-
     if (!normalizedUf) {
-      setCities([]);
-      setCitiesError(null);
-      setIsLoadingCities(false);
       return;
     }
+
+    const requestId = ++citiesRequestIdRef.current;
 
     async function loadCities() {
       setIsLoadingCities(true);
@@ -107,15 +104,16 @@ export function useIbgeLocations(stateUf?: string) {
   return useMemo(
     () => ({
       states,
-      cities,
+      cities: normalizedUf ? cities : [],
       isLoadingStates,
-      isLoadingCities,
+      isLoadingCities: normalizedUf ? isLoadingCities : false,
       statesError,
-      citiesError,
+      citiesError: normalizedUf ? citiesError : null,
       clearStatesError,
       clearCitiesError,
     }),
     [
+      normalizedUf,
       states,
       cities,
       isLoadingStates,

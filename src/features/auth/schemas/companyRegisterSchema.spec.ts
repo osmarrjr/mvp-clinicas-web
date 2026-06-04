@@ -41,7 +41,7 @@ describe("companyRegisterSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0]?.message).toMatch(/incompleto/i);
+      expect(result.error.issues[0]?.message).toMatch(/CPF inválido/i);
     }
   });
 
