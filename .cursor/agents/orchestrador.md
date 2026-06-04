@@ -135,15 +135,25 @@ Antes de criar o Pull Request:
 2. Confirmar que a branch atual não é `main`.
 3. Verificar se há alterações locais não commitadas.
 4. Se houver alterações locais não commitadas, parar e reportar bloqueio.
-5. Confirmar que a GitHub CLI (`gh`) está no PATH e autenticada.
-6. Fazer push da branch atual para o repositório remoto.
-7. Confirmar que existem commits entre `origin/main` e a branch atual.
-8. Criar Pull Request com base `main` e head na branch atual.
+5. Confirmar que a GitHub CLI está disponível:
+   - primeiro tentar usar `gh` pelo PATH;
+   - se não estiver no PATH, tentar usar o caminho padrão do Windows em `/c/Program Files/GitHub CLI/gh.exe`.
+6. Confirmar que a GitHub CLI está autenticada.
+7. Fazer fetch da `main` remota.
+8. Fazer push da branch atual para o repositório remoto.
+9. Confirmar que existem commits entre `origin/main` e a branch atual.
+10. Verificar se já existe Pull Request aberto para a mesma branch.
+11. Criar Pull Request com base `main` e head na branch atual.
 
 Comandos recomendados:
 
 ```bash
 BRANCH_ATUAL=$(git branch --show-current)
+
+if [ -z "$BRANCH_ATUAL" ]; then
+  echo "Não foi possível identificar a branch atual."
+  exit 1
+fi
 
 if [ "$BRANCH_ATUAL" = "main" ]; then
   echo "Não é permitido criar PR a partir da main."
@@ -155,12 +165,18 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+GH_CMD="gh"
+
 if ! command -v gh >/dev/null 2>&1; then
-  echo "GitHub CLI (gh) não encontrada no PATH."
-  exit 1
+  if [ -x "/c/Program Files/GitHub CLI/gh.exe" ]; then
+    GH_CMD="/c/Program Files/GitHub CLI/gh.exe"
+  else
+    echo "GitHub CLI não encontrada no PATH nem em /c/Program Files/GitHub CLI/gh.exe."
+    exit 1
+  fi
 fi
 
-gh auth status || exit 1
+"$GH_CMD" auth status || exit 1
 
 git fetch origin main
 git push -u origin "$BRANCH_ATUAL"
@@ -170,24 +186,61 @@ if [ "$(git rev-list --count origin/main..HEAD)" -eq 0 ]; then
   exit 1
 fi
 
-gh pr create \
+PR_EXISTENTE=$("$GH_CMD" pr list \
+  --base main \
+  --head "$BRANCH_ATUAL" \
+  --state open \
+  --json url \
+  --jq '.[0].url')
+
+if [ -n "$PR_EXISTENTE" ]; then
+  echo "Já existe um Pull Request aberto para esta branch:"
+  echo "$PR_EXISTENTE"
+  exit 0
+fi
+
+"$GH_CMD" pr create \
   --base main \
   --head "$BRANCH_ATUAL" \
   --title "$BRANCH_ATUAL" \
   --body "Implementação concluída pelo fluxo orchestrator → planner → developer → validator → qa."
 ```
 
-**Shell no Windows (Git Bash / Cursor):** se `gh` não for encontrado em shell não interativo, o PATH pode não ter sido recarregado. Valide com shell de login:
+### Shell no Windows, Git Bash ou Cursor
+
+Se `gh` não for encontrado no terminal do Cursor, mas funcionar pelo caminho direto, usar o caminho:
 
 ```bash
-bash -l -c 'command -v gh && gh auth status'
+"/c/Program Files/GitHub CLI/gh.exe" --version
 ```
 
-Se funcionar apenas no shell de login, execute os comandos de PR dentro de `bash -l -c '...'` ou reinicie o terminal após adicionar `C:\Program Files\GitHub CLI` ao PATH do sistema.
+Se funcionar apenas pelo caminho direto, o agente deve usar automaticamente:
 
-Se o comando `gh pr create` falhar porque a GitHub CLI não está instalada, autenticada ou configurada, parar e reportar o bloqueio.
+```bash
+/c/Program Files/GitHub CLI/gh.exe
+```
 
-Se retornar `No commits between main and <branch>`, a branch já foi integrada na `main` ou está atrás dela — não criar PR duplicado; sincronize a `main` e abra nova feature branch para o próximo trabalho.
+Se quiser corrigir o PATH do Git Bash/Cursor, executar:
+
+```bash
+echo 'export PATH="$PATH:/c/Program Files/GitHub CLI"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Depois validar:
+
+```bash
+gh --version
+gh auth status
+```
+
+Se ainda não funcionar, reiniciar completamente o Cursor e abrir um novo terminal.
+
+---
+
+Se o comando de criação do Pull Request falhar porque a GitHub CLI não está instalada, autenticada ou configurada, parar e reportar o bloqueio.
+
+Se retornar `No commits between main and <branch>`, a branch já foi integrada na `main` ou está atrás dela. Nesse caso, não criar Pull Request duplicado; sincronizar a `main` e abrir nova feature branch para o próximo trabalho.
 
 Formato de bloqueio:
 
@@ -198,7 +251,10 @@ Motivo:
 - GitHub CLI indisponível, não autenticada ou sem permissão.
 
 Ajuste necessário:
-- Configure `gh auth login` ou crie o Pull Request manualmente da branch atual para `main`.
+- Instale a GitHub CLI, se necessário;
+- Execute gh auth login;
+- Confirme que o comando gh funciona no terminal atual;
+- Ou crie o Pull Request manualmente da branch atual para main.
 ```
 
 ---
