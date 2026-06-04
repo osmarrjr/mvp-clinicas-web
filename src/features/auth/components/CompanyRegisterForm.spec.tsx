@@ -126,6 +126,10 @@ describe("CompanyRegisterForm", () => {
     expect(screen.getByText(/^estado$/i)).toBeTruthy();
     expect(screen.getByText(/^cidade$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
+    expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /requisitos da senha/i }),
+    ).toBeTruthy();
     expect(screen.getByText(/plano selecionado/i)).toBeTruthy();
     expect(screen.getByText(/basic — r\$ 35,00\/mês/i)).toBeTruthy();
     expect(screen.queryByText(/^plano$/i)).toBeNull();

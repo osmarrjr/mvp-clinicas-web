@@ -5,6 +5,7 @@ import {
   isValidCpf,
   stripAlphanumeric,
 } from "@/lib/validators/cpfCnpj";
+import { getPasswordValidationError } from "@/lib/validators/password";
 
 export const companyRegisterSchema = z.object({
   companyName: z
@@ -117,6 +118,17 @@ export const companyRegisterSchema = z.object({
   cityIbgeId: z.number().optional(),
 
   email: z.string().min(1, "Email é obrigatório.").email("Email inválido."),
+
+  password: z.string().superRefine((value, ctx) => {
+    const message = getPasswordValidationError(value);
+
+    if (message) {
+      ctx.addIssue({
+        code: "custom",
+        message,
+      });
+    }
+  }),
 
   plan: z.enum(["basic", "medium", "pro"], {
     error: "Plano é obrigatório.",

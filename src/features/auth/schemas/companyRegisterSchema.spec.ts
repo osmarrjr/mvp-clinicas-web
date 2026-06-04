@@ -8,6 +8,7 @@ const validBase = {
   stateUf: "SP",
   city: "São Paulo",
   email: "contato@clinica.com",
+  password: "Senha@123",
   plan: "basic" as const,
 };
 
@@ -67,8 +68,45 @@ describe("companyRegisterSchema", () => {
       stateUf: "",
       city: "",
       email: "",
+      password: "",
       plan: undefined,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("rejeita senha sem caractere especial com mensagem específica", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      password: "Senha1234",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const passwordIssue = result.error.issues.find(
+        (issue) => issue.path[0] === "password",
+      );
+      expect(passwordIssue?.message).toBe(
+        "A senha deve conter pelo menos um caractere especial.",
+      );
+    }
+  });
+
+  it("rejeita senha curta com mensagem específica", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      password: "Ab1!",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const passwordIssue = result.error.issues.find(
+        (issue) => issue.path[0] === "password",
+      );
+      expect(passwordIssue?.message).toBe(
+        "A senha deve ter no mínimo 8 caracteres.",
+      );
+    }
   });
 });

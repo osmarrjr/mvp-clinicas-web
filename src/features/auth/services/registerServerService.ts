@@ -18,6 +18,7 @@ function toRegisterClinicDto(
     city: values.city,
     cityIbgeId: values.cityIbgeId,
     email: values.email,
+    password: values.password,
     plan: values.plan,
   };
 }

@@ -18,8 +18,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Eye, EyeOff, Info } from "lucide-react";
 import { formatTaxId } from "@/lib/validators/cpfCnpj";
+import { PASSWORD_REQUIREMENTS_TOOLTIP } from "@/lib/validators/password";
 
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { PlanSelectionStep } from "./PlanSelectionStep";
@@ -52,6 +53,7 @@ export function CompanyRegisterForm() {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<CompanyRegisterFormValues>({
     resolver: zodResolver(companyRegisterSchema),
@@ -63,6 +65,7 @@ export function CompanyRegisterForm() {
       city: "",
       cityIbgeId: undefined,
       email: "",
+      password: "",
       plan: undefined,
     },
   });
@@ -388,6 +391,70 @@ export function CompanyRegisterForm() {
               ) : null}
             </div>
 
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-blue-50"
+                >
+                  Senha
+                </Label>
+
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Requisitos da senha"
+                        className="inline-flex items-center justify-center rounded-full text-blue-100/80 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/60"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      side="top"
+                      align="center"
+                      className="max-w-[260px] text-center"
+                    >
+                      {PASSWORD_REQUIREMENTS_TOOLTIP}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="Crie sua senha de acesso"
+                  aria-invalid={Boolean(form.formState.errors.password)}
+                  className={`${inputClassName} pr-12`}
+                  {...form.register("password")}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 transition hover:text-white cursor-pointer"
+                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                >
+                  {!showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+
+              {form.formState.errors.password?.message ? (
+                <p className="text-sm font-medium text-red-200" role="alert">
+                  {form.formState.errors.password.message}
+                </p>
+              ) : null}
+            </div>
+
             <Button
               type="submit"
               className="h-12 w-full rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/40 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/50 disabled:cursor-not-allowed disabled:opacity-60"
@@ -412,7 +479,6 @@ export function CompanyRegisterForm() {
         isOpen={isLoadingOverlay}
         message={loadingMessage || "Carregando"}
       />
-      //inserir campo de senha
       <GlobalModal
         type="error"
         open={errorModalOpen}

@@ -8,6 +8,7 @@ export interface RegisterClinicDto {
   city: string;
   cityIbgeId?: number;
   email: string;
+  password: string;
   plan: ClinicPlan;
 }
 

@@ -173,6 +173,7 @@ interface RegisterClinicDto {
   city: string;             // nome do município
   cityIbgeId?: number;      // id do município (opcional)
   email: string;
+  password: string;         // mín. 8 caracteres, letras, números e caractere especial
   plan: 'basic' | 'medium' | 'pro';
 }
 ```
