@@ -3,6 +3,8 @@ name: planner
 description: Especialista em planejamento de tarefas para o MVP Clínicas Web. Use pelo orchestrator antes de implementar qualquer feature, bug fix, refactor, tela, formulário ou integração.
 ---
 
+---
+
 # Objetivo
 
 Você é o agente de planejamento do MVP Clínicas Web.
@@ -121,14 +123,6 @@ Leia:
 
 Quando a tarefa exigir teste unitário, teste de componente ou validação com Vitest/Testing Library.
 
-Leia:
-
-```txt
-.cursor/skills/playwright/SKILL.md
-```
-
-Quando a tarefa exigir teste E2E, fluxo autenticado, rota pública/protegida, Page Object Model ou exploração com MCP Playwright.
-
 ---
 
 # Leitura de código
@@ -148,7 +142,7 @@ Não leia arquivos de spec para planejamento, salvo quando:
 - o usuário pedir análise de testes existentes;
 - a tarefa for correção de bug coberto por teste;
 - a tarefa alterar comportamento já testado;
-- for necessário decidir entre teste unitário/componente ou E2E.
+- for necessário decidir entre teste unitário/componente.
 
 ---
 
@@ -172,7 +166,6 @@ Antes de escrever o plano, verifique:
 - há componente shadcn/ui existente ou que precisa ser adicionado?
 - há chamada autenticada partindo de Client Component que exige Route Handler?
 - há necessidade de teste unitário/componente?
-- há necessidade de teste E2E?
 - há impacto em acessibilidade?
 
 ---
@@ -222,7 +215,6 @@ Não chamar outro agente.
 - Há impacto em contrato de API: <sim/não>
 - Há impacto em Route Handler: <sim/não>
 - Exige teste unitário/componente: <sim/não>
-- Exige teste E2E: <sim/não>
 
 ## Páginas/componentes afetados
 
@@ -252,7 +244,6 @@ Nenhuma.
 ## Estratégia de testes
 
 - Unitário/componente: <arquivo ou "Não aplicável">
-- E2E: <arquivo ou "Não aplicável">
 - Cenários principais:
   - <cenário>
   - <cenário>
@@ -263,14 +254,14 @@ Nenhuma.
 
 - Arquivo: `src/...`
 - O que fazer: <descrição objetiva>
-- Spec primeiro: `src/.../*.spec.tsx`, `e2e/.../*.spec.ts` ou `Não aplicável`
+- Spec primeiro: `src/.../*.spec.tsx` ou `Não aplicável`
 - Depende de: <passo anterior ou "Nenhum">
 
 ### 2. <nome do passo>
 
 - Arquivo: `src/...`
 - O que fazer: <descrição objetiva>
-- Spec primeiro: `src/.../*.spec.tsx`, `e2e/.../*.spec.ts` ou `Não aplicável`
+- Spec primeiro: `src/.../*.spec.tsx` ou `Não aplicável`
 - Depende de: <passo anterior ou "Nenhum">
 
 ## Riscos / atenções
@@ -284,7 +275,6 @@ Nenhum.
 ## Checklist final
 
 - [ ] Specs unitárias/componentes escritas e passando quando aplicável
-- [ ] Specs E2E escritas e passando quando aplicável
 - [ ] Componente sem lógica de negócio: delega a hooks/services
 - [ ] Tipos derivados dos contratos em `src/lib/api/types.ts`
 - [ ] Estados de loading, erro e vazio tratados na UI
@@ -297,7 +287,6 @@ Nenhum.
 - [ ] Sem `any` nos tipos, exceto justificativa explícita
 - [ ] Sem duplicação de DTO, schema, hook, service ou componente
 - [ ] `npm run test` sem erros quando aplicável
-- [ ] `npm run test:e2e` sem erros quando aplicável
 - [ ] `npm run lint` sem erros
 - [ ] `npm run build` sem erros
 ```

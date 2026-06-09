@@ -3,6 +3,8 @@ name: developer
 description: Desenvolvedor principal do MVP Clínicas Web. Use pelo orchestrator após o planner gerar o plano.md. Executa exatamente o plano.md, sem desvios.
 ---
 
+---
+
 # Objetivo
 
 Executar exatamente o conteúdo de `plano.md`.
@@ -45,13 +47,8 @@ Antes de qualquer edição:
    - `.cursor/skills/react/forms.md`, se houver formulário, validação, React Hook Form ou Zod;
    - `.cursor/skills/react/testing.md`, se houver teste unitário, teste de componente, spec `*.spec.tsx` ou componente interativo;
    - `.cursor/skills/react/conventions.md`, antes de finalizar.
+
 5. Ler `.cursor/skills/design-system/SKILL.md`, se a tarefa envolver UI, Tailwind CSS, shadcn/ui, layout, acessibilidade ou componente visual.
-6. Ler `.cursor/skills/playwright/SKILL.md`, se o `plano.md` indicar teste E2E, arquivo em `e2e/`, fluxo autenticado, rota pública/protegida, Page Object Model ou MCP Playwright.
-7. Ler os arquivos complementares da skill Playwright conforme o escopo do plano:
-   - `.cursor/skills/playwright/setup.md`, se houver instalação, scripts, `playwright.config.ts`, estrutura `e2e/`, `.gitignore`, porta ou `PLAYWRIGHT_BASE_URL`;
-   - `.cursor/skills/playwright/auth.md`, se houver login, fluxo autenticado, rotas protegidas, `storageState`, `QA_EMAIL` ou `QA_PASSWORD`;
-   - `.cursor/skills/playwright/writing-tests.md`, se houver criação ou alteração de specs E2E;
-   - `.cursor/skills/playwright/mcp.md`, se houver exploração interativa com MCP Playwright.
 
 Se `plano.md` não existir, responder exatamente:
 
@@ -125,15 +122,6 @@ Quando houver teste unitário ou de componente:
 
 - seguir `.cursor/skills/react/testing.md`;
 - criar ou alterar apenas os arquivos `src/.../*.spec.tsx` indicados no plano.
-
-Quando houver E2E:
-
-- seguir `.cursor/skills/playwright/SKILL.md`;
-- seguir `.cursor/skills/playwright/writing-tests.md`;
-- seguir `.cursor/skills/playwright/auth.md`, se houver fluxo autenticado;
-- seguir `.cursor/skills/playwright/setup.md`, se houver configuração de Playwright;
-- seguir `.cursor/skills/playwright/mcp.md`, se houver exploração com MCP;
-- criar ou alterar apenas os arquivos `e2e/.../*.spec.ts` indicados no plano.
 
 Não criar testes que não estejam previstos no `plano.md`.
 
@@ -222,7 +210,6 @@ Proibido:
 - usar caminho relativo profundo para arquivo distante;
 - recriar componente existente do shadcn/ui;
 - criar spec unitário/componente não previsto no plano;
-- criar E2E não previsto no plano;
 - alterar arquivos fora do plano;
 - chamar o agente `planner`;
 - chamar o agente `validator`;
@@ -262,12 +249,6 @@ npm run lint
 npm run build
 ```
 
-Se o `plano.md` indicar E2E ou se algum arquivo `e2e/.../*.spec.ts` foi criado/alterado, executar também:
-
-```bash
-npm run test:e2e
-```
-
 Se algum comando não existir ou não for aplicável, registrar isso na resposta final.
 
 Corrigir erros antes de finalizar quando a correção estiver dentro do escopo do plano.
@@ -290,7 +271,6 @@ Implementação concluída.
 - Arquivos criados: <lista curta>
 - Arquivos alterados: <lista curta>
 - Testes: <resultado>
-- E2E: <resultado ou "Não aplicável">
 - Lint: <resultado>
 - Build: <resultado>
 ```

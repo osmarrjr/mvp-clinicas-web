@@ -41,7 +41,6 @@ O alias padrão `@/*` será mantido.
 npm install @tanstack/react-query @tanstack/react-table react-hook-form zod @hookform/resolvers
 npm install clsx tailwind-merge lucide-react
 npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event @vitest/ui
-npm install -D @playwright/test
 ```
 
 Inicializar shadcn/ui:
@@ -49,12 +48,6 @@ Inicializar shadcn/ui:
 ```bash
 npx shadcn@latest init
 npx shadcn@latest add button input label form dialog select textarea badge card table dropdown-menu tabs alert sheet separator skeleton sonner
-```
-
-Instalar browser do Playwright:
-
-```bash
-npx playwright install --with-deps chromium
 ```
 
 ---
@@ -68,10 +61,6 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 API_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-QA_EMAIL=
-QA_PASSWORD=
-PLAYWRIGHT_BASE_URL=http://localhost:3001
 ```
 
 Nunca commitar `.env.local`.
@@ -91,7 +80,7 @@ Acesse:
 http://localhost:3000
 ```
 
-Se quiser evitar conflito com a API local em `3000`, configure o script e a URL do Playwright:
+Se quiser evitar conflito com a API local em `3000`, configure o script:
 
 ```json
 {
@@ -100,12 +89,6 @@ Se quiser evitar conflito com a API local em `3000`, configure o script e a URL 
     "start": "next start -p 3001"
   }
 }
-```
-
-No `.env.local`, defina também:
-
-```env
-PLAYWRIGHT_BASE_URL=http://localhost:3001
 ```
 
 Acesse então:
@@ -141,55 +124,6 @@ npx vitest --ui
 ```
 
 Configuração: `vitest.config.ts` e `vitest.setup.ts` na raiz do projeto.
-
----
-
-## Testes E2E
-
-Playwright. Specs ficam em `e2e/`. Configuração: `playwright.config.ts` na raiz.
-
-O Playwright sobe o servidor automaticamente via `webServer` (`npm run dev` localmente; `npm run start` em CI após build).
-
-```bash
-npm run test:e2e
-npm run test:e2e:headed
-npm run test:e2e:debug
-npx playwright show-report .playwright/report
-```
-
-Em CI ou quando quiser validar build de produção antes dos E2E:
-
-```bash
-npm run build
-npm run test:e2e
-```
-
-Variáveis necessárias para E2E autenticado:
-
-```txt
-QA_EMAIL
-QA_PASSWORD
-PLAYWRIGHT_BASE_URL   # padrão: http://localhost:3001
-```
-
-Artefatos gerados em `.playwright/` (auth, traces, relatório) — não versionados.
-
----
-
-## MCP Playwright no Cursor
-
-Para habilitar MCP Playwright no Cursor, adicione ao `settings.json`:
-
-```json
-{
-  "mcp_servers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"]
-    }
-  }
-}
-```
 
 ---
 
