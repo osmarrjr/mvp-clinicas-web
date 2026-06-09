@@ -1,19 +1,18 @@
 import "server-only";
 
-import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
-import type { RegisterClinicDto, RegisterClinicResponse } from "../types";
-import { detectTaxIdType, stripDigits } from "../validators/cpfCnpj/cpfCnpj";
+import type { CompanyRegisterFormValues } from "../../schemas/companyRegisterSchema";
+import type { RegisterClinicDto, RegisterClinicResponse } from "../../types";
+import { buildRegisterApiPayload } from "../companyRegister/registerPayload";
 
 function toRegisterClinicDto(
   values: CompanyRegisterFormValues,
 ): RegisterClinicDto {
-  const taxId = stripDigits(values.taxId);
-  const taxIdType = detectTaxIdType(taxId);
+  const { taxId, taxIdType } = buildRegisterApiPayload(values);
 
   return {
     clinicName: values.companyName,
     taxId,
-    taxIdType: taxIdType === "cnpj" ? "cnpj" : "cpf",
+    taxIdType,
     uf: values.uf,
     city: values.city,
     email: values.email,

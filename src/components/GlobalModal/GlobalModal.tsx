@@ -142,7 +142,7 @@ export function GlobalModal({
                 {modalTitle}
               </DialogTitle>
 
-              {modalSubTitle && (
+              {modalSubTitle ? (
                 <DialogDescription
                   className={cn(
                     "text-sm leading-6 text-slate-500",
@@ -151,6 +151,10 @@ export function GlobalModal({
                   )}
                 >
                   {modalSubTitle}
+                </DialogDescription>
+              ) : (
+                <DialogDescription className="sr-only">
+                  {modalTitle}
                 </DialogDescription>
               )}
             </div>

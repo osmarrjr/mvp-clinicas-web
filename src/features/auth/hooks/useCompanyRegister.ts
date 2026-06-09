@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { authMutationKeys } from "../constants/queryKeys";
 import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
-import { registerClientService } from "../services/registerClientService";
+import { registerClientService } from "../services/companyRegister/registerClientService";
 
 const REGISTER_ERROR_MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: "Dados inválidos. Verifique os campos e tente novamente.",
@@ -49,7 +49,11 @@ export function useCompanyRegister(options?: UseCompanyRegisterOptions) {
   });
 
   async function register(payload: CompanyRegisterFormValues) {
-    return mutation.mutateAsync(payload);
+    try {
+      return await mutation.mutateAsync(payload);
+    } catch {
+      return null;
+    }
   }
 
   function clearError() {

@@ -1,4 +1,4 @@
-import type { LoginFormValues } from "../schemas/loginSchema";
+import type { LoginFormValues } from "../../schemas/loginSchema";
 import type { LoginServerResponse } from "./authServerService";
 
 export async function loginClientService(

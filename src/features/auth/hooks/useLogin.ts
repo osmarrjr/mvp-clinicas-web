@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { LoginFormValues } from "../schemas/loginSchema";
-import { loginClientService } from "../services/authClientService";
+import { loginClientService } from "../services/auth/authClientService";
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: "Email ou senha incorretos.",

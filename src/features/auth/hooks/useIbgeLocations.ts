@@ -46,10 +46,8 @@ export function useIbgeLocations(stateUf?: string) {
     () => ({
       states: (statesQuery.data ?? []) as IbgeState[],
       cities: (citiesQuery.data ?? []) as IbgeMunicipality[],
-      isLoadingStates: statesQuery.isLoading || statesQuery.isFetching,
-      isLoadingCities: normalizedUf
-        ? citiesQuery.isLoading || citiesQuery.isFetching
-        : false,
+      isLoadingStates: statesQuery.isLoading,
+      isLoadingCities: normalizedUf ? citiesQuery.isLoading : false,
       statesError: statesQuery.isError
         ? "Não foi possível carregar os estados."
         : null,

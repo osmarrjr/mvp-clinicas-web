@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { companyRegisterSchema } from "@/features/auth/schemas/companyRegisterSchema";
-import { registerServerService } from "@/features/auth/services/registerServerService";
+import { registerServerService } from "@/features/auth/services/companyRegister/registerServerService";
 
 const ERROR_MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: "Dados inválidos. Verifique os campos e tente novamente.",
@@ -43,7 +43,11 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return errorResponse("VALIDATION_ERROR", "Corpo da requisição inválido.", 400);
+    return errorResponse(
+      "VALIDATION_ERROR",
+      "Corpo da requisição inválido.",
+      400,
+    );
   }
 
   const parsed = companyRegisterSchema.safeParse(json);

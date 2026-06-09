@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Loader2 } from "lucide-react";
 
@@ -13,6 +18,7 @@ export const Loading = ({ isOpen, message }: LoadingProps) => {
       <DialogContent className="w-[calc(100vw-4rem)] max-w-[360px] bg-white mx-auto [&>button]:hidden border-none">
         <VisuallyHidden>
           <DialogTitle>Carregando</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
         </VisuallyHidden>
         <div
           style={{

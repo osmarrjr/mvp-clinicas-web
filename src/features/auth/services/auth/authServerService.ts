@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { LoginFormValues } from "../schemas/loginSchema";
+import type { LoginFormValues } from "../../schemas/loginSchema";
 
 type LoginSuccessData = {
   accessToken: string;
