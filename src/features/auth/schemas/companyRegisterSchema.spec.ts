@@ -4,11 +4,13 @@ import { companyRegisterSchema } from "./companyRegisterSchema";
 
 const validBase = {
   companyName: "Clínica Saúde",
-  taxId: "529.982.247-25",
+  taxId: "52998224725",
   stateUf: "SP",
   city: "São Paulo",
   email: "contato@clinica.com",
+  phone: "11987654321",
   password: "Senha@123",
+  confirmPassword: "Senha@123",
   plan: "basic" as const,
 };
 
@@ -21,36 +23,41 @@ describe("companyRegisterSchema", () => {
   it("aceita payload válido com CNPJ", () => {
     const result = companyRegisterSchema.safeParse({
       ...validBase,
-      taxId: "11.222.333/0001-81",
+      taxId: "11222333000181",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejeita nome da empresa com menos de 3 caracteres", () => {
+  it("rejeita nome da empresa com menos de 5 caracteres", () => {
     const result = companyRegisterSchema.safeParse({
       ...validBase,
-      companyName: "AB",
+      companyName: "Abcd",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejeita CPF inválido com 11 dígitos", () => {
+  it("rejeita nome sem letra maiúscula inicial", () => {
     const result = companyRegisterSchema.safeParse({
       ...validBase,
-      taxId: "111.111.111-11",
+      companyName: "clínica saúde",
     });
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0]?.message).toMatch(/incompleto/i);
-    }
   });
 
-  it("aceita CNPJ válido sem acusar erro de CPF no 11º dígito", () => {
+  it("rejeita CPF inválido", () => {
     const result = companyRegisterSchema.safeParse({
       ...validBase,
-      taxId: "11.222.333/0001-81",
+      taxId: "11111111111",
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejeita CNPJ alfanumérico", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      taxId: "AB123456789012",
+    });
+    expect(result.success).toBe(false);
   });
 
   it("rejeita email inválido", () => {
@@ -61,6 +68,75 @@ describe("companyRegisterSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejeita telefone com DDD inválido", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      phone: "00987654321",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejeita celular sem nono dígito 9", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      phone: "11887654321",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejeita confirmação de senha diferente", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      confirmPassword: "Outra@123",
+    });
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const issue = result.error.issues.find(
+        (item) => item.path[0] === "confirmPassword",
+      );
+      expect(issue?.message).toBe("As senhas não conferem");
+    }
+  });
+
+  it("rejeita senha sem caractere especial", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      password: "Senha1234",
+      confirmPassword: "Senha1234",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const passwordIssue = result.error.issues.find(
+        (issue) => issue.path[0] === "password",
+      );
+      expect(passwordIssue?.message).toBe(
+        "Senha deve possuir pelo menos um caractere especial",
+      );
+    }
+  });
+
+  it("rejeita senha curta", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      password: "Ab1!",
+      confirmPassword: "Ab1!",
+    });
+
+    expect(result.success).toBe(false);
+
+    if (!result.success) {
+      const passwordIssue = result.error.issues.find(
+        (issue) => issue.path[0] === "password",
+      );
+      expect(passwordIssue?.message).toBe(
+        "Senha deve ter no mínimo 8 dígitos",
+      );
+    }
+  });
+
   it("rejeita campos obrigatórios vazios", () => {
     const result = companyRegisterSchema.safeParse({
       companyName: "",
@@ -68,45 +144,11 @@ describe("companyRegisterSchema", () => {
       stateUf: "",
       city: "",
       email: "",
+      phone: "",
       password: "",
+      confirmPassword: "",
       plan: undefined,
     });
     expect(result.success).toBe(false);
-  });
-
-  it("rejeita senha sem caractere especial com mensagem específica", () => {
-    const result = companyRegisterSchema.safeParse({
-      ...validBase,
-      password: "Senha1234",
-    });
-
-    expect(result.success).toBe(false);
-
-    if (!result.success) {
-      const passwordIssue = result.error.issues.find(
-        (issue) => issue.path[0] === "password",
-      );
-      expect(passwordIssue?.message).toBe(
-        "A senha deve conter pelo menos um caractere especial.",
-      );
-    }
-  });
-
-  it("rejeita senha curta com mensagem específica", () => {
-    const result = companyRegisterSchema.safeParse({
-      ...validBase,
-      password: "Ab1!",
-    });
-
-    expect(result.success).toBe(false);
-
-    if (!result.success) {
-      const passwordIssue = result.error.issues.find(
-        (issue) => issue.path[0] === "password",
-      );
-      expect(passwordIssue?.message).toBe(
-        "A senha deve ter no mínimo 8 caracteres.",
-      );
-    }
   });
 });

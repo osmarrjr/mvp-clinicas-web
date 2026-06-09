@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
 import type { RegisterClinicDto, RegisterClinicResponse } from "../types";
-import { detectTaxIdType, stripDigits } from "@/lib/validators/cpfCnpj";
+import { detectTaxIdType, stripDigits } from "../validators/cpfCnpj/cpfCnpj";
 
 function toRegisterClinicDto(
   values: CompanyRegisterFormValues,

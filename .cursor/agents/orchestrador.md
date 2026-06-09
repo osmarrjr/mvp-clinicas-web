@@ -123,6 +123,12 @@ Se o QA encontrar problema:
 
 Repita developer → validator → QA até aprovação final.
 
+Após o QA aprovar, **liberar portas de desenvolvimento** antes do PR (evita bloquear o `npm run dev` do usuário):
+
+```bash
+npm run dev:stop
+```
+
 ---
 
 ## 6. Pull Request para main

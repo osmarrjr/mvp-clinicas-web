@@ -166,15 +166,16 @@ Cria a clínica no onboarding inicial (cadastro de empresa).
 **Request:**
 ```typescript
 interface RegisterClinicDto {
-  clinicName: string;       // mínimo 3 caracteres na UI
+  clinicName: string;       // mínimo 5 caracteres na UI
   taxId: string;            // apenas dígitos — 11 (CPF) ou 14 (CNPJ)
   taxIdType: 'cpf' | 'cnpj';
   stateUf: string;          // sigla IBGE, ex.: 'SP'
   city: string;             // nome do município
   cityIbgeId?: number;      // id do município (opcional)
   email: string;
-  password: string;         // mín. 8 caracteres, letras, números e caractere especial
+  password: string;         // mín. 8 caracteres, letras, números, maiúscula e caractere especial
   plan: 'basic' | 'medium' | 'pro';
+  // phone?: string;        // pendente — coletado na UI, ainda não enviado ao backend
 }
 ```
 

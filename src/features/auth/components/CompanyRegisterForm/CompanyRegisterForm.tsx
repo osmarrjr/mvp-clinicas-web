@@ -8,6 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { GlobalModal } from "@/components/GlobalModal";
 import { Loading } from "@/components/Loader/loaderView";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,24 +19,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, EyeOff, Info } from "lucide-react";
-import { formatTaxId } from "@/lib/validators/cpfCnpj";
-import { PASSWORD_REQUIREMENTS_TOOLTIP } from "@/lib/validators/password";
+import { Info } from "lucide-react";
+import { disabledFormControlClassName } from "@/lib/styles/disabled-field";
+import { capitalizeFirstLetter } from "../../validators/companyName/companyName";
+import { formatTaxId, stripDigits } from "../../validators/cpfCnpj/cpfCnpj";
+import { getPasswordValidationError } from "../../validators/password/password";
 
-import { SearchableSelect } from "@/components/SearchableSelect";
-import { PlanSelectionStep } from "./PlanSelectionStep";
+import { RegisterConfirmPasswordField } from "./RegisterPassword/RegisterConfirmPasswordField";
+import { RegisterPasswordField } from "./RegisterPassword/RegisterPasswordField";
+import { RegisterPhoneField } from "./RegisterPhone/RegisterPhoneField";
+import { PlanSelectionStep } from "../PlanSelectionStep";
 
-import { CLINIC_PLAN_OPTIONS } from "../constants/plans";
-import { useCompanyRegister } from "../hooks/useCompanyRegister";
-import { useIbgeLocations } from "../hooks/useIbgeLocations";
+import { CLINIC_PLAN_OPTIONS } from "../../constants/plans";
+import { useCompanyRegister } from "../../hooks/useCompanyRegister";
+import { useIbgeLocations } from "../../hooks/useIbgeLocations";
 import {
   companyRegisterSchema,
   type CompanyRegisterFormValues,
-} from "../schemas/companyRegisterSchema";
-import type { ClinicPlan } from "../types";
+} from "../../schemas/companyRegisterSchema";
+import type { ClinicPlan } from "../../types";
 
-const inputClassName =
-  "h-12 w-full rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 md:text-sm";
+const inputClassName = `h-12 w-full rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 md:text-sm ${disabledFormControlClassName}`;
 
 type RegisterStep = "plan" | "form";
 
@@ -53,7 +57,6 @@ export function CompanyRegisterForm() {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<CompanyRegisterFormValues>({
     resolver: zodResolver(companyRegisterSchema),
@@ -65,12 +68,27 @@ export function CompanyRegisterForm() {
       city: "",
       cityIbgeId: undefined,
       email: "",
+      phone: "",
       password: "",
+      confirmPassword: "",
       plan: undefined,
     },
   });
 
   const selectedPlan = form.watch("plan");
+  const companyName = form.watch("companyName");
+  const taxId = form.watch("taxId");
+  const phoneValue = form.watch("phone");
+  const emailValue = form.watch("email");
+  const passwordValue = form.watch("password");
+  const passwordContext = useMemo(
+    () => ({ companyName, taxId, email: emailValue }),
+    [companyName, taxId, emailValue],
+  );
+  const isPasswordValid = useMemo(
+    () => getPasswordValidationError(passwordValue, passwordContext) === null,
+    [passwordValue, passwordContext],
+  );
 
   const selectedPlanDetails = useMemo(
     () => CLINIC_PLAN_OPTIONS.find((plan) => plan.id === selectedPlan),
@@ -245,10 +263,19 @@ export function CompanyRegisterForm() {
               </Label>
               <Input
                 id="companyName"
-                placeholder="Nome da clínica"
+                placeholder="Digite o nome da empresa, pessoa física ou razão social"
+                maxLength={70}
                 aria-invalid={Boolean(form.formState.errors.companyName)}
                 className={inputClassName}
-                {...form.register("companyName")}
+                {...form.register("companyName", {
+                  onBlur: (event) => {
+                    form.setValue(
+                      "companyName",
+                      capitalizeFirstLetter(event.target.value),
+                      { shouldValidate: true, shouldDirty: true },
+                    );
+                  },
+                })}
               />
               {form.formState.errors.companyName?.message ? (
                 <p className="text-sm font-medium text-red-200" role="alert">
@@ -266,15 +293,19 @@ export function CompanyRegisterForm() {
               </Label>
               <Input
                 id="taxId"
-                placeholder="000.000.000-00"
+                placeholder="Digite o cpf/cnpj da empresa ou pessoa física"
                 aria-invalid={Boolean(form.formState.errors.taxId)}
                 className={inputClassName}
                 value={form.watch("taxId")}
                 onChange={(event) => {
-                  form.setValue("taxId", formatTaxId(event.target.value), {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
+                  form.setValue(
+                    "taxId",
+                    formatTaxId(stripDigits(event.target.value)),
+                    {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    },
+                  );
                 }}
                 onBlur={() => {
                   void form.trigger("taxId");
@@ -380,6 +411,7 @@ export function CompanyRegisterForm() {
                 type="email"
                 autoComplete="email"
                 placeholder="contato@empresa.com"
+                maxLength={70}
                 aria-invalid={Boolean(form.formState.errors.email)}
                 className={inputClassName}
                 {...form.register("email")}
@@ -391,69 +423,29 @@ export function CompanyRegisterForm() {
               ) : null}
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <Label
-                  htmlFor="password"
-                  className="text-sm font-medium text-blue-50"
-                >
-                  Senha
-                </Label>
+            <RegisterPhoneField
+              register={form.register}
+              setValue={form.setValue}
+              phoneValue={phoneValue}
+              errors={form.formState.errors}
+              inputClassName={inputClassName}
+            />
 
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label="Requisitos da senha"
-                        className="inline-flex items-center justify-center rounded-full text-blue-100/80 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/60"
-                      >
-                        <Info className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
+            <RegisterPasswordField
+              form={form}
+              companyName={companyName}
+              taxId={taxId}
+              email={emailValue}
+              inputClassName={inputClassName}
+            />
 
-                    <TooltipContent
-                      side="top"
-                      align="center"
-                      className="max-w-[260px] text-center"
-                    >
-                      {PASSWORD_REQUIREMENTS_TOOLTIP}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  placeholder="Crie sua senha de acesso"
-                  aria-invalid={Boolean(form.formState.errors.password)}
-                  className={`${inputClassName} pr-12`}
-                  {...form.register("password")}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 transition hover:text-white cursor-pointer"
-                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
-                >
-                  {!showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-
-              {form.formState.errors.password?.message ? (
-                <p className="text-sm font-medium text-red-200" role="alert">
-                  {form.formState.errors.password.message}
-                </p>
-              ) : null}
-            </div>
+            <RegisterConfirmPasswordField
+              form={form}
+              passwordValue={passwordValue}
+              confirmPasswordValue={form.watch("confirmPassword")}
+              isPasswordValid={isPasswordValid}
+              inputClassName={inputClassName}
+            />
 
             <Button
               type="submit"

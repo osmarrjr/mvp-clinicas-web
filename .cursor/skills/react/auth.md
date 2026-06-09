@@ -159,7 +159,10 @@ Referência: `docs/api-contracts.md` — `POST /auth/login`.
 Request:
 
 ```typescript
-{ email: string; password: string }
+{
+  email: string;
+  password: string;
+}
 ```
 
 Response NestJS (200):
@@ -188,8 +191,6 @@ Padrão do `LoginForm.spec.tsx`:
 - mock de `useLogin`;
 - mock de `Loading` para isolar o formulário;
 - testes de renderização, validação, submit e feedback de erro.
-
-E2E autenticado: ver `.cursor/skills/playwright/auth.md`.
 
 ---
 
