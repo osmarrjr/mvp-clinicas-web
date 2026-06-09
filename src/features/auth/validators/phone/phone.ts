@@ -90,6 +90,65 @@ export function formatPhone(value: string): string {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
+export function countDigitsBefore(
+  value: string,
+  cursorPosition: number,
+): number {
+  let count = 0;
+
+  for (let index = 0; index < cursorPosition && index < value.length; index += 1) {
+    if (/\d/.test(value[index] ?? "")) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+export function resolvePhoneDigitsFromInput(
+  previousDigits: string,
+  inputValue: string,
+  cursorPosition: number,
+): string {
+  const inputDigits = stripPhoneDigits(inputValue);
+  const maxLength = 11;
+
+  if (inputDigits.length < previousDigits.length) {
+    const digitIndex = countDigitsBefore(inputValue, cursorPosition);
+    const removedCount = previousDigits.length - inputDigits.length;
+
+    return (
+      previousDigits.slice(0, digitIndex) +
+      previousDigits.slice(digitIndex + removedCount)
+    ).slice(0, maxLength);
+  }
+
+  return inputDigits.slice(0, maxLength);
+}
+
+export function getPhoneCursorPosition(
+  formattedValue: string,
+  digitsBeforeCursor: number,
+): number {
+  if (digitsBeforeCursor <= 0) {
+    return 0;
+  }
+
+  let count = 0;
+
+  for (let index = 0; index < formattedValue.length; index += 1) {
+    if (/\d/.test(formattedValue[index] ?? "")) {
+      count += 1;
+
+      if (count === digitsBeforeCursor) {
+        return index + 1;
+      }
+    }
+  }
+
+  return formattedValue.length;
+}
+
 export function isValidBrazilianDdd(ddd: string): boolean {
   return VALID_BRAZILIAN_DDDS.includes(
     ddd as (typeof VALID_BRAZILIAN_DDDS)[number],

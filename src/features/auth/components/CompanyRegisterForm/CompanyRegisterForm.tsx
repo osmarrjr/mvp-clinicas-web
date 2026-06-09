@@ -20,28 +20,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
-import { capitalizeFirstLetter } from "@/lib/validators/companyName";
-import {
-  formatTaxId,
-  stripDigits,
-} from "@/lib/validators/cpfCnpj";
+import { disabledFormControlClassName } from "@/lib/styles/disabled-field";
+import { capitalizeFirstLetter } from "../../validators/companyName/companyName";
+import { formatTaxId, stripDigits } from "../../validators/cpfCnpj/cpfCnpj";
+import { getPasswordValidationError } from "../../validators/password/password";
 
-import { RegisterConfirmPasswordField } from "./RegisterConfirmPasswordField";
-import { RegisterPasswordField } from "./RegisterPasswordField";
-import { RegisterPhoneField } from "./RegisterPhoneField";
-import { PlanSelectionStep } from "./PlanSelectionStep";
+import { RegisterConfirmPasswordField } from "./RegisterPassword/RegisterConfirmPasswordField";
+import { RegisterPasswordField } from "./RegisterPassword/RegisterPasswordField";
+import { RegisterPhoneField } from "./RegisterPhone/RegisterPhoneField";
+import { PlanSelectionStep } from "../PlanSelectionStep";
 
-import { CLINIC_PLAN_OPTIONS } from "../constants/plans";
-import { useCompanyRegister } from "../hooks/useCompanyRegister";
-import { useIbgeLocations } from "../hooks/useIbgeLocations";
+import { CLINIC_PLAN_OPTIONS } from "../../constants/plans";
+import { useCompanyRegister } from "../../hooks/useCompanyRegister";
+import { useIbgeLocations } from "../../hooks/useIbgeLocations";
 import {
   companyRegisterSchema,
   type CompanyRegisterFormValues,
-} from "../schemas/companyRegisterSchema";
-import type { ClinicPlan } from "../types";
+} from "../../schemas/companyRegisterSchema";
+import type { ClinicPlan } from "../../types";
 
-const inputClassName =
-  "h-12 w-full rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 md:text-sm";
+const inputClassName = `h-12 w-full rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 md:text-sm ${disabledFormControlClassName}`;
 
 type RegisterStep = "plan" | "form";
 
@@ -81,6 +79,16 @@ export function CompanyRegisterForm() {
   const companyName = form.watch("companyName");
   const taxId = form.watch("taxId");
   const phoneValue = form.watch("phone");
+  const emailValue = form.watch("email");
+  const passwordValue = form.watch("password");
+  const passwordContext = useMemo(
+    () => ({ companyName, taxId, email: emailValue }),
+    [companyName, taxId, emailValue],
+  );
+  const isPasswordValid = useMemo(
+    () => getPasswordValidationError(passwordValue, passwordContext) === null,
+    [passwordValue, passwordContext],
+  );
 
   const selectedPlanDetails = useMemo(
     () => CLINIC_PLAN_OPTIONS.find((plan) => plan.id === selectedPlan),
@@ -427,13 +435,15 @@ export function CompanyRegisterForm() {
               form={form}
               companyName={companyName}
               taxId={taxId}
+              email={emailValue}
               inputClassName={inputClassName}
             />
 
             <RegisterConfirmPasswordField
               form={form}
-              passwordValue={form.watch("password")}
+              passwordValue={passwordValue}
               confirmPasswordValue={form.watch("confirmPassword")}
+              isPasswordValid={isPasswordValid}
               inputClassName={inputClassName}
             />
 

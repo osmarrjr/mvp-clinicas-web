@@ -15,15 +15,16 @@ import {
 import {
   getPasswordHintMessage,
   getPasswordStrength,
+  getPasswordValidationError,
   PASSWORD_REQUIREMENTS_TOOLTIP,
-} from "@/lib/validators/password";
-
-import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
+} from "../../../validators/password/password";
+import { CompanyRegisterFormValues } from "@/features/auth/schemas/companyRegisterSchema";
 
 type RegisterPasswordFieldProps = {
   form: UseFormReturn<CompanyRegisterFormValues>;
   companyName: string;
   taxId: string;
+  email: string;
   inputClassName: string;
 };
 
@@ -37,13 +38,24 @@ export function RegisterPasswordField({
   form,
   companyName,
   taxId,
+  email,
   inputClassName,
 }: RegisterPasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
   const password = form.watch("password") ?? "";
-  const hintMessage = getPasswordHintMessage(password, { companyName, taxId });
-  const strength =
-    password.length >= 8 ? getPasswordStrength(password) : null;
+  const hasInteracted =
+    form.formState.touchedFields.password ||
+    form.formState.dirtyFields.password ||
+    form.formState.isSubmitted;
+  const passwordContext = { companyName, taxId, email };
+  const validationMessage = hasInteracted
+    ? (getPasswordHintMessage(password, passwordContext) ??
+      form.formState.errors.password?.message ??
+      null)
+    : null;
+  const isPasswordValid =
+    getPasswordValidationError(password, passwordContext) === null;
+  const strength = isPasswordValid ? getPasswordStrength(password) : null;
 
   return (
     <div className="space-y-2">
@@ -80,9 +92,9 @@ export function RegisterPasswordField({
           id="password"
           type={showPassword ? "text" : "password"}
           autoComplete="new-password"
-          placeholder="Crie sua senha de acessos"
+          placeholder="Crie sua senha de acesso"
           maxLength={20}
-          aria-invalid={Boolean(form.formState.errors.password)}
+          aria-invalid={Boolean(validationMessage)}
           className={`${inputClassName} pr-12`}
           {...form.register("password")}
         />
@@ -101,8 +113,10 @@ export function RegisterPasswordField({
         </button>
       </div>
 
-      {hintMessage ? (
-        <p className="text-sm font-medium text-red-200">{hintMessage}</p>
+      {validationMessage ? (
+        <p className="text-sm font-medium text-red-200" role="alert">
+          {validationMessage}
+        </p>
       ) : null}
 
       {strength ? (
@@ -121,12 +135,6 @@ export function RegisterPasswordField({
             />
           </div>
         </div>
-      ) : null}
-
-      {form.formState.errors.password?.message ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
-          {form.formState.errors.password.message}
-        </p>
       ) : null}
     </div>
   );

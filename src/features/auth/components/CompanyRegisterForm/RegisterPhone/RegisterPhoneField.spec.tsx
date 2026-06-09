@@ -3,16 +3,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm } from "react-hook-form";
 
-import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
+import type { CompanyRegisterFormValues } from "../../../schemas/companyRegisterSchema";
 import { RegisterPhoneField } from "./RegisterPhoneField";
 
 const inputClassName = "test-input";
 
-function PhoneFieldWrapper({
-  defaultPhone = "",
-}: {
-  defaultPhone?: string;
-}) {
+function PhoneFieldWrapper({ defaultPhone = "" }: { defaultPhone?: string }) {
   const form = useForm<CompanyRegisterFormValues>({
     defaultValues: {
       companyName: "",
@@ -43,9 +39,7 @@ describe("RegisterPhoneField", () => {
     render(<PhoneFieldWrapper />);
 
     expect(screen.getByLabelText(/^telefone$/i)).toBeTruthy();
-    expect(
-      screen.getByPlaceholderText("(00) 00000-0000"),
-    ).toBeTruthy();
+    expect(screen.getByPlaceholderText("(00) 00000-0000")).toBeTruthy();
   });
 
   it("aplica máscara ao digitar", async () => {

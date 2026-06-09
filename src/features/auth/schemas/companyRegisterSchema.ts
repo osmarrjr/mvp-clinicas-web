@@ -1,14 +1,14 @@
 import { z } from "zod";
 
-import { getCompanyNameValidationError } from "@/lib/validators/companyName";
+import { getCompanyNameValidationError } from "../validators/companyName/companyName";
 import {
   isValidCnpj,
   isValidCpf,
   stripDigits,
-} from "@/lib/validators/cpfCnpj";
-import { getEmailValidationError } from "@/lib/validators/email";
-import { getPasswordValidationError } from "@/lib/validators/password";
-import { getPhoneValidationError } from "@/lib/validators/phone";
+} from "../validators/cpfCnpj/cpfCnpj";
+import { getEmailValidationError } from "../validators/email/email";
+import { getPasswordValidationError } from "../validators/password/password";
+import { getPhoneValidationError } from "../validators/phone/phone";
 
 const companyRegisterBaseSchema = z.object({
   companyName: z
@@ -110,9 +110,7 @@ const companyRegisterBaseSchema = z.object({
     }
   }),
 
-  password: z
-    .string()
-    .max(20, "Senha deve ter no máximo 20 caracteres."),
+  password: z.string().max(20, "Senha deve ter no máximo 20 caracteres."),
 
   confirmPassword: z
     .string()
@@ -128,6 +126,7 @@ export const companyRegisterSchema = companyRegisterBaseSchema.superRefine(
     const passwordError = getPasswordValidationError(values.password, {
       companyName: values.companyName,
       taxId: values.taxId,
+      email: values.email,
     });
 
     if (passwordError) {

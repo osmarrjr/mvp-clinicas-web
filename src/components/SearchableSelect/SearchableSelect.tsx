@@ -6,6 +6,7 @@ import { CheckIcon, ChevronDownIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { disabledFieldClassName } from "@/lib/styles/disabled-field";
 
 export type SearchableSelectOption = {
   value: string;
@@ -90,7 +91,8 @@ export function SearchableSelect({
           disabled={disabled}
           aria-invalid={ariaInvalid}
           className={cn(
-            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm backdrop-blur-md transition outline-none focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm backdrop-blur-md transition outline-none focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40",
+            disabledFieldClassName,
             !selectedLabel && "text-blue-100/50",
             triggerClassName,
           )}

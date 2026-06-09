@@ -31,13 +31,33 @@ Você apenas executa a validação de QA e reporta o resultado ao `orchestrator`
 
 ---
 
-# Passo 1 — Build
+# Passo 1 — Build e testes
 
 ```bash
 npm run build
+npm run test
 ```
 
-Se o build falhar, pare.
+Se o build ou os testes falharem, pare.
+
+---
+
+# Passo 1.1 — Servidor de desenvolvimento (regra crítica)
+
+**Não deixe `next dev` rodando ao finalizar o QA.**
+
+- Priorize `npm run build` + `npm run test` para validar a entrega.
+- Só suba `npm run dev` se for estritamente necessário para checar UI manualmente.
+- Se subir o dev server:
+  - use porta alternativa (`npm run dev -- -p 3005`) para não conflitar com o dev do usuário na 3000;
+  - **encerre o processo antes de concluir** (Ctrl+C no terminal ou `npm run dev:stop`).
+- **Nunca** deixe `npm run dev` em background; isso bloqueia o usuário com *"Another next dev server is already running"*.
+
+Ao encerrar o QA, confirme que as portas 3000/3005 estão livres:
+
+```bash
+npm run dev:stop
+```
 
 ---
 

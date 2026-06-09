@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { useCompanyRegister } from "../../hooks/useCompanyRegister";
+import { useIbgeLocations } from "../../hooks/useIbgeLocations";
 import { CompanyRegisterForm } from "./CompanyRegisterForm";
-import { useCompanyRegister } from "../hooks/useCompanyRegister";
-import { useIbgeLocations } from "../hooks/useIbgeLocations";
 
 const pushMock = vi.fn();
 
@@ -81,7 +81,9 @@ function setupCompanyRegisterMock(
   return { registerMock };
 }
 
-function setupIbgeMock(overrides?: Partial<ReturnType<typeof useIbgeLocations>>) {
+function setupIbgeMock(
+  overrides?: Partial<ReturnType<typeof useIbgeLocations>>,
+) {
   useIbgeLocationsMock.mockReturnValue({
     states: [{ id: 35, sigla: "SP", nome: "São Paulo" }],
     cities: [{ id: 3550308, nome: "São Paulo" }],
@@ -110,7 +112,9 @@ describe("CompanyRegisterForm", () => {
     render(<CompanyRegisterForm />);
 
     expect(screen.getByText(/escolha seu plano/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /selecionar pro/i })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /selecionar pro/i }),
+    ).toBeTruthy();
     expect(screen.queryByLabelText(/nome da empresa/i)).toBeNull();
     expect(screen.queryByText(/^plano$/i)).toBeNull();
   });
@@ -128,7 +132,7 @@ describe("CompanyRegisterForm", () => {
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^telefone$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
-    expect(screen.getByLabelText(/confirmar senha/i)).toBeTruthy();
+    expect(screen.getByPlaceholderText("Confirme sua senha")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /requisitos da senha/i }),
     ).toBeTruthy();
@@ -158,11 +162,9 @@ describe("CompanyRegisterForm", () => {
     ).toBeTruthy();
     expect(screen.getByPlaceholderText("(00) 00000-0000")).toBeTruthy();
     expect(
-      screen.getByPlaceholderText("Crie sua senha de acessos"),
+      screen.getByPlaceholderText("Crie sua senha de acesso"),
     ).toBeTruthy();
-    expect(
-      screen.getByPlaceholderText("Confirme sua senha"),
-    ).toBeTruthy();
+    expect(screen.getByPlaceholderText("Confirme sua senha")).toBeTruthy();
   });
 
   it("exibe modal de erro da API", async () => {
@@ -188,7 +190,7 @@ describe("CompanyRegisterForm", () => {
 
     expect(screen.getByText(/cadastro realizado com sucesso/i)).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: /confirmar/i }));
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
 
     expect(pushMock).toHaveBeenCalledWith("/login");
   });

@@ -5,6 +5,7 @@ import {
   formatPhone,
   getPhoneValidationError,
   isValidBrazilianDdd,
+  resolvePhoneDigitsFromInput,
   stripPhoneDigits,
 } from "./phone";
 
@@ -21,6 +22,26 @@ describe("formatPhone", () => {
 
   it("formata celular com 11 dígitos", () => {
     expect(formatPhone("11987654321")).toBe("(11) 98765-4321");
+  });
+});
+
+describe("resolvePhoneDigitsFromInput", () => {
+  it("remove o dígito correto ao apagar no início do DDD", () => {
+    const previousDigits = "1234567891";
+    const nextValue = "(2) 3456-7891";
+
+    expect(resolvePhoneDigitsFromInput(previousDigits, nextValue, 1)).toBe(
+      "234567891",
+    );
+  });
+
+  it("preserva os dígitos restantes ao apagar o DDD parcialmente", () => {
+    const previousDigits = "1234567891";
+    const nextValue = "3456-7891";
+
+    expect(resolvePhoneDigitsFromInput(previousDigits, nextValue, 0)).toBe(
+      "34567891",
+    );
   });
 });
 

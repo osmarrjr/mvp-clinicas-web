@@ -4,7 +4,7 @@ import {
   getPasswordHintMessage,
   getPasswordStrength,
   getPasswordValidationError,
-  isCommonPassword,
+  passwordContainsEmailParts,
   passwordContainsPersonalData,
 } from "./password";
 
@@ -44,25 +44,27 @@ describe("getPasswordValidationError", () => {
     );
   });
 
-  it("retorna erro para senha comum", () => {
-    expect(getPasswordValidationError("Password1!")).toBe(
-      "Senha comum, escolha uma senha mais segura",
-    );
-  });
-
   it("retorna erro quando senha contém dados pessoais", () => {
     expect(
       getPasswordValidationError("Clinica@529", {
         companyName: "Clínica Saúde",
         taxId: "52998224725",
       }),
-    ).toBe("Senha não pode conter nome, CPF e CNPJ");
+    ).toBe("Senha não pode conter Nome, CPF, CNPJ ou Email");
+  });
+
+  it("retorna erro quando senha contém partes do email", () => {
+    expect(
+      getPasswordValidationError("Contato@123", {
+        email: "contato@empresa.com",
+      }),
+    ).toBe("Senha não pode conter Nome, CPF, CNPJ ou Email");
   });
 });
 
 describe("getPasswordHintMessage", () => {
-  it("retorna mensagem de obrigatório quando vazio", () => {
-    expect(getPasswordHintMessage("")).toBe("Senha é obrigatória.");
+  it("retorna null quando vazio", () => {
+    expect(getPasswordHintMessage("")).toBeNull();
   });
 
   it("retorna apenas uma mensagem por prioridade", () => {
@@ -78,14 +80,6 @@ describe("getPasswordHintMessage", () => {
     expect(getPasswordHintMessage("Senha1234")).toBe(
       "Senha deve possuir pelo menos um caractere especial",
     );
-  });
-});
-
-describe("isCommonPassword", () => {
-  it("identifica senhas comuns", () => {
-    expect(isCommonPassword("12345678")).toBe(true);
-    expect(isCommonPassword("password")).toBe(true);
-    expect(isCommonPassword("Senha@123")).toBe(false);
   });
 });
 
@@ -107,6 +101,15 @@ describe("passwordContainsPersonalData", () => {
       }),
     ).toBe(true);
   });
+
+  it("detecta partes do email com 3+ caracteres", () => {
+    expect(
+      passwordContainsEmailParts("Empresa@123", "contato@empresa.com"),
+    ).toBe(true);
+    expect(
+      passwordContainsEmailParts("Senha@123", "contato@empresa.com"),
+    ).toBe(false);
+  });
 });
 
 describe("getPasswordStrength", () => {
@@ -120,12 +123,18 @@ describe("getPasswordStrength", () => {
     const result = getPasswordStrength("Senha@123");
     expect(result.label).toBe("media");
     expect(result.score).toBeGreaterThan(30);
-    expect(result.score).toBeLessThanOrEqual(80);
+    expect(result.score).toBeLessThan(75);
   });
 
   it("retorna score alto para senha forte", () => {
     const result = getPasswordStrength("Senha@123Xyz!Ab#Cd");
     expect(result.label).toBe("forte");
-    expect(result.score).toBeGreaterThan(80);
+    expect(result.score).toBeGreaterThanOrEqual(75);
+  });
+
+  it("classifica faixas em 30, 75 e 100", () => {
+    expect(getPasswordStrength("aaaaaaaa").label).toBe("fraca");
+    expect(getPasswordStrength("Senha@123").label).toBe("media");
+    expect(getPasswordStrength("Senha@123Xyz!Ab#Cd").label).toBe("forte");
   });
 });
