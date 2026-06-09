@@ -1,115 +1,83 @@
 import { z } from "zod";
 
+import { getCompanyNameValidationError } from "@/lib/validators/companyName";
 import {
   isValidCnpj,
   isValidCpf,
-  stripAlphanumeric,
+  stripDigits,
 } from "@/lib/validators/cpfCnpj";
+import { getEmailValidationError } from "@/lib/validators/email";
 import { getPasswordValidationError } from "@/lib/validators/password";
+import { getPhoneValidationError } from "@/lib/validators/phone";
 
-export const companyRegisterSchema = z.object({
+const companyRegisterBaseSchema = z.object({
   companyName: z
     .string()
-    .min(1, "Nome da empresa é obrigatório.")
-    .min(3, "Nome da empresa deve ter pelo menos 3 caracteres."),
-
-  taxId: z
-    .string()
-    .min(1, "CPF ou CNPJ é obrigatório.")
+    .max(70, "Nome da empresa deve ter no máximo 70 caracteres.")
     .superRefine((value, ctx) => {
-      const normalized = stripAlphanumeric(value);
+      const message = getCompanyNameValidationError(value);
 
-      if (!normalized) {
+      if (message) {
         ctx.addIssue({
           code: "custom",
-          message: "CPF ou CNPJ é obrigatório.",
-        });
-        return;
-      }
-
-      const hasLetters = /[A-Z]/.test(normalized);
-
-      if (hasLetters) {
-        if (normalized.length < 14) {
-          ctx.addIssue({
-            code: "custom",
-            message: "CNPJ incompleto.",
-          });
-          return;
-        }
-
-        if (normalized.length > 14) {
-          ctx.addIssue({
-            code: "custom",
-            message: "CNPJ deve conter 14 caracteres.",
-          });
-          return;
-        }
-
-        if (!/^[A-Z0-9]{12}\d{2}$/.test(normalized)) {
-          ctx.addIssue({
-            code: "custom",
-            message:
-              "CNPJ inválido. Os 12 primeiros caracteres podem conter letras e números, mas os 2 últimos devem ser números.",
-          });
-          return;
-        }
-
-        if (!isValidCnpj(normalized)) {
-          ctx.addIssue({
-            code: "custom",
-            message: "CNPJ inválido.",
-          });
-        }
-
-        return;
-      }
-
-      if (normalized.length > 0 && normalized.length < 11) {
-        ctx.addIssue({
-          code: "custom",
-          message: "CPF ou CNPJ incompleto.",
-        });
-        return;
-      }
-
-      if (normalized.length === 11) {
-        if (!isValidCpf(normalized)) {
-          ctx.addIssue({
-            code: "custom",
-            message: "CPF inválido.",
-          });
-        }
-
-        return;
-      }
-
-      if (normalized.length > 11 && normalized.length < 14) {
-        ctx.addIssue({
-          code: "custom",
-          message: "CNPJ incompleto.",
-        });
-        return;
-      }
-
-      if (normalized.length === 14) {
-        if (!isValidCnpj(normalized)) {
-          ctx.addIssue({
-            code: "custom",
-            message: "CNPJ inválido.",
-          });
-        }
-
-        return;
-      }
-
-      if (normalized.length > 14) {
-        ctx.addIssue({
-          code: "custom",
-          message: "CNPJ deve conter 14 caracteres.",
+          message,
         });
       }
     }),
+
+  taxId: z.string().superRefine((value, ctx) => {
+    const digits = stripDigits(value);
+
+    if (!digits) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CPF ou CNPJ é obrigatório.",
+      });
+      return;
+    }
+
+    if (digits.length < 11) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CPF ou CNPJ incompleto.",
+      });
+      return;
+    }
+
+    if (digits.length > 11 && digits.length < 14) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ incompleto.",
+      });
+      return;
+    }
+
+    if (digits.length > 14) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ deve conter 14 dígitos.",
+      });
+      return;
+    }
+
+    if (digits.length === 11) {
+      if (!isValidCpf(digits)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "CPF inválido.",
+        });
+      }
+
+      return;
+    }
+
+    if (!isValidCnpj(digits)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CNPJ inválido.",
+      });
+    }
+  }),
 
   stateUf: z.string().min(1, "Estado é obrigatório."),
 
@@ -117,10 +85,22 @@ export const companyRegisterSchema = z.object({
 
   cityIbgeId: z.number().optional(),
 
-  email: z.string().min(1, "Email é obrigatório.").email("Email inválido."),
+  email: z
+    .string()
+    .max(70, "Email deve ter no máximo 70 caracteres.")
+    .superRefine((value, ctx) => {
+      const message = getEmailValidationError(value);
 
-  password: z.string().superRefine((value, ctx) => {
-    const message = getPasswordValidationError(value);
+      if (message) {
+        ctx.addIssue({
+          code: "custom",
+          message,
+        });
+      }
+    }),
+
+  phone: z.string().superRefine((value, ctx) => {
+    const message = getPhoneValidationError(value);
 
     if (message) {
       ctx.addIssue({
@@ -130,9 +110,48 @@ export const companyRegisterSchema = z.object({
     }
   }),
 
+  password: z
+    .string()
+    .max(20, "Senha deve ter no máximo 20 caracteres."),
+
+  confirmPassword: z
+    .string()
+    .max(20, "Confirmação de senha deve ter no máximo 20 caracteres."),
+
   plan: z.enum(["basic", "medium", "pro"], {
     error: "Plano é obrigatório.",
   }),
 });
+
+export const companyRegisterSchema = companyRegisterBaseSchema.superRefine(
+  (values, ctx) => {
+    const passwordError = getPasswordValidationError(values.password, {
+      companyName: values.companyName,
+      taxId: values.taxId,
+    });
+
+    if (passwordError) {
+      ctx.addIssue({
+        code: "custom",
+        message: passwordError,
+        path: ["password"],
+      });
+    }
+
+    if (!values.confirmPassword.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Confirmação de senha é obrigatória.",
+        path: ["confirmPassword"],
+      });
+    } else if (values.password !== values.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "As senhas não conferem",
+        path: ["confirmPassword"],
+      });
+    }
+  },
+);
 
 export type CompanyRegisterFormValues = z.infer<typeof companyRegisterSchema>;

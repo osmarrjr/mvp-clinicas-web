@@ -126,7 +126,9 @@ describe("CompanyRegisterForm", () => {
     expect(screen.getByText(/^estado$/i)).toBeTruthy();
     expect(screen.getByText(/^cidade$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
+    expect(screen.getByLabelText(/^telefone$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
+    expect(screen.getByLabelText(/confirmar senha/i)).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /requisitos da senha/i }),
     ).toBeTruthy();
@@ -136,6 +138,31 @@ describe("CompanyRegisterForm", () => {
     expect(
       screen.getByRole("button", { name: /cadastrar empresa/i }),
     ).toHaveProperty("disabled", true);
+  });
+
+  it("exibe placeholders atualizados", async () => {
+    const user = userEvent.setup();
+    render(<CompanyRegisterForm />);
+
+    await goToFormStep(user);
+
+    expect(
+      screen.getByPlaceholderText(
+        "Digite o nome da empresa, pessoa física ou razão social",
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText(
+        "Digite o cpf/cnpj da empresa ou pessoa física",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByPlaceholderText("(00) 00000-0000")).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText("Crie sua senha de acessos"),
+    ).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText("Confirme sua senha"),
+    ).toBeTruthy();
   });
 
   it("exibe modal de erro da API", async () => {
