@@ -79,11 +79,9 @@ const companyRegisterBaseSchema = z.object({
     }
   }),
 
-  stateUf: z.string().min(1, "Estado é obrigatório."),
+  uf: z.string().min(1, "Estado é obrigatório."),
 
   city: z.string().min(1, "Cidade é obrigatória."),
-
-  cityIbgeId: z.number().optional(),
 
   email: z
     .string()

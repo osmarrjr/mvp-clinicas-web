@@ -9,11 +9,10 @@ export type PasswordValidationContext = {
 
 export type PasswordStrength = {
   score: number;
-  label: "fraca" | "media" | "forte";
+  label: "Fraca" | "Media" | "Forte";
 };
 
-const PERSONAL_DATA_ERROR =
-  "Senha não pode conter Nome, CPF, CNPJ ou Email";
+const PERSONAL_DATA_ERROR = "Senha não pode conter Nome, CPF, CNPJ ou Email";
 
 function hasLettersAndNumbers(password: string): boolean {
   return /[a-zA-Z]/.test(password) && /\d/.test(password);
@@ -28,10 +27,7 @@ function hasSpecialCharacter(password: string): boolean {
 }
 
 function normalizeComparableText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase();
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 }
 
 function extractEmailComparableParts(email: string): string[] {
@@ -45,9 +41,7 @@ function extractEmailComparableParts(email: string): string[] {
   const domain = domainParts.join("@");
 
   return [localPart, ...localPart.split(/[._-]/), ...domain.split(/[._-]/)]
-    .map((part) =>
-      normalizeComparableText(part.replace(/[^\p{L}\p{N}]/gu, "")),
-    )
+    .map((part) => normalizeComparableText(part.replace(/[^\p{L}\p{N}]/gu, "")))
     .filter((part) => part.length >= 3);
 }
 
@@ -88,7 +82,11 @@ export function passwordContainsPersonalData(
   }
 
   if (taxIdDigits.length >= 3) {
-    for (let length = Math.min(taxIdDigits.length, 11); length >= 3; length -= 1) {
+    for (
+      let length = Math.min(taxIdDigits.length, 11);
+      length >= 3;
+      length -= 1
+    ) {
       for (let index = 0; index <= taxIdDigits.length - length; index += 1) {
         const substring = taxIdDigits.slice(index, index + length);
         if (normalizedPassword.includes(substring)) {
@@ -164,14 +162,14 @@ export function getPasswordValidationError(
 }
 
 function getStrengthLabel(score: number): PasswordStrength["label"] {
-  if (score <= 30) return "fraca";
-  if (score < 75) return "media";
-  return "forte";
+  if (score <= 30) return "Fraca";
+  if (score < 75) return "Media";
+  return "Forte";
 }
 
 export function getPasswordStrength(password: string): PasswordStrength {
   if (password.length < 8) {
-    return { score: 0, label: "fraca" };
+    return { score: 0, label: "Fraca" };
   }
 
   let score = Math.min(password.length * 3, 30);

@@ -4,9 +4,8 @@ export interface RegisterClinicDto {
   clinicName: string;
   taxId: string;
   taxIdType: "cpf" | "cnpj";
-  stateUf: string;
+  uf: string;
   city: string;
-  cityIbgeId?: number;
   email: string;
   password: string;
   plan: ClinicPlan;

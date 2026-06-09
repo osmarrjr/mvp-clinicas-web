@@ -64,9 +64,8 @@ export function CompanyRegisterForm() {
     defaultValues: {
       companyName: "",
       taxId: "",
-      stateUf: "",
+      uf: "",
       city: "",
-      cityIbgeId: undefined,
       email: "",
       phone: "",
       password: "",
@@ -95,7 +94,7 @@ export function CompanyRegisterForm() {
     [selectedPlan],
   );
 
-  const stateUf = form.watch("stateUf");
+  const uf = form.watch("uf");
   const {
     states,
     cities,
@@ -105,7 +104,7 @@ export function CompanyRegisterForm() {
     citiesError,
     clearStatesError,
     clearCitiesError,
-  } = useIbgeLocations(stateUf);
+  } = useIbgeLocations(uf);
 
   const loadingMessage = useMemo(() => {
     if (isPending) return "Cadastrando empresa";
@@ -153,31 +152,29 @@ export function CompanyRegisterForm() {
   }
 
   function handleStateChange(value: string) {
-    form.setValue("stateUf", value, { shouldValidate: true });
+    form.setValue("uf", value, { shouldValidate: true });
     form.setValue("city", "", { shouldValidate: true });
-    form.setValue("cityIbgeId", undefined, { shouldValidate: true });
     clearCitiesError();
   }
 
-  const cityPlaceholder = !stateUf
+  const cityPlaceholder = !uf
     ? "Selecione a cidade"
     : isLoadingCities
       ? "Carregando cidades..."
       : "Selecione a cidade";
 
   function handleCityChange(cityName: string) {
-    const municipality = cities.find((item) => item.nome === cityName);
     form.setValue("city", cityName, { shouldValidate: true });
-    form.setValue("cityIbgeId", municipality?.id, { shouldValidate: true });
   }
 
   async function onSubmit(values: CompanyRegisterFormValues) {
-    await submitRegister(values);
+    console.log(values);
+    // await submitRegister(values);
   }
 
   const isSubmitDisabled = !form.formState.isValid || isPending;
   const cityDisabled =
-    !stateUf || isLoadingCities || (cities.length === 0 && !isLoadingCities);
+    !uf || isLoadingCities || (cities.length === 0 && !isLoadingCities);
 
   const stateOptions = useMemo(
     () =>
@@ -230,7 +227,7 @@ export function CompanyRegisterForm() {
                   <p className="text-xs font-medium uppercase tracking-wide text-blue-100/70">
                     Plano selecionado
                   </p>
-                  <p className="text-base font-semibold text-white">
+                  <p className="text-sm font-semibold text-white">
                     {selectedPlanDetails.name} —{" "}
                     {selectedPlanDetails.priceLabel}
                   </p>
@@ -324,7 +321,7 @@ export function CompanyRegisterForm() {
                   Estado
                 </Label>
                 <Controller
-                  name="stateUf"
+                  name="uf"
                   control={form.control}
                   render={({ field }) => (
                     <SearchableSelect
@@ -334,13 +331,13 @@ export function CompanyRegisterForm() {
                       placeholder="Selecione o estado"
                       searchPlaceholder="Buscar estado..."
                       disabled={isLoadingStates}
-                      aria-invalid={Boolean(form.formState.errors.stateUf)}
+                      aria-invalid={Boolean(form.formState.errors.uf)}
                     />
                   )}
                 />
-                {form.formState.errors.stateUf?.message ? (
+                {form.formState.errors.uf?.message ? (
                   <p className="text-sm font-medium text-red-200" role="alert">
-                    {form.formState.errors.stateUf.message}
+                    {form.formState.errors.uf.message}
                   </p>
                 ) : null}
               </div>
