@@ -106,35 +106,35 @@ describe("passwordContainsPersonalData", () => {
     expect(
       passwordContainsEmailParts("Empresa@123", "contato@empresa.com"),
     ).toBe(true);
-    expect(
-      passwordContainsEmailParts("Senha@123", "contato@empresa.com"),
-    ).toBe(false);
+    expect(passwordContainsEmailParts("Senha@123", "contato@empresa.com")).toBe(
+      false,
+    );
   });
 });
 
 describe("getPasswordStrength", () => {
-  it("retorna score baixo para senha fraca", () => {
+  it("retorna score baixo para senha Fraca", () => {
     const result = getPasswordStrength("aaaaaaaa");
-    expect(result.label).toBe("fraca");
+    expect(result.label).toBe("Fraca");
     expect(result.score).toBeLessThanOrEqual(30);
   });
 
   it("retorna score médio para senha média", () => {
     const result = getPasswordStrength("Senha@123");
-    expect(result.label).toBe("media");
+    expect(result.label).toBe("Media");
     expect(result.score).toBeGreaterThan(30);
     expect(result.score).toBeLessThan(75);
   });
 
-  it("retorna score alto para senha forte", () => {
+  it("retorna score alto para senha Forte", () => {
     const result = getPasswordStrength("Senha@123Xyz!Ab#Cd");
-    expect(result.label).toBe("forte");
+    expect(result.label).toBe("Forte");
     expect(result.score).toBeGreaterThanOrEqual(75);
   });
 
   it("classifica faixas em 30, 75 e 100", () => {
-    expect(getPasswordStrength("aaaaaaaa").label).toBe("fraca");
-    expect(getPasswordStrength("Senha@123").label).toBe("media");
-    expect(getPasswordStrength("Senha@123Xyz!Ab#Cd").label).toBe("forte");
+    expect(getPasswordStrength("aaaaaaaa").label).toBe("Fraca");
+    expect(getPasswordStrength("Senha@123").label).toBe("Media");
+    expect(getPasswordStrength("Senha@123Xyz!Ab#Cd").label).toBe("Forte");
   });
 });

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
+import { authMutationKeys } from "../constants/queryKeys";
 import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
-import { registerClientService } from "../services/registerClientService";
+import { registerClientService } from "../services/companyRegister/registerClientService";
 
 const REGISTER_ERROR_MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: "Dados inválidos. Verifique os campos e tente novamente.",
@@ -13,18 +14,22 @@ const REGISTER_ERROR_MESSAGES: Record<string, string> = {
   INTERNAL_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
 };
 
-export function useCompanyRegister() {
-  const [isPending, setIsPending] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+export type UseCompanyRegisterOptions = {
+  onSuccess?: () => void;
+  onError?: (message: string) => void;
+};
 
-  async function register(payload: CompanyRegisterFormValues) {
-    setIsPending(true);
-    setIsSuccess(false);
-    setErrorMessage(null);
+export function useCompanyRegister(options?: UseCompanyRegisterOptions) {
+  const mutation = useMutation({
+    mutationKey: authMutationKeys.register,
+    mutationFn: async (payload: CompanyRegisterFormValues) => {
+      let response;
 
-    try {
-      const response = await registerClientService(payload);
+      try {
+        response = await registerClientService(payload);
+      } catch {
+        throw new Error(REGISTER_ERROR_MESSAGES.INTERNAL_ERROR);
+      }
 
       if (!response.ok) {
         const message =
@@ -32,33 +37,38 @@ export function useCompanyRegister() {
           response.error.message ??
           REGISTER_ERROR_MESSAGES.INTERNAL_ERROR;
 
-        setErrorMessage(message);
-        return null;
+        throw new Error(message);
       }
 
-      setIsSuccess(true);
       return response.data;
+    },
+    onSuccess: options?.onSuccess,
+    onError: (error) => {
+      options?.onError?.(error.message);
+    },
+  });
+
+  async function register(payload: CompanyRegisterFormValues) {
+    try {
+      return await mutation.mutateAsync(payload);
     } catch {
-      setErrorMessage(REGISTER_ERROR_MESSAGES.INTERNAL_ERROR);
       return null;
-    } finally {
-      setIsPending(false);
     }
   }
 
   function clearError() {
-    setErrorMessage(null);
+    mutation.reset();
   }
 
   function resetSuccess() {
-    setIsSuccess(false);
+    mutation.reset();
   }
 
   return {
     register,
-    isPending,
-    isSuccess,
-    errorMessage,
+    isPending: mutation.isPending,
+    isSuccess: mutation.isSuccess,
+    errorMessage: mutation.error?.message ?? null,
     clearError,
     resetSuccess,
   };

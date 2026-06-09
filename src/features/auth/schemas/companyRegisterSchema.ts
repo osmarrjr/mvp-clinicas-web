@@ -117,6 +117,8 @@ const companyRegisterBaseSchema = z.object({
   plan: z.enum(["basic", "medium", "pro"], {
     error: "Plano é obrigatório.",
   }),
+
+  taxIdType: z.enum(["cpf", "cnpj"]).optional(),
 });
 
 export const companyRegisterSchema = companyRegisterBaseSchema.superRefine(

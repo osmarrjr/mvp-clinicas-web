@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { loginSchema } from "@/features/auth/schemas/loginSchema";
-import { loginServerService } from "@/features/auth/services/authServerService";
+import { loginServerService } from "@/features/auth/services/auth/authServerService";
 
 function getStatusByErrorCode(code: string) {
   const statusMap: Record<string, number> = {

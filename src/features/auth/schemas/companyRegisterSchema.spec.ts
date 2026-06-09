@@ -28,6 +28,18 @@ describe("companyRegisterSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("aceita taxIdType explícito no payload", () => {
+    const result = companyRegisterSchema.safeParse({
+      ...validBase,
+      taxIdType: "cpf",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.taxIdType).toBe("cpf");
+    }
+  });
+
   it("rejeita nome da empresa com menos de 5 caracteres", () => {
     const result = companyRegisterSchema.safeParse({
       ...validBase,

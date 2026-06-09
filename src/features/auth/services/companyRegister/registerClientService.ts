@@ -1,5 +1,6 @@
-import type { CompanyRegisterFormValues } from "../schemas/companyRegisterSchema";
-import type { RegisterClinicResponse } from "../types";
+import type { CompanyRegisterFormValues } from "../../schemas/companyRegisterSchema";
+import type { RegisterClinicResponse } from "../../types";
+import { buildRegisterApiPayload } from "./registerPayload";
 
 export async function registerClientService(
   payload: CompanyRegisterFormValues,
@@ -9,7 +10,7 @@ export async function registerClientService(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(buildRegisterApiPayload(payload)),
   });
 
   const body = (await response.json()) as RegisterClinicResponse;

@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 
+import { ibgeQueryKeys } from "../constants/queryKeys";
 import {
   fetchCitiesByUf,
   fetchStates,
@@ -9,119 +11,63 @@ import {
   type IbgeState,
 } from "../services/ibgeClientService";
 
+const IBGE_STALE_TIME = 1000 * 60 * 60 * 24;
+
 export function useIbgeLocations(stateUf?: string) {
-  const [states, setStates] = useState<IbgeState[]>([]);
-  const [cities, setCities] = useState<IbgeMunicipality[]>([]);
-
-  const [isLoadingStates, setIsLoadingStates] = useState(true);
-  const [isLoadingCities, setIsLoadingCities] = useState(false);
-
-  const [statesError, setStatesError] = useState<string | null>(null);
-  const [citiesError, setCitiesError] = useState<string | null>(null);
-
-  const statesRequestIdRef = useRef(0);
-  const citiesRequestIdRef = useRef(0);
-
+  const queryClient = useQueryClient();
   const normalizedUf = stateUf?.trim().toUpperCase() ?? "";
 
-  useEffect(() => {
-    const requestId = ++statesRequestIdRef.current;
+  const statesQuery = useQuery({
+    queryKey: ibgeQueryKeys.states(),
+    queryFn: fetchStates,
+    staleTime: IBGE_STALE_TIME,
+  });
 
-    async function loadStates() {
-      setIsLoadingStates(true);
-      setStatesError(null);
-
-      try {
-        const data = await fetchStates();
-
-        if (requestId !== statesRequestIdRef.current) return;
-
-        setStates(data);
-      } catch {
-        if (requestId !== statesRequestIdRef.current) return;
-
-        setStates([]);
-        setStatesError("Não foi possível carregar os estados.");
-      } finally {
-        if (requestId === statesRequestIdRef.current) {
-          setIsLoadingStates(false);
-        }
-      }
-    }
-
-    void loadStates();
-
-    return () => {
-      statesRequestIdRef.current += 1;
-    };
-  }, []);
-
-  useEffect(() => {
-    const requestId = ++citiesRequestIdRef.current;
-
-    if (!normalizedUf) {
-      setCities([]);
-      setCitiesError(null);
-      setIsLoadingCities(false);
-      return;
-    }
-
-    async function loadCities() {
-      setIsLoadingCities(true);
-      setCitiesError(null);
-      setCities([]);
-
-      try {
-        const data = await fetchCitiesByUf(normalizedUf);
-
-        if (requestId !== citiesRequestIdRef.current) return;
-
-        setCities(data);
-      } catch {
-        if (requestId !== citiesRequestIdRef.current) return;
-
-        setCities([]);
-        setCitiesError("Não foi possível carregar os municípios.");
-      } finally {
-        if (requestId === citiesRequestIdRef.current) {
-          setIsLoadingCities(false);
-        }
-      }
-    }
-
-    void loadCities();
-
-    return () => {
-      citiesRequestIdRef.current += 1;
-    };
-  }, [normalizedUf]);
+  const citiesQuery = useQuery({
+    queryKey: ibgeQueryKeys.cities(normalizedUf),
+    queryFn: () => fetchCitiesByUf(normalizedUf),
+    enabled: Boolean(normalizedUf),
+    staleTime: IBGE_STALE_TIME,
+  });
 
   const clearStatesError = useCallback(() => {
-    setStatesError(null);
-  }, []);
+    queryClient.resetQueries({ queryKey: ibgeQueryKeys.states() });
+  }, [queryClient]);
 
   const clearCitiesError = useCallback(() => {
-    setCitiesError(null);
-  }, []);
+    if (normalizedUf) {
+      queryClient.resetQueries({
+        queryKey: ibgeQueryKeys.cities(normalizedUf),
+      });
+    }
+  }, [queryClient, normalizedUf]);
 
   return useMemo(
     () => ({
-      states,
-      cities,
-      isLoadingStates,
-      isLoadingCities,
-      statesError,
-      citiesError,
+      states: (statesQuery.data ?? []) as IbgeState[],
+      cities: (citiesQuery.data ?? []) as IbgeMunicipality[],
+      isLoadingStates: statesQuery.isLoading,
+      isLoadingCities: normalizedUf ? citiesQuery.isLoading : false,
+      statesError: statesQuery.isError
+        ? "Não foi possível carregar os estados."
+        : null,
+      citiesError:
+        normalizedUf && citiesQuery.isError
+          ? "Não foi possível carregar os municípios."
+          : null,
       clearStatesError,
       clearCitiesError,
     }),
     [
-      states,
-      cities,
-      isLoadingStates,
-      isLoadingCities,
-      statesError,
-      citiesError,
+      statesQuery.data,
+      statesQuery.isLoading,
+      statesQuery.isFetching,
+      statesQuery.isError,
+      citiesQuery.data,
+      citiesQuery.isLoading,
+      citiesQuery.isFetching,
+      citiesQuery.isError,
+      normalizedUf,
       clearStatesError,
       clearCitiesError,
     ],
