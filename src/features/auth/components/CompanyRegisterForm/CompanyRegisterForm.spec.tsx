@@ -22,11 +22,11 @@ vi.mock("next/link", () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
-vi.mock("../hooks/useCompanyRegister", () => ({
+vi.mock("../../hooks/useCompanyRegister", () => ({
   useCompanyRegister: vi.fn(),
 }));
 
-vi.mock("../hooks/useIbgeLocations", () => ({
+vi.mock("../../hooks/useIbgeLocations", () => ({
   useIbgeLocations: vi.fn(),
 }));
 
@@ -203,6 +203,34 @@ describe("CompanyRegisterForm", () => {
     await goToFormStep(user);
 
     expect(screen.getByText("Carregando estados")).toBeTruthy();
+  });
+
+  it("exibe modal de erro ao falhar carregamento de estados", async () => {
+    setupIbgeMock({
+      statesError: "Não foi possível carregar os estados.",
+    });
+
+    const user = userEvent.setup();
+    render(<CompanyRegisterForm />);
+    await goToFormStep(user);
+
+    expect(
+      screen.getByText("Não foi possível carregar os estados."),
+    ).toBeTruthy();
+  });
+
+  it("exibe modal de erro ao falhar carregamento de municípios", async () => {
+    setupIbgeMock({
+      citiesError: "Não foi possível carregar os municípios.",
+    });
+
+    const user = userEvent.setup();
+    render(<CompanyRegisterForm />);
+    await goToFormStep(user);
+
+    expect(
+      screen.getByText("Não foi possível carregar os municípios."),
+    ).toBeTruthy();
   });
 
   it("volta para seleção de planos ao clicar em alterar", async () => {

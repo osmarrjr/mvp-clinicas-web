@@ -1,188 +1,204 @@
-# Plano: Ajustar formulário de cadastro de empresa (CompanyRegisterForm)
+# Plano: Refatorar CompanyRegisterForm para TanStack Query
 
 ## Contexto
 
-O formulário de cadastro em `CompanyRegisterForm.tsx` precisa alinhar placeholders, máscaras, limites de caracteres e regras de validação aos requisitos de negócio (nome, CPF/CNPJ, email, telefone, senha e confirmação de senha). O schema Zod e os validators em `src/lib/validators/` devem ser a fonte de verdade; a UI exibe feedback progressivo (mensagens de senha uma por vez, barra de força e confirmação de senha). Estado e cidade permanecem inalterados.
+O formulário de cadastro de empresa (`CompanyRegisterForm`) depende de dois hooks com controle manual de estado (`useIbgeLocations` com `useState` + `useEffect`, `useCompanyRegister` com `useState` para pending/success/error) e de quatro `useEffect` no componente apenas para sincronizar erros e sucesso com modais. O projeto já possui `@tanstack/react-query` instalado, mas ainda não expõe `QueryClientProvider`. A refatoração migra data fetching e mutação para TanStack Query, reduz efeitos colaterais no componente e estabelece query keys padronizadas para dados IBGE e cadastro.
 
 ## Validação arquitetural
 
 - Feature: existente (`auth`)
-- Reutiliza componente existente: sim (`Input`, `Label`, `Button`, `Card`, `Tooltip`, `SearchableSelect`, `GlobalModal`, `Loading`, `PlanSelectionStep`)
+- Reutiliza componente existente: sim (`GlobalModal`, `Loading`, `SearchableSelect`, `PlanSelectionStep`, campos de registro)
 - Reutiliza GlobalModal / Loading / DataTable: sim (`GlobalModal`, `Loading`; `DataTable` não aplicável)
-- Reutiliza hook existente: sim (`useCompanyRegister`, `useIbgeLocations`)
-- Reutiliza service existente: sim (`registerClientService`, `registerServerService` — sem enviar `phone` ao backend por enquanto)
-- Reutiliza schema existente: sim (estender `companyRegisterSchema`)
-- Reutiliza tipos existentes: sim (`CompanyRegisterFormValues`, `ClinicPlan`, `RegisterClinicDto`)
-- Usa shadcn/ui ou componente existente: sim (`Input`, `Label`, `Button`, `Tooltip`)
-- Exige novo componente shadcn/ui: não (barra de força com `div` + Tailwind; `Progress` do shadcn é opcional se a barra customizada não atender acessibilidade)
-- Há impacto em autenticação: sim (fluxo de registro; validação reforçada de senha)
+- Reutiliza hook existente: sim (refatorar internamente `useIbgeLocations` e `useCompanyRegister`; manter camada de hook de domínio)
+- Reutiliza service existente: sim (`ibgeClientService`, `registerClientService` — sem alterar contratos)
+- Reutiliza schema existente: sim (`companyRegisterSchema`)
+- Reutiliza tipos existentes: sim (`CompanyRegisterFormValues`, `IbgeState`, `IbgeMunicipality`, `RegisterClinicResponse`)
+- Usa shadcn/ui ou componente existente: sim (sem mudança visual)
+- Exige novo componente shadcn/ui: não
+- Há impacto em autenticação: não (fluxo de registro permanece via Route Handler; token continua HTTP-only)
 - Há impacto em permissões/RBAC: não
-- Há impacto em contrato de API: não (campo `phone` coletado na UI; `docs/api-contracts.md` marca `phone` como pendente no `RegisterClinicDto`)
-- Há impacto em Route Handler: sim (validação server-side via `companyRegisterSchema` em `POST /api/auth/register`)
+- Há impacto em contrato de API: não
+- Há impacto em Route Handler: não
 - Exige teste unitário/componente: sim
+
+## Decisão arquitetural principal
+
+**Refatorar os hooks internamente** (`useIbgeLocations` → `useQuery`, `useCompanyRegister` → `useMutation`), **não** chamar `useQuery`/`useMutation` diretamente no `CompanyRegisterForm`.
+
+Motivos:
+
+- Alinha com `.cursor/skills/react/data-fetching.md` (Client Service → hook com TanStack Query → componente).
+- Mantém o componente fino, focado em UI e React Hook Form.
+- Preserva a API pública dos hooks (com ajustes mínimos), facilitando testes do formulário via mock de hook — padrão já usado em `LoginForm.spec.tsx`.
+- Centraliza mapeamento de erros e query keys na feature `auth`, evitando strings espalhadas.
 
 ## Páginas/componentes afetados
 
-- `src/features/auth/schemas/companyRegisterSchema.ts`
-- `src/features/auth/schemas/companyRegisterSchema.spec.ts`
-- `src/lib/validators/password.ts`
-- `src/lib/validators/password.spec.ts`
-- `src/lib/validators/cpfCnpj.ts` (ajuste de uso — somente dígitos no cadastro)
-- `src/lib/validators/phone.ts` (criar)
-- `src/lib/validators/phone.spec.ts` (criar)
-- `src/lib/validators/email.ts` (criar — validação customizada)
-- `src/lib/validators/email.spec.ts` (criar)
-- `src/lib/validators/companyName.ts` (criar — capitalize e regras de nome)
-- `src/lib/validators/companyName.spec.ts` (criar)
-- `src/features/auth/components/CompanyRegisterForm.tsx`
-- `src/features/auth/components/CompanyRegisterForm.spec.tsx`
-- `src/features/auth/components/RegisterPasswordField.tsx` (criar)
-- `src/features/auth/components/RegisterPasswordField.spec.tsx` (criar)
-- `src/features/auth/components/RegisterConfirmPasswordField.tsx` (criar)
-- `src/features/auth/components/RegisterConfirmPasswordField.spec.tsx` (criar)
-- `src/features/auth/components/RegisterPhoneField.tsx` (criar)
-- `src/features/auth/components/RegisterPhoneField.spec.tsx` (criar)
+- `src/lib/react-query/query-client.ts` (criar)
+- `src/components/providers/QueryProvider.tsx` (criar)
+- `src/app/layout.tsx`
+- `src/features/auth/constants/queryKeys.ts` (criar)
+- `src/features/auth/hooks/useIbgeLocations.ts`
+- `src/features/auth/hooks/useCompanyRegister.ts`
+- `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
+- `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
+- `src/test-utils/renderWithQueryClient.tsx` (criar — helper opcional para specs futuras)
 
 ## Contrato de API utilizado
 
-- `POST /auth/register-admin` (via `POST /api/auth/register`) — campos enviados: `clinicName`, `taxId` (dígitos), `taxIdType`, `stateUf`, `city`, `cityIbgeId`, `email`, `password`, `plan`
-- `phone` e `confirmPassword` **não** são enviados ao backend nesta entrega (coleta/validação apenas na UI e no schema do Route Handler)
+- IBGE (client-side, API pública): `GET {NEXT_PUBLIC_IBGE_API_URL}/estados` e `GET {NEXT_PUBLIC_IBGE_API_URL}/estados/{uf}/municipios` via `ibgeClientService`
+- `POST /auth/register-admin` (via `POST /api/auth/register`) via `registerClientService`
 
 ## Dependências/configurações necessárias
 
-- Nenhuma dependência npm nova
-- Lista estática de senhas comuns em `src/lib/validators/password.ts` (ex.: `12345678`, `password`, `senha123`, etc.)
-- Lista de DDDs válidos do Brasil em `src/lib/validators/phone.ts`
-- Constante `VALID_BRAZILIAN_DDDS` reutilizável nos testes
+- `@tanstack/react-query` — já instalado; **não** adicionar dependências novas
+- Criar `QueryClientProvider` em `src/components/providers/QueryProvider.tsx` (Client Component) com instância de `QueryClient` exportada/reutilizável para testes
+- Envolver `{children}` no `RootLayout` (`src/app/layout.tsx`) com `QueryProvider`, ao lado do `TooltipProvider` existente
+- Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`:
+
+```ts
+export const ibgeQueryKeys = {
+  all: ['ibge'] as const,
+  states: () => [...ibgeQueryKeys.all, 'states'] as const,
+  cities: (uf: string) => [...ibgeQueryKeys.all, 'cities', uf] as const,
+};
+
+export const authMutationKeys = {
+  register: ['auth', 'register'] as const,
+};
+```
+
+- Configuração sugerida do `QueryClient` global: `staleTime` elevado para queries IBGE (ex.: `1000 * 60 * 60 * 24`), `retry: 1` para falhas transitórias, `refetchOnWindowFocus: false` no cadastro
 
 ## Estratégia de testes
 
-- Unitário/componente: validators (`password`, `phone`, `email`, `companyName`), `companyRegisterSchema.spec.ts`, subcomponentes de campo, `CompanyRegisterForm.spec.tsx`
+- Unitário/componente: `CompanyRegisterForm.spec.tsx` (principal); specs de hook opcionais em `useIbgeLocations.spec.tsx` e `useCompanyRegister.spec.tsx` se o developer quiser cobrir mapeamento de erro/query keys isoladamente
 - Cenários principais:
-  - Nome: obrigatório, mín. 5, máx. 70, primeira letra maiúscula
-  - CPF/CNPJ: obrigatório, 11 ou 14 dígitos, máscara correta, rejeição de letras e dígitos inválidos
-  - Email: regras customizadas (@ central, ponto após @, sem espaços/@@)
-  - Telefone: máscara fixo/celular, DDD válido, 11º dígito = 9 quando 11 dígitos
-  - Senha: mensagens sequenciais na UI, barra de força (fraca/média/forte), bloqueio de senha comum e dados pessoais (nome, CPF, CNPJ)
-  - Confirmar senha: mensagem "As senhas não conferem" / "Senhas conferem" (sempre vermelho)
-  - Formulário: renderiza novos campos após seleção de plano; submit permanece desabilitado quando inválido
-  - Route Handler continua rejeitando payload inválido (schema expandido)
+  - Formulário continua exibindo seleção de planos e campos após escolher plano
+  - Loading de estados (`isLoadingStates` / overlay "Carregando estados")
+  - Modal de erro de cadastro (mensagem amigável da mutation)
+  - Modal de sucesso e redirecionamento para `/login`
+  - Botão submit desabilitado quando formulário inválido ou `isPending`
+  - Voltar para seleção de planos via "Alterar"
+- Abordagem de mock (manter padrão do projeto):
+  - **Preferencial para `CompanyRegisterForm.spec.tsx`:** continuar mockando `useIbgeLocations` e `useCompanyRegister` (comportamento visível, sem acoplar ao TanStack Query no teste de componente)
+  - Ajustar mocks se a API pública dos hooks mudar levemente (`reset`/`mutate` em vez de `register`, etc.)
+  - Se criar specs de hook: envolver com `QueryClientProvider` + `QueryClient` isolado por teste, mockar apenas `ibgeClientService` / `registerClientService` (conforme `.cursor/skills/react/testing.md`)
 
 ## Passos de implementação
 
-### 1. Validators de nome, email e telefone
+### 1. Infraestrutura TanStack Query (QueryClient + Provider)
 
-- Arquivo: `src/lib/validators/companyName.ts`, `src/lib/validators/email.ts`, `src/lib/validators/phone.ts`
+- Arquivo: `src/lib/react-query/query-client.ts`, `src/components/providers/QueryProvider.tsx`, `src/app/layout.tsx`
 - O que fazer:
-  - `companyName.ts`: `capitalizeFirstLetter(value)`, `getCompanyNameValidationError(value)` — obrigatório, min 5, max 70, primeira letra maiúscula (`/^[A-ZÀ-ÿ]/`)
-  - `email.ts`: `getEmailValidationError(value)` — obrigatório, max 70, tem `@`, não inicia/termina com `@`, parte local e domínio não vazias, pelo menos um `.` após `@`, sem espaços, sem `@@`
-  - `phone.ts`: `stripPhoneDigits`, `formatPhone` (fixo `(99) 9999-9999`, celular `(99) 99999-9999`), `isValidBrazilianDdd`, `getPhoneValidationError(value)` — obrigatório, 10 ou 11 dígitos, DDD na lista válida, se 11 dígitos o 3º dígito (índice 2) deve ser `9`
-- Spec primeiro: `src/lib/validators/companyName.spec.ts`, `email.spec.ts`, `phone.spec.ts`
+  - Criar factory `createQueryClient()` com defaults do projeto (staleTime, retry)
+  - Criar `QueryProvider` (`"use client"`) que instancia `QueryClient` via `useState(() => createQueryClient())` e envolve children com `QueryClientProvider`
+  - Importar e renderizar `<QueryProvider>` no `RootLayout`, envolvendo `{children}` (dentro ou junto ao `TooltipProvider`)
+  - Exportar `createQueryClient` para reutilização em testes
+- Spec primeiro: Não aplicável
 - Depende de: Nenhum
 
-### 2. Estender validators de senha
+### 2. Query keys da feature auth
 
-- Arquivo: `src/lib/validators/password.ts`
+- Arquivo: `src/features/auth/constants/queryKeys.ts`
 - O que fazer:
-  - Atualizar `PASSWORD_REQUIREMENTS_TOOLTIP` para refletir requisitos completos (mín. 8, letras+números, maiúscula, especial, máx. 20)
-  - `getPasswordHintMessage(password, context?)` — retorna **uma** mensagem por prioridade (para UI, não para submit):
-    1. `"Senha deve ter no mínimo 8 dígitos"` (se vazio: `"Senha é obrigatória."`)
-    2. `"Senha deve possuir letras e números"`
-    3. `"Senha deve possuir pelo menos uma letra maiúscula"`
-    4. `"Senha deve possuir pelo menos um caractere especial"`
-    5. `"Senha comum, escolha uma senha mais segura"`
-    6. `"Senha não pode conter nome, CPF e CNPJ"` (recebe `companyName` e `taxId` normalizados)
-  - `getPasswordValidationError(password, context?)` — usa as mesmas regras para bloquear submit (mensagens alinhadas ao hint)
-  - `getPasswordStrength(password)` — retorna `{ score: 0-100, label: 'fraca' | 'media' | 'forte' }`; exibir barra somente com 8+ caracteres; faixas: 0–30% vermelho, 31–80% amarelo, 81–100% verde
-  - `isCommonPassword(password)` — lista estática normalizada (lowercase)
-  - `passwordContainsPersonalData(password, { companyName, taxId })` — verifica substrings do nome (case-insensitive, palavras ≥ 3 chars) e dígitos de CPF/CNPJ
-  - `.max(20)` aplicado no schema, não no validator isolado
-- Spec primeiro: atualizar `src/lib/validators/password.spec.ts`
+  - Definir `ibgeQueryKeys` e `authMutationKeys` conforme seção de dependências
+  - Importar nos hooks refatorados; não usar strings literais espalhadas
+- Spec primeiro: Não aplicável (coberto indiretamente pelos testes de hook/componente)
 - Depende de: Nenhum
 
-### 3. Atualizar schema Zod do cadastro
+### 3. Refatorar `useIbgeLocations` para `useQuery`
 
-- Arquivo: `src/features/auth/schemas/companyRegisterSchema.ts`
+- Arquivo: `src/features/auth/hooks/useIbgeLocations.ts`
 - O que fazer:
-  - `companyName`: usar `getCompanyNameValidationError` via `superRefine`; `.max(70)`
-  - `taxId`: **somente dígitos** (11 CPF ou 14 CNPJ); remover ramo alfanumérico de CNPJ neste formulário; usar `stripDigits` + `isValidCpf`/`isValidCnpj`; mensagens: obrigatório, incompleto, inválido
-  - `email`: `getEmailValidationError`; `.max(70)`
-  - `phone`: `getPhoneValidationError`; armazenar valor mascarado ou só dígitos (preferir dígitos no estado do form, máscara só na UI — alinhar ao padrão de `taxId`)
-  - `password`: `getPasswordValidationError` com contexto (`companyName`, `taxId`); `.max(20, "...")`
-  - `confirmPassword`: obrigatório, `.max(20)`; `refine` em nível de objeto: `password === confirmPassword` com mensagem `"As senhas não conferem"`
-  - Manter `stateUf`, `city`, `cityIbgeId`, `plan` inalterados
-- Spec primeiro: atualizar `src/features/auth/schemas/companyRegisterSchema.spec.ts` (ajustar `validBase` com `phone`, `confirmPassword`, nome com 5+ chars; cobrir novas rejeições)
+  - Substituir `useState`/`useEffect`/`useRef` por duas queries:
+    - **Estados:** `useQuery({ queryKey: ibgeQueryKeys.states(), queryFn: fetchStates, staleTime: ... })`
+    - **Cidades:** `useQuery({ queryKey: ibgeQueryKeys.cities(normalizedUf), queryFn: () => fetchCitiesByUf(normalizedUf), enabled: Boolean(normalizedUf), staleTime: ... })`
+  - Manter assinatura `useIbgeLocations(stateUf?: string)` e retorno compatível:
+    - `states` ← `data ?? []`
+    - `cities` ← `data ?? []`
+    - `isLoadingStates` ← `isLoading || isFetching` (primeira carga)
+    - `isLoadingCities` ← idem, respeitando `enabled`
+    - `statesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os estados."`)
+    - `citiesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os municípios."`)
+  - `clearStatesError` / `clearCitiesError`: usar `queryClient.resetQueries({ queryKey: ibgeQueryKeys.states() })` e `resetQueries({ queryKey: ibgeQueryKeys.cities(uf) })` (ou `removeQueries` se preferir limpar cache)
+  - Remover lógica manual de race condition (`requestIdRef`); TanStack Query cancela requests obsoletos via `signal` — passar `signal` do `queryFn` para `fetch` nos services **somente se** ajustar `ibgeClientService`; caso contrário, confiar no `enabled` + query key por UF (aceitável para escopo atual)
+- Spec primeiro: `src/features/auth/hooks/useIbgeLocations.spec.tsx` (opcional)
 - Depende de: passos 1 e 2
 
-### 4. Subcomponente RegisterPhoneField
+### 4. Refatorar `useCompanyRegister` para `useMutation`
 
-- Arquivo: `src/features/auth/components/RegisterPhoneField.tsx`
+- Arquivo: `src/features/auth/hooks/useCompanyRegister.ts`
 - O que fazer:
-  - Props: `control`/`register` do RHF, `errors`, `inputClassName`
-  - Label "Telefone", placeholder `(00) 00000-0000`, `maxLength` compatível com máscara (15 chars)
-  - `onChange` aplica `formatPhone(stripPhoneDigits(value))` com `setValue` + `shouldValidate: true`
-  - Mensagem de erro do schema com `role="alert"`
-  - `aria-invalid` quando houver erro
-- Spec primeiro: `src/features/auth/components/RegisterPhoneField.spec.tsx`
-- Depende de: passo 3
+  - Substituir `useState` por `useMutation`:
+    - `mutationKey: authMutationKeys.register`
+    - `mutationFn`: chamar `registerClientService(payload)`; se `!response.ok`, **lançar** `Error` com mensagem mapeada de `REGISTER_ERROR_MESSAGES`; retornar `response.data` em sucesso
+    - Erros de rede (`catch` do service): lançar `Error(REGISTER_ERROR_MESSAGES.INTERNAL_ERROR)`
+  - Expor API compatível com o formulário:
+    - `register(payload)` → `mutateAsync(payload)` ou wrapper `mutate` (preferir manter nome `register` para minimizar diff no componente)
+    - `isPending` ← `isPending`
+    - `isSuccess` ← `isSuccess`
+    - `errorMessage` ← derivar de `error?.message ?? null` (não usar `useState`)
+    - `clearError` ← `reset()`
+    - `resetSuccess` ← `reset()` (manter se usado; unificar em `reset` se redundante)
+  - **Não** invalidar queries globais após registro (cadastro público sem listagem relacionada no client)
+  - Aceitar opções opcionais `UseCompanyRegisterOptions` com `onSuccess` / `onError` se facilitar eliminar `useEffect` no componente (alternativa: callbacks passados no `mutate` no submit)
+- Spec primeiro: `src/features/auth/hooks/useCompanyRegister.spec.tsx` (opcional)
+- Depende de: passos 1 e 2
 
-### 5. Subcomponente RegisterPasswordField
+### 5. Simplificar `CompanyRegisterForm` — eliminar `useEffect` de modais
 
-- Arquivo: `src/features/auth/components/RegisterPasswordField.tsx`
+- Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
 - O que fazer:
-  - Props: `form` (ou `control` + `watch`), `companyName`, `taxId`, `inputClassName`, `showPassword` toggle
-  - Placeholder: `"Crie sua senha de acessos"`, `maxLength={20}`, tooltip com `PASSWORD_REQUIREMENTS_TOOLTIP`
-  - Exibir **uma** mensagem de hint (`getPasswordHintMessage`) abaixo do campo, antes da barra
-  - Barra de força (`getPasswordStrength`) visível apenas com senha ≥ 8 caracteres; cores: vermelho/amarelo/verde conforme faixas; `role="progressbar"` com `aria-valuenow`, `aria-valuemin`, `aria-valuemax` e label acessível
-  - Erro de schema (`form.formState.errors.password`) abaixo da barra, com `role="alert"`
-  - Botão mostrar/ocultar senha (reutilizar padrão atual)
-- Spec primeiro: `src/features/auth/components/RegisterPasswordField.spec.tsx`
-- Depende de: passo 2
+  - Remover os 4 `useEffect` que sincronizam `statesError`, `citiesError`, `errorMessage` e `isSuccess` com estado local de modal
+  - **Modal de erro — abordagem declarativa (sem `useEffect`):**
+    - Derivar `activeError = errorMessage ?? statesError ?? citiesError`
+    - Controlar dismiss com estado mínimo: `dismissedError` (string | null); modal aberto quando `Boolean(activeError) && activeError !== dismissedError`
+    - Em `onConfirm`/`onCancel` do `GlobalModal` de erro: `setDismissedError(activeError)`, chamar `clearError()`, `clearStatesError()`, `clearCitiesError()`
+    - Quando `activeError` mudar (nova mensagem), o modal reabre automaticamente porque `activeError !== dismissedError`
+  - **Modal de sucesso — abordagem declarativa:**
+    - `open={isSuccess}` diretamente no `GlobalModal` de sucesso
+    - Em `onConfirm`: `resetSuccess()` (ou `reset()`) + `router.push("/login")`
+    - Em `onCancel`: `resetSuccess()`
+  - **Submit:** restaurar chamada real `await submitRegister(values)` (hoje comentada com `console.log`) usando o hook refatorado
+  - Remover import de `useEffect` se não restar uso
+  - Manter `Loading`, `GlobalModal`, selects IBGE e demais UI inalterados
+  - `handleStateChange`: manter reset de cidade e `clearCitiesError()` ao trocar UF
+- Spec primeiro: atualizar `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
+- Depende de: passos 3 e 4
 
-### 6. Subcomponente RegisterConfirmPasswordField
+### 6. Atualizar specs do formulário
 
-- Arquivo: `src/features/auth/components/RegisterConfirmPasswordField.tsx`
+- Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
 - O que fazer:
-  - Placeholder: `"Confirme sua senha"`, `maxLength={20}`, toggle de visibilidade opcional (mesmo padrão da senha)
-  - Feedback em tempo real (não depende só do erro Zod): se `confirmPassword` preenchido, exibir `"Senhas conferem"` ou `"As senhas não conferem"` — **sempre** com classe vermelha (`text-red-200`), conforme requisito
-  - Erro de schema no submit com `role="alert"`
-- Spec primeiro: `src/features/auth/components/RegisterConfirmPasswordField.spec.tsx`
-- Depende de: passo 3
+  - Manter mocks de `useCompanyRegister` e `useIbgeLocations` (padrão `LoginForm.spec.tsx`)
+  - Ajustar `setupCompanyRegisterMock` se nomes de retorno mudarem (`reset` vs `resetSuccess`, etc.)
+  - Garantir cenários existentes passando: plano, campos, loading estados, modal erro API, modal sucesso + redirect, alterar plano
+  - Adicionar cenário opcional: modal de erro IBGE (`statesError` / `citiesError`) via mock do hook
+  - **Não** exigir `QueryClientProvider` neste spec enquanto hooks permanecerem mockados
+- Spec primeiro: este arquivo é o artefato de spec deste passo
+- Depende de: passo 5
 
-### 7. Refatorar CompanyRegisterForm
+### 7. Helper de teste para TanStack Query (opcional, recomendado)
 
-- Arquivo: `src/features/auth/components/CompanyRegisterForm.tsx`
+- Arquivo: `src/test-utils/renderWithQueryClient.tsx`
 - O que fazer:
-  - Adicionar `defaultValues`: `phone: ""`, `confirmPassword: ""`
-  - Atualizar placeholders e `maxLength` nos campos existentes:
-    - `companyName`: `"Digite o nome da empresa, pessoa física ou razão social"`; `onBlur` aplicar `capitalizeFirstLetter`; `maxLength={70}`
-    - `taxId`: `"Digite o cpf/cnpj da empresa ou pessoa física"`; manter máscara via `formatTaxId` com entrada somente numérica (`stripDigits` antes de formatar)
-    - `email`: placeholder `contato@empresa.com`, `maxLength={70}`
-  - Inserir `RegisterPhoneField` após email
-  - Substituir bloco de senha por `RegisterPasswordField` e `RegisterConfirmPasswordField`
-  - Estado/cidade: sem alteração de comportamento
-  - Passar `companyName` e `taxId` (watch) para validação contextual da senha
-  - Manter `mode: "onChange"`, `isSubmitDisabled` e fluxo de planos/modais
-- Spec primeiro: atualizar `src/features/auth/components/CompanyRegisterForm.spec.tsx`
-- Depende de: passos 4, 5 e 6
-
-### 8. Garantir mapeamento para API inalterado
-
-- Arquivo: `src/features/auth/services/registerServerService.ts`
-- O que fazer: confirmar que `toRegisterClinicDto` **não** inclui `phone` nem `confirmPassword`; `taxId` continua com `stripDigits`; `clinicName` recebe `companyName`
-- Spec primeiro: Não aplicável (sem spec existente; validar via `companyRegisterSchema` + teste manual)
-- Depende de: passo 3
+  - Exportar `renderWithQueryClient(ui)` que envolve UI com `QueryClientProvider` usando `createQueryClient()` com `retry: false` nos testes
+  - Documentar uso para futuros specs de hooks sem duplicar setup
+- Spec primeiro: Não aplicável
+- Depende de: passo 1
 
 ## Riscos / atenções
 
-- **CPF/CNPJ alfanumérico**: o validator atual suporta CNPJ com letras (nova regra Receita); o requisito pede somente números — simplificar apenas no cadastro, sem remover suporte global em `cpfCnpj.ts` se usado em outros fluxos
-- **Telefone sem backend**: campo validado e coletado, mas não persistido até o contrato `RegisterClinicDto` incluir `phone`
-- **Mensagens de senha na UI vs schema**: hints progressivos são responsabilidade do componente; submit bloqueado pelo schema com as mesmas regras
-- **"Senhas conferem" em vermelho**: requisito explícito do usuário; não usar verde para feedback positivo
-- **Força da senha**: definir algoritmo determinístico e documentado nos testes (comprimento, classes de caractere, penalidades) para evitar flutuação entre implementações
-- **Tamanho do formulário**: extrair subcomponentes evita regressão e facilita testes; não mover validação para os componentes
-- **Confirmação de senha no Route Handler**: o body JSON do client incluirá `confirmPassword`; o schema deve validar; o service server ignora o campo extra
-- **Acessibilidade**: barra de força com `role="progressbar"`; mensagens com `role="alert"`; labels associados via `htmlFor`
+- **QueryClientProvider ausente quebra runtime:** implementar Provider (passo 1) **antes** de refatorar hooks; sem provider, `useQuery`/`useMutation` lançam erro
+- **Regressão no submit:** `onSubmit` está com `console.log` e registro comentado; restaurar `await submitRegister(values)` na mesma entrega
+- **Mudança de contrato do hook de registro:** se `registerClientService` retorna envelope `{ ok: false }` sem throw, a `mutationFn` **deve** lançar erro para TanStack Query marcar `isError`; não retornar envelope de erro como sucesso
+- **Dismiss de modal vs reset de query:** ao fechar modal de erro IBGE, `resetQueries` pode refetch automático; preferir `reset` que limpa erro sem refetch imediato, ou refetch silencioso — validar UX manualmente
+- **Cache IBGE entre montagens:** `staleTime` alto evita refetch desnecessário ao alternar passos plano/formulário
+- **Cidades sem UF:** manter `enabled: false` quando UF vazia; retornar `cities: []`, `isLoadingCities: false`
+- **`useLogin` permanece com useState:** decisão consciente; este plano não migra login — evitar escopo creep
+- **Testes mockando hooks:** interface pública estável é crítica; se expor `mutate` bruto do TanStack Query no componente, specs precisarão de refactor maior
+- **Acessibilidade:** modais continuam via `GlobalModal`; mensagens de erro mantêm `role="alert"` nos campos do formulário
 
 ## Checklist final
 
@@ -198,6 +214,9 @@ O formulário de cadastro em `CompanyRegisterForm.tsx` precisa alinhar placehold
 - [x] Imports seguem regra híbrida: relativo perto, alias longo
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
+- [x] Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`
+- [x] `QueryClientProvider` configurado no layout raiz
+- [x] `useEffect` de sincronização de modais removidos do `CompanyRegisterForm`
 - [x] `npm run test` sem erros quando aplicável
-- [x] `npm run lint` sem erros nos arquivos do plano (escopado: 0 erros; global: erros pré-existentes fora do escopo em `.cursor/hooks`, `Table/index.tsx`, `useIbgeLocations.ts`)
+- [x] `npm run lint` sem erros
 - [x] `npm run build` sem erros
