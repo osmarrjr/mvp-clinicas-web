@@ -28,9 +28,9 @@ type RegisterPasswordFieldProps = {
   inputClassName: string;
 };
 
-function getStrengthBarColor(label: "fraca" | "media" | "forte"): string {
-  if (label === "fraca") return "bg-red-500";
-  if (label === "media") return "bg-yellow-400";
+function getStrengthBarColor(label: "Fraca" | "Media" | "Forte"): string {
+  if (label === "Fraca") return "bg-red-500";
+  if (label === "Media") return "bg-yellow-400";
   return "bg-green-500";
 }
 
@@ -120,14 +120,17 @@ export function RegisterPasswordField({
       ) : null}
 
       {strength ? (
-        <div className="space-y-1">
+        <div className="space-y-1 w-full px-1 mx-auto">
+          <p className="text-xs font-medium text-blue-100/80">
+            Força da senha: {strength.label}
+          </p>
           <div
             role="progressbar"
             aria-valuenow={strength.score}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label={`Força da senha: ${strength.label}`}
-            className="h-2 w-full overflow-hidden rounded-full bg-white/10"
+            className="h-1 w-full  overflow-hidden rounded-full bg-white/10"
           >
             <div
               className={`h-full transition-all ${getStrengthBarColor(strength.label)}`}

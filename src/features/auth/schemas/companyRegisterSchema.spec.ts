@@ -5,7 +5,7 @@ import { companyRegisterSchema } from "./companyRegisterSchema";
 const validBase = {
   companyName: "Clínica Saúde",
   taxId: "52998224725",
-  stateUf: "SP",
+  uf: "SP",
   city: "São Paulo",
   email: "contato@clinica.com",
   phone: "11987654321",
@@ -141,7 +141,7 @@ describe("companyRegisterSchema", () => {
     const result = companyRegisterSchema.safeParse({
       companyName: "",
       taxId: "",
-      stateUf: "",
+      uf: "",
       city: "",
       email: "",
       phone: "",

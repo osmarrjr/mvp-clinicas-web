@@ -21,7 +21,7 @@ function ConfirmPasswordFieldWrapper({
     defaultValues: {
       companyName: "",
       taxId: "",
-      stateUf: "",
+      uf: "",
       city: "",
       email: "",
       phone: "",

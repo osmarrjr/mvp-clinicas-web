@@ -13,7 +13,7 @@ function PhoneFieldWrapper({ defaultPhone = "" }: { defaultPhone?: string }) {
     defaultValues: {
       companyName: "",
       taxId: "",
-      stateUf: "",
+      uf: "",
       city: "",
       email: "",
       phone: defaultPhone,
