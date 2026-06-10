@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getPasswordValidationError } from "../../validators/password/password";
 import { PlanSelectionStep } from "../PlanSelectionStep";
 import { CLINIC_PLAN_OPTIONS } from "../../constants/plans";
+import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
 import { useCompanyRegister } from "../../hooks/useCompanyRegister";
 import { useIbgeLocations } from "../../hooks/useIbgeLocations";
 import {
@@ -159,8 +160,9 @@ export function CompanyRegisterForm() {
   }
 
   function handleConfirmSuccess() {
+    sessionStorage.setItem(REGISTER_VALIDATION_EMAIL_KEY, emailValue);
     resetSuccess();
-    router.push("/login");
+    router.push("/register/validate-token");
   }
 
   async function onSubmit(values: CompanyRegisterFormValues) {

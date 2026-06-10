@@ -1,222 +1,345 @@
-# Plano: Refatorar CompanyRegisterForm para TanStack Query
+# Plano: Validação de token pós-cadastro de clínica
 
 ## Contexto
 
-O formulário de cadastro de empresa (`CompanyRegisterForm`) depende de dois hooks com controle manual de estado (`useIbgeLocations` com `useState` + `useEffect`, `useCompanyRegister` com `useState` para pending/success/error) e de quatro `useEffect` no componente apenas para sincronizar erros e sucesso com modais. O projeto já possui `@tanstack/react-query` instalado, mas ainda não expõe `QueryClientProvider`. A refatoração migra data fetching e mutação para TanStack Query, reduz efeitos colaterais no componente e estabelece query keys padronizadas para dados IBGE e cadastro.
+O fluxo atual de cadastro de clínica exibe modal de sucesso e redireciona imediatamente para `/login` após `POST /api/auth/register`. O backend passou a exigir validação por token de 6 dígitos enviado ao email do cadastro antes de tornar o registro efetivo. É necessário interromper o redirecionamento automático, orientar o usuário sobre o token e criar uma nova etapa de validação com chamada ao endpoint `validate-register-token`.
 
 ## Validação arquitetural
 
 - Feature: existente (`auth`)
-- Reutiliza componente existente: sim (`GlobalModal`, `Loading`, `SearchableSelect`, `PlanSelectionStep`, campos de registro)
+- Reutiliza componente existente: sim (`GlobalModal`, `Loading`, `Card`, `Input`, `Button`, padrão visual de `CompanyRegisterForm`)
 - Reutiliza GlobalModal / Loading / DataTable: sim (`GlobalModal`, `Loading`; `DataTable` não aplicável)
-- Reutiliza hook existente: sim (refatorar internamente `useIbgeLocations` e `useCompanyRegister`; manter camada de hook de domínio)
-- Reutiliza service existente: sim (`ibgeClientService`, `registerClientService` — sem alterar contratos)
-- Reutiliza schema existente: sim (`companyRegisterSchema`)
-- Reutiliza tipos existentes: sim (`CompanyRegisterFormValues`, `IbgeState`, `IbgeMunicipality`, `RegisterClinicResponse`)
-- Usa shadcn/ui ou componente existente: sim (sem mudança visual)
+- Reutiliza hook existente: não (novo `useValidateRegisterToken`; `useCompanyRegister` permanece com ajuste de fluxo)
+- Reutiliza service existente: não (novos services espelhando padrão de `registerClientService` / `registerServerService`)
+- Reutiliza schema existente: não (novo `registerTokenSchema`)
+- Reutiliza tipos existentes: sim (estender `src/features/auth/types.ts` com envelope de resposta; padrão `ApiErrorShape` já existente)
+- Usa shadcn/ui ou componente existente: sim
 - Exige novo componente shadcn/ui: não
-- Há impacto em autenticação: não (fluxo de registro permanece via Route Handler; token continua HTTP-only)
+- Há impacto em autenticação: sim (fluxo pré-login; sem gravação de cookies JWT)
 - Há impacto em permissões/RBAC: não
-- Há impacto em contrato de API: não
-- Há impacto em Route Handler: não
+- Há impacto em contrato de API: sim (novo endpoint não documentado em `docs/api-contracts.md`)
+- Há impacto em Route Handler: sim (`POST /api/auth/validate-register-token`)
 - Exige teste unitário/componente: sim
-
-## Decisão arquitetural principal
-
-**Refatorar os hooks internamente** (`useIbgeLocations` → `useQuery`, `useCompanyRegister` → `useMutation`), **não** chamar `useQuery`/`useMutation` diretamente no `CompanyRegisterForm`.
-
-Motivos:
-
-- Alinha com `.cursor/skills/react/data-fetching.md` (Client Service → hook com TanStack Query → componente).
-- Mantém o componente fino, focado em UI e React Hook Form.
-- Preserva a API pública dos hooks (com ajustes mínimos), facilitando testes do formulário via mock de hook — padrão já usado em `LoginForm.spec.tsx`.
-- Centraliza mapeamento de erros e query keys na feature `auth`, evitando strings espalhadas.
 
 ## Páginas/componentes afetados
 
-- `src/lib/react-query/query-client.ts` (criar)
-- `src/components/providers/QueryProvider.tsx` (criar)
-- `src/app/layout.tsx`
-- `src/features/auth/constants/queryKeys.ts` (criar)
-- `src/features/auth/hooks/useIbgeLocations.ts`
-- `src/features/auth/hooks/useCompanyRegister.ts`
+### Criar
+
+- `src/features/auth/schemas/registerTokenSchema.ts`
+- `src/features/auth/schemas/registerTokenSchema.spec.ts`
+- `src/features/auth/validators/registerToken/registerToken.ts`
+- `src/features/auth/validators/registerToken/registerToken.spec.ts`
+- `src/features/auth/services/companyRegister/validateRegisterTokenClientService.ts`
+- `src/features/auth/services/companyRegister/validateRegisterTokenServerService.ts`
+- `src/features/auth/hooks/useValidateRegisterToken.ts`
+- `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.tsx`
+- `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.spec.tsx`
+- `src/features/auth/components/ValidateRegisterTokenForm/ValidateTokenOverlays.tsx`
+- `src/app/(auth)/register/validate-token/page.tsx`
+- `src/app/api/auth/validate-register-token/route.ts`
+
+### Alterar
+
 - `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
+- `src/features/auth/components/CompanyRegisterForm/RegisterFormOverlays/RegisterFormOverlays.tsx`
 - `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
-- `src/test-utils/renderWithQueryClient.tsx` (criar — helper opcional para specs futuras)
+- `src/features/auth/types.ts`
+- `src/features/auth/constants/queryKeys.ts`
+- `src/lib/api/error-messages.ts`
 
 ## Contrato de API utilizado
 
-- IBGE (client-side, API pública): `GET {NEXT_PUBLIC_IBGE_API_URL}/estados` e `GET {NEXT_PUBLIC_IBGE_API_URL}/estados/{uf}/municipios` via `ibgeClientService`
-- `POST /auth/register-admin` (via `POST /api/auth/register`) via `registerClientService`
+### Existente (inalterado)
+
+- `POST /auth/register-admin` — consumido via `POST /api/auth/register` (cadastro inicial)
+
+### Novo — assumido (não documentado em `docs/api-contracts.md`)
+
+**NestJS:** `POST /auth/validate-register-token`
+
+**Route Handler interno:** `POST /api/auth/validate-register-token`
+
+**Request:**
+
+```typescript
+interface ValidateRegisterTokenDto {
+  email: string;   // email usado no cadastro
+  token: string;   // 6 dígitos numéricos, sem hífen (ex.: "123456")
+}
+```
+
+**Response sucesso (200):**
+
+```typescript
+{ ok: true, data: { message: string } }
+// Exemplo: { ok: true, data: { message: "Registration confirmed" } }
+```
+
+**Erros esperados:**
+
+| Código HTTP | code semântico | Mensagem sugerida na UI |
+|-------------|----------------|-------------------------|
+| 400 | `REGISTER_TOKEN_INVALID` | Token inválido ou expirado. Verifique o código enviado para seu email. |
+| 400 | `VALIDATION_ERROR` | Dados inválidos. Verifique o token e tente novamente. |
+| 500 | `INTERNAL_ERROR` | Ocorreu um erro inesperado. Tente novamente. |
+
+**Regras de integração:**
+
+- Client Service chama apenas o Route Handler interno.
+- Server Service chama `${API_URL}/auth/validate-register-token`.
+- Route Handler valida body com `registerTokenSchema` (ou schema estendido com `email`).
+- Não gravar cookies nem expor JWT ao client nesta etapa.
+- Normalizar token na borda do service: remover hífen e caracteres não numéricos antes do envio.
+
+**Persistência do email entre etapas:**
+
+- Ao clicar "Continuar" no modal pós-cadastro, salvar email em `sessionStorage` (`register-validation-email`).
+- Na tela de token, ler email do `sessionStorage`; se ausente, redirecionar para `/register`.
+- Limpar `sessionStorage` após validação bem-sucedida.
+
+## Rota da nova tela de token
+
+**Sugestão adotada:** `/register/validate-token`
+
+- Arquivo: `src/app/(auth)/register/validate-token/page.tsx`
+- Reutiliza layout de `(auth)` (mesmo visual do cadastro/login).
+- Acesso esperado somente após cadastro bem-sucedido; fallback para `/register` se email não estiver disponível.
+
+## Textos das modais
+
+### 1. Modal pós-cadastro (formulário de registro)
+
+| Prop | Valor |
+|------|-------|
+| `type` | `success` |
+| `modalTitle` | Cadastro solicitado com sucesso |
+| `modalSubTitle` | Seu cadastro foi recebido. Para torná-lo válido, insira o token de 6 dígitos enviado para o email informado no cadastro. |
+| `confirmLabel` | Continuar |
+| `showCancel` | `false` |
+| Ação `onConfirm` | Salvar email em `sessionStorage` e navegar para `/register/validate-token` (sem ir para `/login`) |
+
+### 2. Modal sucesso na validação do token
+
+| Prop | Valor |
+|------|-------|
+| `type` | `success` |
+| `modalTitle` | Cadastro confirmado |
+| `modalSubTitle` | Seu cadastro foi validado com sucesso. Agora você pode fazer login. |
+| `confirmLabel` | Ir para login |
+| `showCancel` | `false` |
+| Ação `onConfirm` | Limpar estado/`sessionStorage` e `router.push("/login")` |
+
+### 3. Modal erro na validação do token
+
+| Prop | Valor |
+|------|-------|
+| `type` | `error` |
+| `modalTitle` | Ops! Ocorreu um erro! |
+| `modalSubTitle` | Mensagem mapeada do hook (`REGISTER_TOKEN_INVALID`, `VALIDATION_ERROR`, etc.) |
+| `confirmLabel` | Fechar |
+| `showCancel` | `false` |
+| Ação `onConfirm` | Fechar modal e permitir nova tentativa no campo |
+
+### 4. Aviso abaixo do campo de token (não é modal)
+
+- Exibir enquanto os 6 dígitos não estiverem completos.
+- Texto: `Informe o token de 6 dígitos no formato 000-000 enviado para seu email.`
+- Usar `role="status"` (informativo) ou `role="alert"` se o usuário tentou validar incompleto.
+- Ocultar aviso quando token atingir 6 dígitos.
 
 ## Dependências/configurações necessárias
 
-- `@tanstack/react-query` — já instalado; **não** adicionar dependências novas
-- Criar `QueryClientProvider` em `src/components/providers/QueryProvider.tsx` (Client Component) com instância de `QueryClient` exportada/reutilizável para testes
-- Envolver `{children}` no `RootLayout` (`src/app/layout.tsx`) com `QueryProvider`, ao lado do `TooltipProvider` existente
-- Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`:
-
-```ts
-export const ibgeQueryKeys = {
-  all: ['ibge'] as const,
-  states: () => [...ibgeQueryKeys.all, 'states'] as const,
-  cities: (uf: string) => [...ibgeQueryKeys.all, 'cities', uf] as const,
-};
-
-export const authMutationKeys = {
-  register: ['auth', 'register'] as const,
-};
-```
-
-- Configuração sugerida do `QueryClient` global: `staleTime` elevado para queries IBGE (ex.: `1000 * 60 * 60 * 24`), `retry: 1` para falhas transitórias, `refetchOnWindowFocus: false` no cadastro
+- Nenhuma dependência npm nova.
+- Reutilizar `Input`, `Label`, `Card`, `Button` de `@/components/ui`.
+- Reutilizar `GlobalModal` e `Loading`.
+- Variável de ambiente existente: `API_URL` no servidor.
+- Não adicionar componente shadcn/ui novo.
 
 ## Estratégia de testes
 
-- Unitário/componente: `CompanyRegisterForm.spec.tsx` (principal); specs de hook opcionais em `useIbgeLocations.spec.tsx` e `useCompanyRegister.spec.tsx` se o developer quiser cobrir mapeamento de erro/query keys isoladamente
-- Cenários principais:
-  - Formulário continua exibindo seleção de planos e campos após escolher plano
-  - Loading de estados (`isLoadingStates` / overlay "Carregando estados")
-  - Modal de erro de cadastro (mensagem amigável da mutation)
-  - Modal de sucesso e redirecionamento para `/login`
-  - Botão submit desabilitado quando formulário inválido ou `isPending`
-  - Voltar para seleção de planos via "Alterar"
-- Abordagem de mock (manter padrão do projeto):
-  - **Preferencial para `CompanyRegisterForm.spec.tsx`:** continuar mockando `useIbgeLocations` e `useCompanyRegister` (comportamento visível, sem acoplar ao TanStack Query no teste de componente)
-  - Ajustar mocks se a API pública dos hooks mudar levemente (`reset`/`mutate` em vez de `register`, etc.)
-  - Se criar specs de hook: envolver com `QueryClientProvider` + `QueryClient` isolado por teste, mockar apenas `ibgeClientService` / `registerClientService` (conforme `.cursor/skills/react/testing.md`)
+### Unitário
+
+- `registerTokenSchema.spec.ts` — valida formato `XXX-XXX`, rejeita letras, exige 6 dígitos.
+- `registerToken.spec.ts` — funções `formatRegisterTokenInput` e `normalizeRegisterToken` (máscara e normalização).
+
+### Componente
+
+- `ValidateRegisterTokenForm.spec.tsx`:
+  - renderiza campo com label/placeholder do token;
+  - exibe aviso enquanto token incompleto;
+  - aplica máscara `XXX-XXX` durante digitação;
+  - dispara validação automaticamente ao completar 6 dígitos;
+  - não chama service antes de 6 dígitos;
+  - exibe `Loading` durante `isPending`;
+  - exibe modal de sucesso e redireciona para `/login`;
+  - exibe modal de erro em falha da API;
+  - redireciona para `/register` se email ausente no `sessionStorage`.
+
+- `CompanyRegisterForm.spec.tsx` (atualizar):
+  - modal pós-cadastro com novos textos;
+  - botão "Continuar" navega para `/register/validate-token` (não `/login`);
+  - email salvo em `sessionStorage` antes da navegação.
+
+### Cenários principais
+
+- Cadastro OK → modal informativa → Continuar → tela de token.
+- Token incompleto → aviso visível → sem chamada de API.
+- Token completo → chamada automática ao endpoint.
+- Validação OK → modal sucesso → login.
+- Validação com token inválido → modal erro → usuário pode corrigir e reenviar.
 
 ## Passos de implementação
 
-### 1. Infraestrutura TanStack Query (QueryClient + Provider)
+### 1. Spec — schema e validador de token
 
-- Arquivo: `src/lib/react-query/query-client.ts`, `src/components/providers/QueryProvider.tsx`, `src/app/layout.tsx`
+- Arquivo: `src/features/auth/schemas/registerTokenSchema.spec.ts`, `src/features/auth/validators/registerToken/registerToken.spec.ts`
+- O que fazer: definir testes para máscara `XXX-XXX`, normalização para 6 dígitos e regras Zod antes da implementação.
+- Spec primeiro: estes arquivos `.spec.ts`
+- Depende de: Nenhum
+
+### 2. Schema e validador de token
+
+- Arquivo: `src/features/auth/schemas/registerTokenSchema.ts`, `src/features/auth/validators/registerToken/registerToken.ts`
 - O que fazer:
-  - Criar factory `createQueryClient()` com defaults do projeto (staleTime, retry)
-  - Criar `QueryProvider` (`"use client"`) que instancia `QueryClient` via `useState(() => createQueryClient())` e envolve children com `QueryClientProvider`
-  - Importar e renderizar `<QueryProvider>` no `RootLayout`, envolvendo `{children}` (dentro ou junto ao `TooltipProvider`)
-  - Exportar `createQueryClient` para reutilização em testes
+  - Schema Zod com campo `token` no formato visual `^\d{3}-\d{3}$`;
+  - Helper `formatRegisterTokenInput(value: string): string` para máscara progressiva;
+  - Helper `normalizeRegisterToken(value: string): string` retornando 6 dígitos sem hífen;
+  - Tipo inferido `RegisterTokenFormValues`.
+- Spec primeiro: passo 1
+- Depende de: Passo 1
+
+### 3. Tipos e chaves de mutation
+
+- Arquivo: `src/features/auth/types.ts`, `src/features/auth/constants/queryKeys.ts`, `src/lib/api/error-messages.ts`
+- O que fazer:
+  - Adicionar `ValidateRegisterTokenDto`, `ValidateRegisterTokenSuccessData`, `ValidateRegisterTokenResponse`;
+  - Adicionar `authMutationKeys.validateRegisterToken`;
+  - Adicionar `REGISTER_TOKEN_INVALID` em `ERROR_MESSAGES`.
 - Spec primeiro: Não aplicável
-- Depende de: Nenhum
+- Depende de: Passo 2
 
-### 2. Query keys da feature auth
+### 4. Spec — services de validação
 
-- Arquivo: `src/features/auth/constants/queryKeys.ts`
+- Arquivo: `src/features/auth/services/companyRegister/validateRegisterTokenClientService.spec.ts` (opcional, se o projeto já testa services; caso contrário, cobrir via hook/componente)
+- O que fazer: se criado, testar normalização do token e tratamento de envelope `ok: false`.
+- Spec primeiro: arquivo `.spec.ts` do service, se adotado
+- Depende de: Passo 3
+
+### 5. Server Service e Client Service
+
+- Arquivo: `src/features/auth/services/companyRegister/validateRegisterTokenServerService.ts`, `src/features/auth/services/companyRegister/validateRegisterTokenClientService.ts`
 - O que fazer:
-  - Definir `ibgeQueryKeys` e `authMutationKeys` conforme seção de dependências
-  - Importar nos hooks refatorados; não usar strings literais espalhadas
-- Spec primeiro: Não aplicável (coberto indiretamente pelos testes de hook/componente)
-- Depende de: Nenhum
+  - Server Service (`"server-only"`): `POST ${API_URL}/auth/validate-register-token` com `{ email, token }` normalizado;
+  - Client Service: `POST /api/auth/validate-register-token`;
+  - Retornar envelope tipado; mapear erros de rede/env.
+- Spec primeiro: Não aplicável (ou spec do passo 4)
+- Depende de: Passo 3
 
-### 3. Refatorar `useIbgeLocations` para `useQuery`
+### 6. Hook de validação
 
-- Arquivo: `src/features/auth/hooks/useIbgeLocations.ts`
+- Arquivo: `src/features/auth/hooks/useValidateRegisterToken.ts`
 - O que fazer:
-  - Substituir `useState`/`useEffect`/`useRef` por duas queries:
-    - **Estados:** `useQuery({ queryKey: ibgeQueryKeys.states(), queryFn: fetchStates, staleTime: ... })`
-    - **Cidades:** `useQuery({ queryKey: ibgeQueryKeys.cities(normalizedUf), queryFn: () => fetchCitiesByUf(normalizedUf), enabled: Boolean(normalizedUf), staleTime: ... })`
-  - Manter assinatura `useIbgeLocations(stateUf?: string)` e retorno compatível:
-    - `states` ← `data ?? []`
-    - `cities` ← `data ?? []`
-    - `isLoadingStates` ← `isLoading || isFetching` (primeira carga)
-    - `isLoadingCities` ← idem, respeitando `enabled`
-    - `statesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os estados."`)
-    - `citiesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os municípios."`)
-  - `clearStatesError` / `clearCitiesError`: usar `queryClient.resetQueries({ queryKey: ibgeQueryKeys.states() })` e `resetQueries({ queryKey: ibgeQueryKeys.cities(uf) })` (ou `removeQueries` se preferir limpar cache)
-  - Remover lógica manual de race condition (`requestIdRef`); TanStack Query cancela requests obsoletos via `signal` — passar `signal` do `queryFn` para `fetch` nos services **somente se** ajustar `ibgeClientService`; caso contrário, confiar no `enabled` + query key por UF (aceitável para escopo atual)
-- Spec primeiro: `src/features/auth/hooks/useIbgeLocations.spec.tsx` (opcional)
-- Depende de: passos 1 e 2
+  - `useMutation` com `authMutationKeys.validateRegisterToken`;
+  - Expor `validateToken({ email, token })`, `isPending`, `isSuccess`, `errorMessage`, `clearError`, `resetSuccess`;
+  - Mapear códigos de erro para português (espelhar padrão de `useCompanyRegister`).
+- Spec primeiro: Não aplicável
+- Depende de: Passo 5
 
-### 4. Refatorar `useCompanyRegister` para `useMutation`
+### 7. Spec — componente de validação de token
 
-- Arquivo: `src/features/auth/hooks/useCompanyRegister.ts`
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.spec.tsx`
+- O que fazer: escrever testes de comportamento (máscara, aviso, auto-submit, modais, redirect) antes do componente.
+- Spec primeiro: este arquivo `.spec.tsx`
+- Depende de: Passo 6
+
+### 8. Componentes da tela de token
+
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.tsx`, `src/features/auth/components/ValidateRegisterTokenForm/ValidateTokenOverlays.tsx`
 - O que fazer:
-  - Substituir `useState` por `useMutation`:
-    - `mutationKey: authMutationKeys.register`
-    - `mutationFn`: chamar `registerClientService(payload)`; se `!response.ok`, **lançar** `Error` com mensagem mapeada de `REGISTER_ERROR_MESSAGES`; retornar `response.data` em sucesso
-    - Erros de rede (`catch` do service): lançar `Error(REGISTER_ERROR_MESSAGES.INTERNAL_ERROR)`
-  - Expor API compatível com o formulário:
-    - `register(payload)` → `mutateAsync(payload)` ou wrapper `mutate` (preferir manter nome `register` para minimizar diff no componente)
-    - `isPending` ← `isPending`
-    - `isSuccess` ← `isSuccess`
-    - `errorMessage` ← derivar de `error?.message ?? null` (não usar `useState`)
-    - `clearError` ← `reset()`
-    - `resetSuccess` ← `reset()` (manter se usado; unificar em `reset` se redundante)
-  - **Não** invalidar queries globais após registro (cadastro público sem listagem relacionada no client)
-  - Aceitar opções opcionais `UseCompanyRegisterOptions` com `onSuccess` / `onError` se facilitar eliminar `useEffect` no componente (alternativa: callbacks passados no `mutate` no submit)
-- Spec primeiro: `src/features/auth/hooks/useCompanyRegister.spec.tsx` (opcional)
-- Depende de: passos 1 e 2
+  - Client Component com React Hook Form + Zod;
+  - Campo único de token com máscara `XXX-XXX` via `onChange` controlado;
+  - Aviso abaixo do campo enquanto dígitos < 6;
+  - `useEffect` (ou watcher do form) dispara `validateToken` somente quando schema válido (6 dígitos);
+  - Evitar chamadas duplicadas com flag/ref de submissão em andamento;
+  - Ler email do `sessionStorage` no mount; redirect `/register` se ausente;
+  - `ValidateTokenOverlays`: `Loading`, `GlobalModal` success/error (textos da seção acima);
+  - Visual alinhado ao card de `CompanyRegisterForm` (mesmas classes de card/input quando possível).
+- Spec primeiro: passo 7
+- Depende de: Passo 6
 
-### 5. Simplificar `CompanyRegisterForm` — eliminar `useEffect` de modais
+### 9. Página da tela de token
 
-- Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
+- Arquivo: `src/app/(auth)/register/validate-token/page.tsx`
+- O que fazer: Server Component fino renderizando `<ValidateRegisterTokenForm />`.
+- Spec primeiro: Não aplicável
+- Depende de: Passo 8
+
+### 10. Route Handler de validação
+
+- Arquivo: `src/app/api/auth/validate-register-token/route.ts`
 - O que fazer:
-  - Remover os 4 `useEffect` que sincronizam `statesError`, `citiesError`, `errorMessage` e `isSuccess` com estado local de modal
-  - **Modal de erro — abordagem declarativa (sem `useEffect`):**
-    - Derivar `activeError = errorMessage ?? statesError ?? citiesError`
-    - Controlar dismiss com estado mínimo: `dismissedError` (string | null); modal aberto quando `Boolean(activeError) && activeError !== dismissedError`
-    - Em `onConfirm`/`onCancel` do `GlobalModal` de erro: `setDismissedError(activeError)`, chamar `clearError()`, `clearStatesError()`, `clearCitiesError()`
-    - Quando `activeError` mudar (nova mensagem), o modal reabre automaticamente porque `activeError !== dismissedError`
-  - **Modal de sucesso — abordagem declarativa:**
-    - `open={isSuccess}` diretamente no `GlobalModal` de sucesso
-    - Em `onConfirm`: `resetSuccess()` (ou `reset()`) + `router.push("/login")`
-    - Em `onCancel`: `resetSuccess()`
-  - **Submit:** restaurar chamada real `await submitRegister(values)` (hoje comentada com `console.log`) usando o hook refatorado
-  - Remover import de `useEffect` se não restar uso
-  - Manter `Loading`, `GlobalModal`, selects IBGE e demais UI inalterados
-  - `handleStateChange`: manter reset de cidade e `clearCitiesError()` ao trocar UF
-- Spec primeiro: atualizar `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
-- Depende de: passos 3 e 4
+  - Parsear JSON;
+  - Validar com schema que inclua `email` + `token` (pode ser `registerTokenSchema.extend({ email: z.string().email() })` em arquivo dedicado ou no handler);
+  - Chamar `validateRegisterTokenServerService`;
+  - Mapear códigos para status HTTP (400 para `REGISTER_TOKEN_INVALID` / `VALIDATION_ERROR`);
+  - Retornar envelope `{ ok, data }` ou `{ ok: false, error }` sem cookies.
+- Spec primeiro: Não aplicável
+- Depende de: Passo 5
 
-### 6. Atualizar specs do formulário
+### 11. Ajuste do fluxo pós-cadastro (formulário existente)
+
+- Arquivo: `src/features/auth/components/CompanyRegisterForm/RegisterFormOverlays/RegisterFormOverlays.tsx`, `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
+- O que fazer:
+  - Atualizar textos do modal de sucesso (título, subtítulo, botão "Continuar");
+  - Em `handleConfirmSuccess`: persistir `email` do formulário em `sessionStorage` e `router.push("/register/validate-token")` — remover `router.push("/login")`;
+  - Passar `email` do form para o handler de sucesso.
+- Spec primeiro: Não aplicável
+- Depende de: Passo 9
+
+### 12. Atualizar specs do formulário de cadastro
 
 - Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
 - O que fazer:
-  - Manter mocks de `useCompanyRegister` e `useIbgeLocations` (padrão `LoginForm.spec.tsx`)
-  - Ajustar `setupCompanyRegisterMock` se nomes de retorno mudarem (`reset` vs `resetSuccess`, etc.)
-  - Garantir cenários existentes passando: plano, campos, loading estados, modal erro API, modal sucesso + redirect, alterar plano
-  - Adicionar cenário opcional: modal de erro IBGE (`statesError` / `citiesError`) via mock do hook
-  - **Não** exigir `QueryClientProvider` neste spec enquanto hooks permanecerem mockados
-- Spec primeiro: este arquivo é o artefato de spec deste passo
-- Depende de: passo 5
-
-### 7. Helper de teste para TanStack Query (opcional, recomendado)
-
-- Arquivo: `src/test-utils/renderWithQueryClient.tsx`
-- O que fazer:
-  - Exportar `renderWithQueryClient(ui)` que envolve UI com `QueryClientProvider` usando `createQueryClient()` com `retry: false` nos testes
-  - Documentar uso para futuros specs de hooks sem duplicar setup
-- Spec primeiro: Não aplicável
-- Depende de: passo 1
+  - Ajustar teste "exibe modal de sucesso e redireciona ao confirmar" para novos textos e rota `/register/validate-token`;
+  - Verificar persistência do email em `sessionStorage`.
+- Spec primeiro: Não aplicável (spec existente a atualizar)
+- Depende de: Passo 11
 
 ## Riscos / atenções
 
-- **QueryClientProvider ausente quebra runtime:** implementar Provider (passo 1) **antes** de refatorar hooks; sem provider, `useQuery`/`useMutation` lançam erro
-- **Regressão no submit:** `onSubmit` está com `console.log` e registro comentado; restaurar `await submitRegister(values)` na mesma entrega
-- **Mudança de contrato do hook de registro:** se `registerClientService` retorna envelope `{ ok: false }` sem throw, a `mutationFn` **deve** lançar erro para TanStack Query marcar `isError`; não retornar envelope de erro como sucesso
-- **Dismiss de modal vs reset de query:** ao fechar modal de erro IBGE, `resetQueries` pode refetch automático; preferir `reset` que limpa erro sem refetch imediato, ou refetch silencioso — validar UX manualmente
-- **Cache IBGE entre montagens:** `staleTime` alto evita refetch desnecessário ao alternar passos plano/formulário
-- **Cidades sem UF:** manter `enabled: false` quando UF vazia; retornar `cities: []`, `isLoadingCities: false`
-- **`useLogin` permanece com useState:** decisão consciente; este plano não migra login — evitar escopo creep
-- **Testes mockando hooks:** interface pública estável é crítica; se expor `mutate` bruto do TanStack Query no componente, specs precisarão de refactor maior
-- **Acessibilidade:** modais continuam via `GlobalModal`; mensagens de erro mantêm `role="alert"` nos campos do formulário
+- Endpoint `validate-register-token` não está em `docs/api-contracts.md`; confirmar contrato real com backend (campos, formato do token, necessidade de `email`).
+- Risco de chamadas duplicadas ao auto-submit: usar guard com `isPending` e controle de último token enviado.
+- `sessionStorage` é volátil (aba fechada perde contexto); fallback para `/register` é obrigatório.
+- Não gravar JWT nesta etapa — cadastro ainda não está autenticado.
+- Máscara `XXX-XXX` deve aceitar apenas dígitos; colar texto deve ser sanitizado.
+- Acessibilidade: label do campo, aviso associado ao input (`aria-describedby`), foco visível.
+- Atualizar `docs/api-contracts.md` após confirmação do contrato com o backend (fora do escopo imediato, mas recomendado).
+
+## Comandos de validação
+
+```bash
+npm run test
+npm run lint
+npm run build
+```
 
 ## Checklist final
 
 - [x] Specs unitárias/componentes escritas e passando quando aplicável
 - [x] Componente sem lógica de negócio: delega a hooks/services
-- [x] Tipos derivados dos contratos em `src/lib/api/types.ts`
+- [x] Tipos derivados dos contratos em `src/features/auth/types.ts`
 - [x] Estados de loading, erro e vazio tratados na UI
 - [x] Client Components não acessam token
-- [x] Route Handler usado para chamadas autenticadas do client
+- [x] Route Handler usado para chamadas do client ao NestJS
 - [x] shadcn/ui ou componente existente priorizado quando houver UI
-- [x] GlobalModal, Loading ou DataTable reutilizados quando aplicável
+- [x] GlobalModal e Loading reutilizados
 - [x] Acessibilidade considerada em formulários, botões, mensagens e navegação
-- [x] Imports seguem regra híbrida: relativo perto, alias longo
+- [x] Imports seguem regra híbrida: relativo perto, alias longe
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
-- [x] Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`
-- [x] `QueryClientProvider` configurado no layout raiz
-- [x] `useEffect` de sincronização de modais removidos do `CompanyRegisterForm`
-- [x] `npm run test` sem erros quando aplicável
-- [x] `npm run lint` sem erros
+- [x] Modal pós-cadastro não redireciona para login
+- [x] Tela `/register/validate-token` chama API somente com 6 dígitos completos
+- [x] Sucesso na validação redireciona para `/login`
+- [x] `npm run test` sem erros
+- [ ] `npm run lint` sem erros
 - [x] `npm run build` sem erros

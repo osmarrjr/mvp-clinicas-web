@@ -43,10 +43,10 @@ export function RegisterFormOverlays({
       <GlobalModal
         type="success"
         open={isSuccess}
-        modalTitle="Cadastro realizado com sucesso"
-        modalSubTitle="Sua empresa foi cadastrada. Faça login para continuar."
+        modalTitle="Cadastro solicitado com sucesso"
+        modalSubTitle="Seu cadastro foi recebido. Para torná-lo válido, insira o token de 6 dígitos enviado para o email informado no cadastro."
         showCancel={false}
-        confirmLabel="Confirmar"
+        confirmLabel="Continuar"
         onConfirm={onConfirmSuccess}
         onCancel={onCancelSuccess}
       />
