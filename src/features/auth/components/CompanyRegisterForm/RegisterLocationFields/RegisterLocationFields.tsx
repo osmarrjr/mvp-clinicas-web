@@ -44,7 +44,7 @@ export function RegisterLocationFields({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div className="space-y-2">
-        <Label className="text-sm font-medium text-blue-50">Estado</Label>
+        <Label className="text-base font-medium text-blue-50">Estado</Label>
         <Controller
           name="uf"
           control={control}
@@ -54,14 +54,14 @@ export function RegisterLocationFields({
               onValueChange={onStateChange}
               options={stateOptions}
               placeholder="Selecione o estado"
-              searchPlaceholder="Buscar estado..."
+              searchPlaceholder="Buscar estado"
               disabled={isLoadingStates}
               aria-invalid={Boolean(errors.uf)}
             />
           )}
         />
         {errors.uf?.message ? (
-          <p className="text-sm font-medium text-red-200" role="alert">
+          <p className="text-base font-medium text-red-200" role="alert">
             {errors.uf.message}
           </p>
         ) : null}
@@ -69,7 +69,7 @@ export function RegisterLocationFields({
 
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
-          <Label className="text-sm font-medium text-blue-50">Cidade</Label>
+          <Label className="text-base font-medium text-blue-50">Cidade</Label>
           <TooltipProvider delayDuration={100}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -86,8 +86,8 @@ export function RegisterLocationFields({
                 align="center"
                 className="max-w-[220px] text-center"
               >
-                Este campo estará bloqueado e só será liberado após selecionar um
-                estado.
+                Este campo estará bloqueado e só será liberado após selecionar
+                um estado.
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -101,14 +101,14 @@ export function RegisterLocationFields({
               onValueChange={onCityChange}
               options={cityOptions}
               placeholder={cityPlaceholder}
-              searchPlaceholder="Buscar cidade..."
+              searchPlaceholder="Buscar cidade"
               disabled={cityDisabled}
               aria-invalid={Boolean(errors.city)}
             />
           )}
         />
         {errors.city?.message ? (
-          <p className="text-sm font-medium text-red-200" role="alert">
+          <p className="text-base font-medium text-red-200" role="alert">
             {errors.city.message}
           </p>
         ) : null}

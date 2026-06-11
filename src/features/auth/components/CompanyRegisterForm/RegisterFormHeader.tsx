@@ -14,7 +14,7 @@ export function RegisterFormHeader() {
         <CardTitle className="text-3xl font-bold tracking-tight text-white">
           Cadastro de empresa
         </CardTitle>
-        <p className="mt-2 text-sm text-blue-100/80">
+        <p className="mt-2 text-base text-blue-100/80">
           Preencha os dados para criar sua clínica
         </p>
       </div>

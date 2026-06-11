@@ -27,7 +27,7 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
         <h1 className="mt-6 text-3xl font-bold tracking-tight text-white">
           Escolha seu plano
         </h1>
-        <p className="mt-2 text-sm text-blue-100/80">
+        <p className="mt-2 text-base text-blue-100/80">
           Selecione o plano ideal para sua clínica antes de preencher o cadastro
         </p>
       </div>
@@ -45,13 +45,13 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
               <CardTitle className="text-2xl font-bold capitalize text-white">
                 {plan.name}
               </CardTitle>
-              <p className="text-lg font-semibold text-sky-200">
+              <p className="text-base font-semibold text-sky-200">
                 {plan.priceLabel}
               </p>
             </CardHeader>
 
             <CardContent className="flex flex-1 flex-col px-6 pb-6">
-              <ul className="mb-6 flex-1 space-y-2.5 text-left text-sm text-blue-50/90">
+              <ul className="mb-6 flex-1 space-y-2.5 text-left text-base text-blue-50/90">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex gap-2">
                     <Check
@@ -75,7 +75,7 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
         ))}
       </div>
 
-      <p className="mt-8 text-center text-sm text-blue-100/75">
+      <p className="mt-8 text-center text-base text-blue-100/75">
         Já possui conta?{" "}
         <a
           href="/login"

@@ -19,7 +19,7 @@ export function RegisterEmailField({
 }: RegisterEmailFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="email" className="text-sm font-medium text-blue-50">
+      <Label htmlFor="email" className="text-base font-medium text-blue-50">
         Email
       </Label>
       <Input
@@ -33,7 +33,7 @@ export function RegisterEmailField({
         {...register("email")}
       />
       {errors.email?.message ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {errors.email.message}
         </p>
       ) : null}

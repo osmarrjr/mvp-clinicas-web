@@ -48,6 +48,15 @@ vi.mock("@/components/GlobalModal", () => ({
 
 const useValidateRegisterTokenMock = vi.mocked(useValidateRegisterToken);
 
+async function pasteToken(
+  user: ReturnType<typeof userEvent.setup>,
+  token: string,
+) {
+  const firstDigit = screen.getByLabelText("Dígito 1 de 6");
+  await user.click(firstDigit);
+  await user.paste(token);
+}
+
 function setupValidateTokenMock(
   overrides?: Partial<ReturnType<typeof useValidateRegisterToken>>,
 ) {
@@ -77,31 +86,36 @@ describe("ValidateRegisterTokenForm", () => {
     setupValidateTokenMock();
   });
 
-  it("renderiza campo com label e placeholder do token", () => {
+  it("renderiza label e seis inputs de dígito", () => {
     render(<ValidateRegisterTokenForm />);
 
-    expect(screen.getByLabelText(/token de validação/i)).toBeTruthy();
-    expect(screen.getByPlaceholderText("000-000")).toBeTruthy();
+    expect(screen.getByText(/token de validação/i)).toBeTruthy();
+
+    for (let digit = 1; digit <= 6; digit += 1) {
+      expect(screen.getByLabelText(`Dígito ${digit} de 6`)).toBeTruthy();
+    }
   });
 
   it("exibe aviso enquanto token incompleto", () => {
     render(<ValidateRegisterTokenForm />);
 
     expect(
-      screen.getByText(
-        /informe o token de 6 dígitos no formato 000-000 enviado para seu email/i,
-      ),
+      screen.getByText(/informe o token de 6 dígitos enviado para seu email/i),
     ).toBeTruthy();
   });
 
-  it("aplica máscara XXX-XXX durante digitação", async () => {
+  it("aplica máscara XXX-XXX ao preencher os 6 dígitos", async () => {
     const user = userEvent.setup();
     render(<ValidateRegisterTokenForm />);
 
-    const input = screen.getByLabelText(/token de validação/i);
-    await user.type(input, "123456");
+    await pasteToken(user, "123456");
 
-    expect((input as HTMLInputElement).value).toBe("123-456");
+    expect((screen.getByLabelText("Dígito 1 de 6") as HTMLInputElement).value).toBe(
+      "1",
+    );
+    expect((screen.getByLabelText("Dígito 6 de 6") as HTMLInputElement).value).toBe(
+      "6",
+    );
   });
 
   it("dispara validação automaticamente ao completar 6 dígitos", async () => {
@@ -109,7 +123,7 @@ describe("ValidateRegisterTokenForm", () => {
     const user = userEvent.setup();
     render(<ValidateRegisterTokenForm />);
 
-    await user.type(screen.getByLabelText(/token de validação/i), "123456");
+    await pasteToken(user, "123456");
 
     await waitFor(() => {
       expect(validateTokenMock).toHaveBeenCalledWith({
@@ -124,7 +138,7 @@ describe("ValidateRegisterTokenForm", () => {
     const user = userEvent.setup();
     render(<ValidateRegisterTokenForm />);
 
-    await user.type(screen.getByLabelText(/token de validação/i), "12345");
+    await pasteToken(user, "12345");
 
     expect(validateTokenMock).not.toHaveBeenCalled();
   });
@@ -174,7 +188,7 @@ describe("ValidateRegisterTokenForm", () => {
     const user = userEvent.setup();
     const { rerender } = render(<ValidateRegisterTokenForm />);
 
-    await user.type(screen.getByLabelText(/token de validação/i), "123456");
+    await pasteToken(user, "123456");
 
     await waitFor(() => {
       expect(validateTokenMock).toHaveBeenCalledTimes(1);
@@ -221,9 +235,7 @@ describe("ValidateRegisterTokenForm", () => {
 
     expect(screen.queryByText(errorMessage)).toBeNull();
 
-    const input = screen.getByLabelText(/token de validação/i);
-    await user.clear(input);
-    await user.type(input, "654321");
+    await pasteToken(user, "654321");
 
     await waitFor(() => {
       expect(validateTokenMock).toHaveBeenCalledWith({

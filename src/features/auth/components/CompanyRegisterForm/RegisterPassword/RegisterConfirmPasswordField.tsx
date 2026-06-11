@@ -61,7 +61,7 @@ export function RegisterConfirmPasswordField({
       <div className="flex items-center gap-1.5">
         <Label
           htmlFor="confirmPassword"
-          className="text-sm font-medium text-blue-50"
+          className="text-base font-medium text-blue-50"
         >
           Confirmar senha
         </Label>
@@ -106,7 +106,7 @@ export function RegisterConfirmPasswordField({
           type="button"
           disabled={!isPasswordValid}
           onClick={() => setShowConfirmPassword((current) => !current)}
-          className={`absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 transition hover:text-white cursor-pointer ${disabledFieldClassName}`}
+          className={`absolute right-4 top-1/2 -translate-y-1/2  transition cursor-pointer ${disabledFieldClassName}`}
           aria-label={
             showConfirmPassword
               ? "Ocultar confirmação de senha"
@@ -122,11 +122,11 @@ export function RegisterConfirmPasswordField({
       </div>
 
       {showMismatch ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           As senhas não conferem
         </p>
       ) : showSchemaError ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {schemaError}
         </p>
       ) : null}

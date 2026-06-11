@@ -7,20 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { REGISTER_INPUT_CLASS_NAME } from "../CompanyRegisterForm/constants";
+import { REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME } from "../CompanyRegisterForm/constants";
 import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
 import { useValidateRegisterToken } from "../../hooks/useValidateRegisterToken";
 import {
   registerTokenSchema,
   type RegisterTokenFormValues,
 } from "../../schemas/registerTokenSchema";
-import {
-  formatRegisterTokenInput,
-  normalizeRegisterToken,
-} from "../../validators/registerToken/registerToken";
+import { normalizeRegisterToken } from "../../validators/registerToken/registerToken";
 
+import { RegisterTokenDigitInputs } from "./RegisterTokenDigitInputs/RegisterTokenDigitInputs";
 import { ValidateTokenOverlays } from "./ValidateTokenOverlays";
 
 export function ValidateRegisterTokenForm() {
@@ -49,8 +46,10 @@ export function ValidateRegisterTokenForm() {
   const tokenValue = form.watch("token");
   const digitCount = normalizeRegisterToken(tokenValue).length;
   const showTokenHint = digitCount < 6;
-  const isTokenComplete = registerTokenSchema.safeParse({ token: tokenValue })
-    .success;
+
+  const isTokenComplete = registerTokenSchema.safeParse({
+    token: tokenValue,
+  }).success;
 
   const errorModalOpen = Boolean(errorMessage) && !errorDismissed;
 
@@ -80,17 +79,9 @@ export function ValidateRegisterTokenForm() {
     setErrorDismissed(false);
 
     void validateToken({ email, token: tokenValue });
-  }, [
-    email,
-    isTokenComplete,
-    isPending,
-    isSuccess,
-    tokenValue,
-    validateToken,
-  ]);
+  }, [email, isTokenComplete, isPending, isSuccess, tokenValue, validateToken]);
 
-  function handleTokenChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const formatted = formatRegisterTokenInput(event.target.value);
+  function handleTokenChange(formatted: string) {
     setErrorDismissed(false);
     form.setValue("token", formatted, { shouldValidate: true });
   }
@@ -112,58 +103,60 @@ export function ValidateRegisterTokenForm() {
 
   return (
     <>
-      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/10 shadow-2xl shadow-blue-950/40 backdrop-blur-2xl">
-        <CardHeader className="space-y-4 pt-9 pb-5 text-center">
+      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/[0.14] shadow-2xl shadow-blue-950/40 ring-1 ring-white/10 backdrop-blur-2xl">
+        <CardHeader className="space-y-5 px-7 pt-9 pb-5 text-center">
           <div className="mx-auto">
             <img
               src="/loading-logo.svg"
               alt="Logo"
-              className="h-auto w-[265px]"
+              className="h-auto w-[240px] max-w-full sm:w-[265px]"
             />
           </div>
+
           <div>
-            <CardTitle className="text-3xl font-bold tracking-tight text-white">
+            <CardTitle className="text-2xl font-bold tracking-tight text-white">
               Validar cadastro
             </CardTitle>
-            <p className="mt-2 text-sm text-blue-100/80">
-              Insira o token enviado para {email}
+
+            <p className="mt-2 text-base leading-6 text-blue-100/80">
+              Insira o token enviado para{" "}
+              <span className="break-all font-medium text-white">{email}</span>
             </p>
           </div>
         </CardHeader>
 
         <CardContent className="px-7 pb-8">
-          <form className="space-y-4" noValidate>
-            <div className="space-y-2">
+          <form className="space-y-5" noValidate>
+            <div className="space-y-3">
               <Label
-                htmlFor="register-token"
-                className="text-sm font-medium text-blue-50"
+                id="register-token-label"
+                htmlFor="register-token-digit-1"
+                className="text-base font-medium text-blue-50"
               >
                 Token de validação
               </Label>
-              <Input
-                id="register-token"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder="000-000"
+
+              <RegisterTokenDigitInputs
                 value={tokenValue}
                 onChange={handleTokenChange}
-                aria-describedby="register-token-hint"
-                className={REGISTER_INPUT_CLASS_NAME}
+                inputClassName={REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME}
+                ariaDescribedBy={
+                  showTokenHint ? "register-token-hint" : undefined
+                }
               />
+
               {showTokenHint ? (
                 <p
                   id="register-token-hint"
                   role="status"
-                  className="text-sm text-blue-100/75"
+                  className="text-base leading-5 text-blue-100/70"
                 >
-                  Informe o token de 6 dígitos no formato 000-000 enviado para
-                  seu email.
+                  Informe o token de 6 dígitos enviado para seu email.
                 </p>
               ) : null}
             </div>
 
-            <p className="text-center text-sm text-blue-100/75">
+            <p className="text-center text-base text-blue-100/75">
               Já possui conta?{" "}
               <Link
                 href="/login"

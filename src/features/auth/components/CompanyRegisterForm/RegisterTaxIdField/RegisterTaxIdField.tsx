@@ -28,7 +28,7 @@ export function RegisterTaxIdField({
 }: RegisterTaxIdFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="taxId" className="text-sm font-medium text-blue-50">
+      <Label htmlFor="taxId" className="text-base font-medium text-blue-50">
         CPF ou CNPJ
       </Label>
       <Input
@@ -48,7 +48,7 @@ export function RegisterTaxIdField({
         }}
       />
       {errors.taxId?.message ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {errors.taxId.message}
         </p>
       ) : null}

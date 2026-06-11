@@ -26,7 +26,7 @@ export function RegisterCompanyNameField({
 }: RegisterCompanyNameFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="companyName" className="text-sm font-medium text-blue-50">
+      <Label htmlFor="companyName" className="text-base font-medium text-blue-50">
         Nome da empresa
       </Label>
       <Input
@@ -45,7 +45,7 @@ export function RegisterCompanyNameField({
         })}
       />
       {errors.companyName?.message ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {errors.companyName.message}
         </p>
       ) : null}

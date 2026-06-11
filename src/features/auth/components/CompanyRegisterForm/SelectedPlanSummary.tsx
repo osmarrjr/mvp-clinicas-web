@@ -12,20 +12,22 @@ export function SelectedPlanSummary({
   onChangePlan,
 }: SelectedPlanSummaryProps) {
   return (
-    <div className="mb-5 rounded-2xl border border-white/20 bg-white/10 px-4 py-3">
+    <div className="mb-5 rounded-2xl border border-white/40 bg-white/95 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-blue-100/70">
+        <div className="min-w-0">
+          <p className="text-base font-semibold uppercase tracking-wide text-slate-500">
             Plano selecionado
           </p>
-          <p className="text-sm font-semibold text-white">
+
+          <p className="truncate text-base font-semibold text-slate-900">
             {planName} — {priceLabel}
           </p>
         </div>
+
         <Button
           type="button"
           variant="ghost"
-          className="h-auto shrink-0 px-2 py-1 text-xs text-sky-200 hover:bg-white/10 hover:text-white"
+          className="h-auto shrink-0 rounded-xl px-3 py-1.5 text-base font-semibold text-blue-700 transition hover:bg-blue-50 hover:text-blue-800"
           onClick={onChangePlan}
         >
           Alterar

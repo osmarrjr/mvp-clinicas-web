@@ -19,7 +19,6 @@ type SearchableSelectProps = {
   options: SearchableSelectOption[];
   placeholder: string;
   searchPlaceholder?: string;
-  /** Exibe o campo de busca no dropdown. Ativo por padrão. */
   showSearch?: boolean;
   disabled?: boolean;
   triggerClassName?: string;
@@ -91,16 +90,21 @@ export function SearchableSelect({
           disabled={disabled}
           aria-invalid={ariaInvalid}
           className={cn(
-            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/20 bg-white/15 px-4 text-sm text-white shadow-sm backdrop-blur-md transition outline-none focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40",
+            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/40 bg-white/95 px-4 text-base text-slate-900 shadow-sm transition outline-none focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300/50 aria-invalid:border-red-300 aria-invalid:ring-red-200",
             disabledFieldClassName,
-            !selectedLabel && "text-blue-100/50",
+            !selectedLabel && "text-slate-400",
             triggerClassName,
           )}
         >
-          <span className="truncate text-left">
+          <span
+            className={cn(
+              "truncate text-left",
+              !selectedLabel && "text-sm text-slate-400",
+            )}
+          >
             {selectedLabel ?? placeholder}
           </span>
-          <ChevronDownIcon className="size-4 shrink-0 text-blue-100/70" />
+          <ChevronDownIcon className="size-4 shrink-0 text-slate-500" />
         </button>
       </Popover.Trigger>
 
@@ -128,7 +132,7 @@ export function SearchableSelect({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={searchPlaceholder}
-                className="h-9 w-full text-sm"
+                className="h-9 w-full rounded-xl border-slate-200 bg-white text-base text-slate-900 placeholder:text-sm placeholder:text-slate-400 focus-visible:ring-sky-300/40"
                 aria-label={searchPlaceholder}
               />
             </div>
@@ -139,7 +143,7 @@ export function SearchableSelect({
             role="listbox"
           >
             {filteredOptions.length === 0 ? (
-              <li className="cursor-default px-3 py-2 text-sm text-slate-500">
+              <li className="cursor-default px-3 py-2 text-base text-slate-500">
                 {emptyMessage}
               </li>
             ) : (
@@ -155,7 +159,7 @@ export function SearchableSelect({
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-slate-100",
+                        "flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left text-base hover:bg-slate-100",
                         isSelected && "bg-slate-100 font-medium",
                       )}
                       onClick={() => handleSelect(option.value)}
