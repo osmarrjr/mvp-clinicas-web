@@ -23,3 +23,16 @@ type ApiErrorShape = {
 export type RegisterClinicResponse =
   | { ok: true; data: RegisterClinicSuccessData }
   | { ok: false; error: ApiErrorShape };
+
+export interface ValidateRegisterTokenDto {
+  email: string;
+  token: string;
+}
+
+export interface ValidateRegisterTokenSuccessData {
+  message: string;
+}
+
+export type ValidateRegisterTokenResponse =
+  | { ok: true; data: ValidateRegisterTokenSuccessData }
+  | { ok: false; error: ApiErrorShape };

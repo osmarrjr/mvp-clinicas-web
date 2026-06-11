@@ -60,7 +60,7 @@ export function RegisterPasswordField({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
-        <Label htmlFor="password" className="text-sm font-medium text-blue-50">
+        <Label htmlFor="password" className="text-base font-medium text-blue-50">
           Senha
         </Label>
 
@@ -102,7 +102,7 @@ export function RegisterPasswordField({
         <button
           type="button"
           onClick={() => setShowPassword((current) => !current)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 transition hover:text-white cursor-pointer"
+          className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
           aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
         >
           {!showPassword ? (
@@ -114,14 +114,14 @@ export function RegisterPasswordField({
       </div>
 
       {validationMessage ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {validationMessage}
         </p>
       ) : null}
 
       {strength ? (
         <div className="space-y-1 w-full px-1 mx-auto">
-          <p className="text-xs font-medium text-blue-100/80">
+          <p className="text-base font-medium text-blue-100/80">
             Força da senha: {strength.label}
           </p>
           <div

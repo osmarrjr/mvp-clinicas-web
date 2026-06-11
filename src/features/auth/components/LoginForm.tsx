@@ -15,6 +15,9 @@ import { useLogin } from "../hooks/useLogin";
 import { loginSchema, type LoginFormValues } from "../schemas/loginSchema";
 import { Loading } from "@/components/Loader/loaderView";
 
+const LOGIN_INPUT_CLASS_NAME =
+  "h-12 w-full rounded-2xl border border-white/40 bg-white/95 px-4 text-base text-slate-900 shadow-sm outline-none placeholder:text-sm placeholder:text-slate-400 transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300/50 aria-[invalid=true]:border-red-300 aria-[invalid=true]:ring-red-200";
+
 export function LoginForm() {
   const { login, isPending, errorMessage } = useLogin();
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +55,7 @@ export function LoginForm() {
               Bem-vindo
             </CardTitle>
 
-            <p className="mt-2 text-sm text-blue-100/80">
+            <p className="mt-2 text-base text-blue-100/80">
               Acesse sua conta para continuar
             </p>
           </div>
@@ -67,7 +70,7 @@ export function LoginForm() {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-sm font-medium text-blue-50"
+                className="text-base font-medium text-blue-50"
               >
                 Email
               </Label>
@@ -78,12 +81,12 @@ export function LoginForm() {
                 autoComplete="email"
                 placeholder="seuemail@exemplo.com"
                 aria-invalid={Boolean(emailError)}
-                className="h-12 rounded-2xl border border-white/20 bg-white/15 px-4 text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40"
+                className={LOGIN_INPUT_CLASS_NAME}
                 {...form.register("email")}
               />
 
               {emailError ? (
-                <p className="text-sm font-medium text-red-200" role="alert">
+                <p className="text-base font-medium text-red-200" role="alert">
                   {emailError}
                 </p>
               ) : null}
@@ -92,7 +95,7 @@ export function LoginForm() {
             <div className="space-y-2">
               <Label
                 htmlFor="password"
-                className="text-sm font-medium text-blue-50"
+                className="text-base font-medium text-blue-50"
               >
                 Senha
               </Label>
@@ -104,14 +107,14 @@ export function LoginForm() {
                   autoComplete="current-password"
                   placeholder="Digite sua senha"
                   aria-invalid={Boolean(passwordError)}
-                  className="h-12 rounded-2xl border border-white/20 bg-white/15 px-4 pr-12 text-white shadow-sm outline-none placeholder:text-blue-100/50 backdrop-blur-md transition focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/40"
+                  className={LOGIN_INPUT_CLASS_NAME}
                   {...form.register("password")}
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-100/70 transition hover:text-white cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-slate-500 transition hover:text-blue-700"
                   aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                 >
                   {!showPassword ? (
@@ -123,7 +126,7 @@ export function LoginForm() {
               </div>
 
               {passwordError ? (
-                <p className="text-sm font-medium text-red-200" role="alert">
+                <p className="text-base font-medium text-red-200" role="alert">
                   {passwordError}
                 </p>
               ) : null}
@@ -131,7 +134,7 @@ export function LoginForm() {
 
             {errorMessage ? (
               <Alert className="rounded-2xl border border-red-200 bg-red-200">
-                <AlertDescription className="text-sm text-red-500font-medium">
+                <AlertDescription className="text-base text-red-500font-medium">
                   {errorMessage}
                 </AlertDescription>
               </Alert>
@@ -139,13 +142,13 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              className="h-12 w-full rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/40 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-12 mt-2 w-full rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100"
               disabled={isSubmitDisabled}
             >
               {isPending ? "Entrando..." : "Login"}
             </Button>
 
-            <p className="text-center text-sm text-blue-100/75">
+            <p className="text-center text-base text-blue-100/75">
               Ainda não possui cadastro?{" "}
               <Link
                 href="/register"

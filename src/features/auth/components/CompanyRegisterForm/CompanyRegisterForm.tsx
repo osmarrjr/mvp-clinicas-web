@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getPasswordValidationError } from "../../validators/password/password";
 import { PlanSelectionStep } from "../PlanSelectionStep";
 import { CLINIC_PLAN_OPTIONS } from "../../constants/plans";
+import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
 import { useCompanyRegister } from "../../hooks/useCompanyRegister";
 import { useIbgeLocations } from "../../hooks/useIbgeLocations";
 import {
@@ -159,8 +160,9 @@ export function CompanyRegisterForm() {
   }
 
   function handleConfirmSuccess() {
+    sessionStorage.setItem(REGISTER_VALIDATION_EMAIL_KEY, emailValue);
     resetSuccess();
-    router.push("/login");
+    router.push("/register/validate-token");
   }
 
   async function onSubmit(values: CompanyRegisterFormValues) {
@@ -174,7 +176,7 @@ export function CompanyRegisterForm() {
 
   return (
     <>
-      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/10 shadow-2xl shadow-blue-950/40 backdrop-blur-2xl">
+      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/[0.14] shadow-2xl shadow-blue-950/40 ring-1 ring-white/10 backdrop-blur-2xl">
         <RegisterFormHeader />
 
         <CardContent className="px-7 pb-8">
@@ -252,13 +254,13 @@ export function CompanyRegisterForm() {
 
             <Button
               type="submit"
-              className="h-12 w-full rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/40 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-12 mt-2 w-full rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100"
               disabled={isSubmitDisabled}
             >
               {isPending ? "Cadastrando..." : "Cadastrar empresa"}
             </Button>
 
-            <p className="text-center text-sm text-blue-100/75">
+            <p className="text-center text-base text-blue-100/75">
               Já possui conta?{" "}
               <Link
                 href="/login"

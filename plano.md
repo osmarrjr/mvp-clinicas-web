@@ -1,204 +1,134 @@
-# Plano: Refatorar CompanyRegisterForm para TanStack Query
+# Plano: Inputs separados para token de validação (6 dígitos)
 
 ## Contexto
 
-O formulário de cadastro de empresa (`CompanyRegisterForm`) depende de dois hooks com controle manual de estado (`useIbgeLocations` com `useState` + `useEffect`, `useCompanyRegister` com `useState` para pending/success/error) e de quatro `useEffect` no componente apenas para sincronizar erros e sucesso com modais. O projeto já possui `@tanstack/react-query` instalado, mas ainda não expõe `QueryClientProvider`. A refatoração migra data fetching e mutação para TanStack Query, reduz efeitos colaterais no componente e estabelece query keys padronizadas para dados IBGE e cadastro.
+O formulário `ValidateRegisterTokenForm` usa hoje um único `Input` com máscara `000-000`. A solicitação é substituir essa UI por 6 campos individuais (um dígito cada), com hífen apenas visual, mantendo o valor interno do React Hook Form como string `XXX-XXX` e o auto-submit ao completar 6 dígitos. O contrato da API e o schema Zod permanecem inalterados.
 
 ## Validação arquitetural
 
-- Feature: existente (`auth`)
-- Reutiliza componente existente: sim (`GlobalModal`, `Loading`, `SearchableSelect`, `PlanSelectionStep`, campos de registro)
-- Reutiliza GlobalModal / Loading / DataTable: sim (`GlobalModal`, `Loading`; `DataTable` não aplicável)
-- Reutiliza hook existente: sim (refatorar internamente `useIbgeLocations` e `useCompanyRegister`; manter camada de hook de domínio)
-- Reutiliza service existente: sim (`ibgeClientService`, `registerClientService` — sem alterar contratos)
-- Reutiliza schema existente: sim (`companyRegisterSchema`)
-- Reutiliza tipos existentes: sim (`CompanyRegisterFormValues`, `IbgeState`, `IbgeMunicipality`, `RegisterClinicResponse`)
-- Usa shadcn/ui ou componente existente: sim (sem mudança visual)
+- Feature: existente (`auth` — validação de token pós-cadastro)
+- Reutiliza componente existente: sim (`Input`, `Label`, `Card`, `ValidateTokenOverlays`)
+- Reutiliza GlobalModal / Loading / DataTable: sim (`ValidateTokenOverlays` já usa `Loading` e `GlobalModal`; sem alteração)
+- Reutiliza hook existente: sim (`useValidateRegisterToken`)
+- Reutiliza service existente: sim (`validateRegisterTokenClientService` / `validateRegisterTokenServerService`)
+- Reutiliza schema existente: sim (`registerTokenSchema` — regex `^\d{3}-\d{3}$`)
+- Reutiliza tipos existentes: sim (`RegisterTokenFormValues`, `ValidateRegisterTokenDto`)
+- Usa shadcn/ui ou componente existente: sim (`Input`, `Label` de `@/components/ui`)
 - Exige novo componente shadcn/ui: não
-- Há impacto em autenticação: não (fluxo de registro permanece via Route Handler; token continua HTTP-only)
+- Há impacto em autenticação: não (fluxo público pós-cadastro, sem cookie JWT)
 - Há impacto em permissões/RBAC: não
-- Há impacto em contrato de API: não
+- Há impacto em contrato de API: não (token continua `XXX-XXX` no form; services já normalizam para 6 dígitos na chamada externa)
 - Há impacto em Route Handler: não
 - Exige teste unitário/componente: sim
 
-## Decisão arquitetural principal
-
-**Refatorar os hooks internamente** (`useIbgeLocations` → `useQuery`, `useCompanyRegister` → `useMutation`), **não** chamar `useQuery`/`useMutation` diretamente no `CompanyRegisterForm`.
-
-Motivos:
-
-- Alinha com `.cursor/skills/react/data-fetching.md` (Client Service → hook com TanStack Query → componente).
-- Mantém o componente fino, focado em UI e React Hook Form.
-- Preserva a API pública dos hooks (com ajustes mínimos), facilitando testes do formulário via mock de hook — padrão já usado em `LoginForm.spec.tsx`.
-- Centraliza mapeamento de erros e query keys na feature `auth`, evitando strings espalhadas.
-
 ## Páginas/componentes afetados
 
-- `src/lib/react-query/query-client.ts` (criar)
-- `src/components/providers/QueryProvider.tsx` (criar)
-- `src/app/layout.tsx`
-- `src/features/auth/constants/queryKeys.ts` (criar)
-- `src/features/auth/hooks/useIbgeLocations.ts`
-- `src/features/auth/hooks/useCompanyRegister.ts`
-- `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
-- `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
-- `src/test-utils/renderWithQueryClient.tsx` (criar — helper opcional para specs futuras)
+- `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.tsx`
+- `src/features/auth/components/ValidateRegisterTokenForm/RegisterTokenDigitInputs/RegisterTokenDigitInputs.tsx` (novo)
+- `src/features/auth/components/ValidateRegisterTokenForm/RegisterTokenDigitInputs/RegisterTokenDigitInputs.spec.tsx` (novo)
+- `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.spec.tsx`
+- `src/features/auth/validators/registerToken/registerToken.ts`
+- `src/features/auth/validators/registerToken/registerToken.spec.ts`
+- `src/features/auth/components/CompanyRegisterForm/constants.ts` (constante de classe para dígito, se necessário)
 
 ## Contrato de API utilizado
 
-- IBGE (client-side, API pública): `GET {NEXT_PUBLIC_IBGE_API_URL}/estados` e `GET {NEXT_PUBLIC_IBGE_API_URL}/estados/{uf}/municipios` via `ibgeClientService`
-- `POST /auth/register-admin` (via `POST /api/auth/register`) via `registerClientService`
+- `POST /api/auth/validate-register-token` (Route Handler) → `POST {API_URL}/auth/validate-register-token` com `{ email, token }` (token normalizado para 6 dígitos no server/client service)
+- Validação do payload no Route Handler via `validateRegisterTokenRequestSchema` (token no formato `^\d{3}-\d{3}$`)
 
 ## Dependências/configurações necessárias
 
-- `@tanstack/react-query` — já instalado; **não** adicionar dependências novas
-- Criar `QueryClientProvider` em `src/components/providers/QueryProvider.tsx` (Client Component) com instância de `QueryClient` exportada/reutilizável para testes
-- Envolver `{children}` no `RootLayout` (`src/app/layout.tsx`) com `QueryProvider`, ao lado do `TooltipProvider` existente
-- Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`:
-
-```ts
-export const ibgeQueryKeys = {
-  all: ['ibge'] as const,
-  states: () => [...ibgeQueryKeys.all, 'states'] as const,
-  cities: (uf: string) => [...ibgeQueryKeys.all, 'cities', uf] as const,
-};
-
-export const authMutationKeys = {
-  register: ['auth', 'register'] as const,
-};
-```
-
-- Configuração sugerida do `QueryClient` global: `staleTime` elevado para queries IBGE (ex.: `1000 * 60 * 60 * 24`), `retry: 1` para falhas transitórias, `refetchOnWindowFocus: false` no cadastro
+Nenhuma.
 
 ## Estratégia de testes
 
-- Unitário/componente: `CompanyRegisterForm.spec.tsx` (principal); specs de hook opcionais em `useIbgeLocations.spec.tsx` e `useCompanyRegister.spec.tsx` se o developer quiser cobrir mapeamento de erro/query keys isoladamente
+- Unitário/componente: `RegisterTokenDigitInputs.spec.tsx`, `registerToken.spec.ts`, `ValidateRegisterTokenForm.spec.tsx`
 - Cenários principais:
-  - Formulário continua exibindo seleção de planos e campos após escolher plano
-  - Loading de estados (`isLoadingStates` / overlay "Carregando estados")
-  - Modal de erro de cadastro (mensagem amigável da mutation)
-  - Modal de sucesso e redirecionamento para `/login`
-  - Botão submit desabilitado quando formulário inválido ou `isPending`
-  - Voltar para seleção de planos via "Alterar"
-- Abordagem de mock (manter padrão do projeto):
-  - **Preferencial para `CompanyRegisterForm.spec.tsx`:** continuar mockando `useIbgeLocations` e `useCompanyRegister` (comportamento visível, sem acoplar ao TanStack Query no teste de componente)
-  - Ajustar mocks se a API pública dos hooks mudar levemente (`reset`/`mutate` em vez de `register`, etc.)
-  - Se criar specs de hook: envolver com `QueryClientProvider` + `QueryClient` isolado por teste, mockar apenas `ibgeClientService` / `registerClientService` (conforme `.cursor/skills/react/testing.md`)
+  - Renderiza 6 inputs com layout `XXX-XXX` e label acessível
+  - Digitar dígito avança foco para o próximo campo
+  - Backspace em campo vazio retorna foco ao campo anterior
+  - Paste de `123456` ou `123-456` preenche os 6 campos e atualiza valor `123-456`
+  - Valor parcial mantém string interna sem hífen até 3 dígitos (`12` → `"12"`, `1234` → `"123-4"`)
+  - Auto-submit ao completar 6 dígitos continua chamando `validateToken` com `{ email, token: "123-456" }`
+  - Não chama service antes de 6 dígitos
+  - Fluxos de erro/sucesso/redirect permanecem inalterados
+  - Helpers `splitRegisterTokenDigits` / `joinRegisterTokenDigits` / `parseRegisterTokenPaste` cobertos unitariamente
 
 ## Passos de implementação
 
-### 1. Infraestrutura TanStack Query (QueryClient + Provider)
+### 1. Estender validators de token
 
-- Arquivo: `src/lib/react-query/query-client.ts`, `src/components/providers/QueryProvider.tsx`, `src/app/layout.tsx`
+- Arquivo: `src/features/auth/validators/registerToken/registerToken.ts`
 - O que fazer:
-  - Criar factory `createQueryClient()` com defaults do projeto (staleTime, retry)
-  - Criar `QueryProvider` (`"use client"`) que instancia `QueryClient` via `useState(() => createQueryClient())` e envolve children com `QueryClientProvider`
-  - Importar e renderizar `<QueryProvider>` no `RootLayout`, envolvendo `{children}` (dentro ou junto ao `TooltipProvider`)
-  - Exportar `createQueryClient` para reutilização em testes
-- Spec primeiro: Não aplicável
+  - Adicionar `splitRegisterTokenDigits(value: string): string[]` — retorna array de 6 strings (cada uma `""` ou um dígito), derivado de `stripRegisterTokenDigits`
+  - Adicionar `joinRegisterTokenDigits(digits: string[]): string` — sanitiza cada slot, concatena e reutiliza `formatRegisterTokenInput`
+  - Adicionar `parseRegisterTokenPaste(raw: string): string` — sanitiza entrada colada (`123456`, `123-456`, `12a3-45b6`) e retorna string formatada via `formatRegisterTokenInput`
+  - Manter funções existentes (`formatRegisterTokenInput`, `normalizeRegisterToken`, `stripRegisterTokenDigits`) sem breaking change
+- Spec primeiro: `src/features/auth/validators/registerToken/registerToken.spec.ts`
 - Depende de: Nenhum
 
-### 2. Query keys da feature auth
+### 2. Spec do componente de dígitos
 
-- Arquivo: `src/features/auth/constants/queryKeys.ts`
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/RegisterTokenDigitInputs/RegisterTokenDigitInputs.spec.tsx`
 - O que fazer:
-  - Definir `ibgeQueryKeys` e `authMutationKeys` conforme seção de dependências
-  - Importar nos hooks refatorados; não usar strings literais espalhadas
-- Spec primeiro: Não aplicável (coberto indiretamente pelos testes de hook/componente)
-- Depende de: Nenhum
+  - Definir contrato do componente controlado: props `value`, `onChange`, `inputClassName`, `disabled?`, `idPrefix?`, `ariaDescribedBy?`
+  - Cobrir: renderização dos 6 inputs + separador visual; avanço de foco ao digitar; backspace em vazio; paste completo; sincronização quando `value` muda externamente (ex.: clear programático)
+  - Usar seletores acessíveis (`getByRole`, `getByLabelText`, `aria-label` por dígito)
+- Spec primeiro: este arquivo (SDD — spec antes da implementação)
+- Depende de: Passo 1 (helpers usados indiretamente nos testes de integração do componente; mocks não obrigatórios)
 
-### 3. Refatorar `useIbgeLocations` para `useQuery`
+### 3. Implementar `RegisterTokenDigitInputs`
 
-- Arquivo: `src/features/auth/hooks/useIbgeLocations.ts`
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/RegisterTokenDigitInputs/RegisterTokenDigitInputs.tsx`
 - O que fazer:
-  - Substituir `useState`/`useEffect`/`useRef` por duas queries:
-    - **Estados:** `useQuery({ queryKey: ibgeQueryKeys.states(), queryFn: fetchStates, staleTime: ... })`
-    - **Cidades:** `useQuery({ queryKey: ibgeQueryKeys.cities(normalizedUf), queryFn: () => fetchCitiesByUf(normalizedUf), enabled: Boolean(normalizedUf), staleTime: ... })`
-  - Manter assinatura `useIbgeLocations(stateUf?: string)` e retorno compatível:
-    - `states` ← `data ?? []`
-    - `cities` ← `data ?? []`
-    - `isLoadingStates` ← `isLoading || isFetching` (primeira carga)
-    - `isLoadingCities` ← idem, respeitando `enabled`
-    - `statesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os estados."`)
-    - `citiesError` ← mensagem amigável derivada de `isError` (`"Não foi possível carregar os municípios."`)
-  - `clearStatesError` / `clearCitiesError`: usar `queryClient.resetQueries({ queryKey: ibgeQueryKeys.states() })` e `resetQueries({ queryKey: ibgeQueryKeys.cities(uf) })` (ou `removeQueries` se preferir limpar cache)
-  - Remover lógica manual de race condition (`requestIdRef`); TanStack Query cancela requests obsoletos via `signal` — passar `signal` do `queryFn` para `fetch` nos services **somente se** ajustar `ibgeClientService`; caso contrário, confiar no `enabled` + query key por UF (aceitável para escopo atual)
-- Spec primeiro: `src/features/auth/hooks/useIbgeLocations.spec.tsx` (opcional)
-- Depende de: passos 1 e 2
+  - Renderizar layout flex: `[input][input][input] - [input][input][input]` com hífen em `<span aria-hidden="true">`
+  - 6× `Input` shadcn com `maxLength={1}`, `inputMode="numeric"`, `type="text"`, `autoComplete="one-time-code"` apenas no primeiro campo
+  - Classe visual: derivar de `REGISTER_INPUT_CLASS_NAME` trocando `w-full px-4` por largura fixa centralizada (ex.: `w-11` ou `w-12`, `px-0`, `text-center`); extrair constante `REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME` em `CompanyRegisterForm/constants.ts` se reuso facilitar leitura
+  - `useRef` array de 6 refs para controle de foco
+  - `onChange` por dígito: montar novo array de slots, chamar `joinRegisterTokenDigits`, propagar via `onChange(formatted)`
+  - `onKeyDown`: Backspace em slot vazio → `focus` no índice anterior; ArrowLeft/ArrowRight navegam entre campos
+  - `onPaste` no grupo ou no primeiro input: `preventDefault`, aplicar `parseRegisterTokenPaste`, propagar valor, focar último dígito preenchido ou o 6º se completo
+  - Sincronizar inputs a partir de `value` via `splitRegisterTokenDigits` (componente controlado)
+  - Acessibilidade:
+    - Container com `role="group"` e `aria-labelledby` apontando para o `Label` externo (id estável, ex. `register-token-label`)
+    - Cada input com `aria-label` descritivo (`Dígito 1 de 6`, …, `Dígito 6 de 6`)
+    - Primeiro input com `id` compatível com `htmlFor` do `Label` pai (`register-token-digit-1`)
+    - Manter `aria-describedby` do hint quando fornecido
+- Spec primeiro: já escrito no passo 2
+- Depende de: Passos 1 e 2
 
-### 4. Refatorar `useCompanyRegister` para `useMutation`
+### 4. Integrar no `ValidateRegisterTokenForm`
 
-- Arquivo: `src/features/auth/hooks/useCompanyRegister.ts`
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.tsx`
 - O que fazer:
-  - Substituir `useState` por `useMutation`:
-    - `mutationKey: authMutationKeys.register`
-    - `mutationFn`: chamar `registerClientService(payload)`; se `!response.ok`, **lançar** `Error` com mensagem mapeada de `REGISTER_ERROR_MESSAGES`; retornar `response.data` em sucesso
-    - Erros de rede (`catch` do service): lançar `Error(REGISTER_ERROR_MESSAGES.INTERNAL_ERROR)`
-  - Expor API compatível com o formulário:
-    - `register(payload)` → `mutateAsync(payload)` ou wrapper `mutate` (preferir manter nome `register` para minimizar diff no componente)
-    - `isPending` ← `isPending`
-    - `isSuccess` ← `isSuccess`
-    - `errorMessage` ← derivar de `error?.message ?? null` (não usar `useState`)
-    - `clearError` ← `reset()`
-    - `resetSuccess` ← `reset()` (manter se usado; unificar em `reset` se redundante)
-  - **Não** invalidar queries globais após registro (cadastro público sem listagem relacionada no client)
-  - Aceitar opções opcionais `UseCompanyRegisterOptions` com `onSuccess` / `onError` se facilitar eliminar `useEffect` no componente (alternativa: callbacks passados no `mutate` no submit)
-- Spec primeiro: `src/features/auth/hooks/useCompanyRegister.spec.tsx` (opcional)
-- Depende de: passos 1 e 2
+  - Substituir `Input` único por `<RegisterTokenDigitInputs />`
+  - Manter `useForm` com campo `token`, `form.watch("token")`, `form.setValue("token", …)` e lógica de `isTokenComplete` / auto-submit via `useEffect` inalterada
+  - Remover `handleTokenChange` do input único; delegar a callback que chama `setErrorDismissed(false)` + `form.setValue("token", formatted, { shouldValidate: true })`
+  - Atualizar `Label` para `htmlFor="register-token-digit-1"` e `id="register-token-label"` no label
+  - Ajustar texto do hint se necessário (remover referência a “formato 000-000” no placeholder; manter orientação de 6 dígitos no hint)
+  - Não alterar overlays, redirect, sessionStorage ou hook
+- Spec primeiro: Não aplicável (alteração coberta pelo spec existente do form)
+- Depende de: Passo 3
 
-### 5. Simplificar `CompanyRegisterForm` — eliminar `useEffect` de modais
+### 5. Atualizar spec do formulário
 
-- Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
+- Arquivo: `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.spec.tsx`
 - O que fazer:
-  - Remover os 4 `useEffect` que sincronizam `statesError`, `citiesError`, `errorMessage` e `isSuccess` com estado local de modal
-  - **Modal de erro — abordagem declarativa (sem `useEffect`):**
-    - Derivar `activeError = errorMessage ?? statesError ?? citiesError`
-    - Controlar dismiss com estado mínimo: `dismissedError` (string | null); modal aberto quando `Boolean(activeError) && activeError !== dismissedError`
-    - Em `onConfirm`/`onCancel` do `GlobalModal` de erro: `setDismissedError(activeError)`, chamar `clearError()`, `clearStatesError()`, `clearCitiesError()`
-    - Quando `activeError` mudar (nova mensagem), o modal reabre automaticamente porque `activeError !== dismissedError`
-  - **Modal de sucesso — abordagem declarativa:**
-    - `open={isSuccess}` diretamente no `GlobalModal` de sucesso
-    - Em `onConfirm`: `resetSuccess()` (ou `reset()`) + `router.push("/login")`
-    - Em `onCancel`: `resetSuccess()`
-  - **Submit:** restaurar chamada real `await submitRegister(values)` (hoje comentada com `console.log`) usando o hook refatorado
-  - Remover import de `useEffect` se não restar uso
-  - Manter `Loading`, `GlobalModal`, selects IBGE e demais UI inalterados
-  - `handleStateChange`: manter reset de cidade e `clearCitiesError()` ao trocar UF
-- Spec primeiro: atualizar `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
-- Depende de: passos 3 e 4
-
-### 6. Atualizar specs do formulário
-
-- Arquivo: `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.spec.tsx`
-- O que fazer:
-  - Manter mocks de `useCompanyRegister` e `useIbgeLocations` (padrão `LoginForm.spec.tsx`)
-  - Ajustar `setupCompanyRegisterMock` se nomes de retorno mudarem (`reset` vs `resetSuccess`, etc.)
-  - Garantir cenários existentes passando: plano, campos, loading estados, modal erro API, modal sucesso + redirect, alterar plano
-  - Adicionar cenário opcional: modal de erro IBGE (`statesError` / `citiesError`) via mock do hook
-  - **Não** exigir `QueryClientProvider` neste spec enquanto hooks permanecerem mockados
-- Spec primeiro: este arquivo é o artefato de spec deste passo
-- Depende de: passo 5
-
-### 7. Helper de teste para TanStack Query (opcional, recomendado)
-
-- Arquivo: `src/test-utils/renderWithQueryClient.tsx`
-- O que fazer:
-  - Exportar `renderWithQueryClient(ui)` que envolve UI com `QueryClientProvider` usando `createQueryClient()` com `retry: false` nos testes
-  - Documentar uso para futuros specs de hooks sem duplicar setup
-- Spec primeiro: Não aplicável
-- Depende de: passo 1
+  - Remover/ajustar asserção de `placeholder="000-000"` (inexistente nos 6 inputs)
+  - Substituir interações `user.type(input, "123456")` por paste no primeiro dígito ou digitação sequencial nos 6 campos
+  - Manter asserções de auto-submit, erro, sucesso, redirect e não reenvio do mesmo token
+  - Garantir que testes de limpar e redigitar token (cenário pós-erro) funcionem com os novos inputs
+- Spec primeiro: Não aplicável (atualização de spec existente)
+- Depende de: Passo 4
 
 ## Riscos / atenções
 
-- **QueryClientProvider ausente quebra runtime:** implementar Provider (passo 1) **antes** de refatorar hooks; sem provider, `useQuery`/`useMutation` lançam erro
-- **Regressão no submit:** `onSubmit` está com `console.log` e registro comentado; restaurar `await submitRegister(values)` na mesma entrega
-- **Mudança de contrato do hook de registro:** se `registerClientService` retorna envelope `{ ok: false }` sem throw, a `mutationFn` **deve** lançar erro para TanStack Query marcar `isError`; não retornar envelope de erro como sucesso
-- **Dismiss de modal vs reset de query:** ao fechar modal de erro IBGE, `resetQueries` pode refetch automático; preferir `reset` que limpa erro sem refetch imediato, ou refetch silencioso — validar UX manualmente
-- **Cache IBGE entre montagens:** `staleTime` alto evita refetch desnecessário ao alternar passos plano/formulário
-- **Cidades sem UF:** manter `enabled: false` quando UF vazia; retornar `cities: []`, `isLoadingCities: false`
-- **`useLogin` permanece com useState:** decisão consciente; este plano não migra login — evitar escopo creep
-- **Testes mockando hooks:** interface pública estável é crítica; se expor `mutate` bruto do TanStack Query no componente, specs precisarão de refactor maior
-- **Acessibilidade:** modais continuam via `GlobalModal`; mensagens de erro mantêm `role="alert"` nos campos do formulário
+- Testes que digitam `"123456"` em um único campo podem falhar; preferir `user.paste` ou digitar dígito a dígito com `userEvent`
+- `autoComplete="one-time-code"` no primeiro campo pode preencher apenas o primeiro input em alguns browsers; avaliar listener de `onChange` no primeiro campo para detectar entrada multi-dígito (fallback de autofill SMS)
+- Classe `REGISTER_INPUT_CLASS_NAME` usa `w-full`; inputs de dígito precisam largura fixa para não quebrar layout do card
+- Garantir que valor parcial (`"123"`, `"123-4"`) continue passando na validação Zod apenas quando completo (`^\d{3}-\d{3}$`) — auto-submit não deve disparar antes
+- Não duplicar lógica de formatação no componente; centralizar em `registerToken.ts`
+- Manter `lastSubmittedTokenRef` e fluxo de erro inalterados para evitar reenvio automático após falha
 
 ## Checklist final
 
@@ -211,12 +141,9 @@ export const authMutationKeys = {
 - [x] shadcn/ui ou componente existente priorizado quando houver UI
 - [x] GlobalModal, Loading ou DataTable reutilizados quando aplicável
 - [x] Acessibilidade considerada em formulários, botões, mensagens e navegação
-- [x] Imports seguem regra híbrida: relativo perto, alias longo
+- [x] Imports seguem regra híbrida: relativo perto, alias longe
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
-- [x] Query keys centralizadas em `src/features/auth/constants/queryKeys.ts`
-- [x] `QueryClientProvider` configurado no layout raiz
-- [x] `useEffect` de sincronização de modais removidos do `CompanyRegisterForm`
 - [x] `npm run test` sem erros quando aplicável
-- [x] `npm run lint` sem erros
+- [ ] `npm run lint` sem erros
 - [x] `npm run build` sem erros

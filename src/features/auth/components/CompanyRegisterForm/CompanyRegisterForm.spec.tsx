@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 
 import { useCompanyRegister } from "../../hooks/useCompanyRegister";
 import { useIbgeLocations } from "../../hooks/useIbgeLocations";
+import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
 import { CompanyRegisterForm } from "./CompanyRegisterForm";
 
 const pushMock = vi.fn();
@@ -104,6 +105,7 @@ async function goToFormStep(user: ReturnType<typeof userEvent.setup>) {
 describe("CompanyRegisterForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     setupIbgeMock();
     setupCompanyRegisterMock();
   });
@@ -181,18 +183,26 @@ describe("CompanyRegisterForm", () => {
     ).toBeTruthy();
   });
 
-  it("exibe modal de sucesso e redireciona ao confirmar", async () => {
+  it("exibe modal de sucesso e navega para validação de token ao confirmar", async () => {
     setupCompanyRegisterMock({ isSuccess: true });
 
     const user = userEvent.setup();
     render(<CompanyRegisterForm />);
     await goToFormStep(user);
 
-    expect(screen.getByText(/cadastro realizado com sucesso/i)).toBeTruthy();
+    await user.type(
+      screen.getByLabelText(/^email$/i),
+      "clinica@example.com",
+    );
 
-    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+    expect(screen.getByText(/cadastro solicitado com sucesso/i)).toBeTruthy();
 
-    expect(pushMock).toHaveBeenCalledWith("/login");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(sessionStorage.getItem(REGISTER_VALIDATION_EMAIL_KEY)).toBe(
+      "clinica@example.com",
+    );
+    expect(pushMock).toHaveBeenCalledWith("/register/validate-token");
   });
 
   it("exibe loading ao carregar estados", async () => {

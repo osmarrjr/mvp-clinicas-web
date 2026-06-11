@@ -69,7 +69,7 @@ export function RegisterPhoneField({
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="phone" className="text-sm font-medium text-blue-50">
+      <Label htmlFor="phone" className="text-base font-medium text-blue-50">
         Telefone
       </Label>
       <Input
@@ -85,7 +85,7 @@ export function RegisterPhoneField({
         onChange={handleChange}
       />
       {errors.phone?.message ? (
-        <p className="text-sm font-medium text-red-200" role="alert">
+        <p className="text-base font-medium text-red-200" role="alert">
           {errors.phone.message}
         </p>
       ) : null}

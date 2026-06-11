@@ -1,11 +1,6 @@
-/**
- * Estilo padrão de campos desabilitados.
- * Referência visual: SearchableSelect desabilitado (ex.: campo Cidade).
- */
 export const disabledFieldClassName =
   "disabled:cursor-not-allowed disabled:opacity-50";
 
-/**
- * Controles nativos (input, textarea) também bloqueiam interação.
- */
-export const disabledFormControlClassName = `${disabledFieldClassName}`;
+// export const disabledFormControlClassName = `${disabledFieldClassName}`;
+export const disabledFormControlClassName =
+  "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:opacity-60";
