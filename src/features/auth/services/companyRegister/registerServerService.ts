@@ -1,29 +1,12 @@
 import "server-only";
 
 import type { CompanyRegisterFormValues } from "../../schemas/companyRegisterSchema";
-import type { RegisterClinicDto, RegisterClinicResponse } from "../../types";
-import { buildRegisterApiPayload } from "../companyRegister/registerPayload";
-
-function toRegisterClinicDto(
-  values: CompanyRegisterFormValues,
-): RegisterClinicDto {
-  const { taxId, taxIdType } = buildRegisterApiPayload(values);
-
-  return {
-    clinicName: values.companyName,
-    taxId,
-    taxIdType,
-    uf: values.uf,
-    city: values.city,
-    email: values.email,
-    password: values.password,
-    plan: values.plan,
-  };
-}
+import type { RegisterClinicResponse } from "../../types";
+import { toRegisterAdminDto } from "./registerPayload";
 
 type ApiRegisterSuccess = {
   ok: true;
-  data: { clinicId?: string; userId?: string; accessToken?: string };
+  data: { status: number; message: string };
 };
 
 type ApiErrorShape = {
@@ -46,7 +29,7 @@ export async function registerServerService(
     };
   }
 
-  const payload = toRegisterClinicDto(values);
+  const payload = toRegisterAdminDto(values);
 
   try {
     const response = await fetch(`${apiUrl}/auth/register-admin`, {
@@ -76,21 +59,12 @@ export async function registerServerService(
       };
     }
 
-    const clinicId = body.data.clinicId;
-
-    if (!clinicId) {
-      return {
-        ok: false,
-        error: {
-          code: "REGISTER_ERROR",
-          message: "Resposta de cadastro inválida.",
-        },
-      };
-    }
-
     return {
       ok: true,
-      data: { clinicId },
+      data: {
+        status: body.data.status,
+        message: body.data.message,
+      },
     };
   } catch {
     return {

@@ -2,29 +2,18 @@ import { NextResponse } from "next/server";
 
 import { loginSchema } from "@/features/auth/schemas/loginSchema";
 import { loginServerService } from "@/features/auth/services/auth/authServerService";
+import { getErrorMessage } from "@/lib/api/error-messages";
 
-function getStatusByErrorCode(code: string) {
-  const statusMap: Record<string, number> = {
-    VALIDATION_ERROR: 400,
-    INVALID_CREDENTIALS: 401,
-    UNAUTHORIZED: 401,
-    FORBIDDEN: 403,
-    NOT_FOUND: 404,
-  };
-
-  return statusMap[code] ?? 500;
-}
-
-function errorResponse(code: string, message: string, status = 500) {
+function errorResponse(code: string, message: string) {
   return NextResponse.json(
     {
       ok: false,
       error: {
         code,
-        message,
+        message: getErrorMessage(code, message),
       },
     },
-    { status },
+    { status: 400 },
   );
 }
 
@@ -34,7 +23,7 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return errorResponse("INVALID_JSON", "Corpo da requisição inválido.", 400);
+    return errorResponse("INVALID_JSON", "Corpo da requisição inválido.");
   }
 
   const parsed = loginSchema.safeParse(json);
@@ -43,18 +32,13 @@ export async function POST(request: Request) {
     return errorResponse(
       "VALIDATION_ERROR",
       "Dados inválidos. Verifique os campos e tente novamente.",
-      400,
     );
   }
 
   const response = await loginServerService(parsed.data);
 
   if (!response.ok) {
-    return errorResponse(
-      response.error.code,
-      response.error.message,
-      getStatusByErrorCode(response.error.code),
-    );
+    return errorResponse(response.error.code, response.error.message);
   }
 
   const nextResponse = NextResponse.json({
@@ -69,7 +53,7 @@ export async function POST(request: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 15 minutos
+    maxAge: response.data.expiresIn,
   });
 
   nextResponse.cookies.set("refreshToken", response.data.refreshToken, {
@@ -77,7 +61,7 @@ export async function POST(request: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 dias
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   return nextResponse;

@@ -1,30 +1,16 @@
 import "server-only";
 
 import type { LoginFormValues } from "../../schemas/loginSchema";
-
-type LoginSuccessData = {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    clinicId: string;
-    name: string;
-    email: string;
-    role: string;
-    phone: string | null;
-    sex: string | null;
-    createdAt: string;
-    updatedAt: string;
-  };
-};
+import type { LoginResult } from "../../types";
 
 type ApiErrorShape = {
   code: string;
   message: string;
+  verificationCodeResent?: boolean;
 };
 
 export type LoginServerResponse =
-  | { ok: true; data: LoginSuccessData }
+  | { ok: true; data: LoginResult }
   | { ok: false; error: ApiErrorShape };
 
 export async function loginServerService(
@@ -54,12 +40,13 @@ export async function loginServerService(
 
     const body = await response.json().catch(() => null);
 
-    if (!response.ok) {
+    if (!response.ok || !body?.ok) {
       return {
         ok: false,
         error: {
           code: body?.error?.code ?? "LOGIN_ERROR",
           message: body?.error?.message ?? "Não foi possível realizar o login.",
+          verificationCodeResent: body?.error?.verificationCodeResent,
         },
       };
     }

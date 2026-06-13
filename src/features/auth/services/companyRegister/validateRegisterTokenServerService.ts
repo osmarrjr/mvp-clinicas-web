@@ -13,7 +13,7 @@ type ApiErrorShape = {
 
 type ApiValidateSuccess = {
   ok: true;
-  data: { message: string };
+  data: { verified: boolean };
 };
 
 export async function validateRegisterTokenServerService(
@@ -31,17 +31,17 @@ export async function validateRegisterTokenServerService(
     };
   }
 
-  const normalizedToken = normalizeRegisterToken(payload.token);
+  const normalizedCode = normalizeRegisterToken(payload.token);
 
   try {
-    const response = await fetch(`${apiUrl}/auth/validate-register-token`, {
+    const response = await fetch(`${apiUrl}/auth/confirm-email-verification`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         email: payload.email,
-        token: normalizedToken,
+        code: normalizedCode,
       }),
       cache: "no-store",
     });
@@ -59,14 +59,14 @@ export async function validateRegisterTokenServerService(
           message:
             body && !body.ok
               ? body.error.message
-              : "Não foi possível validar o token.",
+              : "Não foi possível validar o código.",
         },
       };
     }
 
     return {
       ok: true,
-      data: { message: body.data.message },
+      data: { verified: body.data.verified },
     };
   } catch {
     return {

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { buildRegisterApiPayload, resolveTaxIdType } from "./registerPayload";
+import {
+  buildRegisterApiPayload,
+  resolveTaxIdType,
+  toRegisterAdminDto,
+} from "./registerPayload";
 
 describe("resolveTaxIdType", () => {
   it("identifica CPF", () => {
@@ -45,5 +49,34 @@ describe("buildRegisterApiPayload", () => {
 
     expect(payload.taxId).toBe("11222333000181");
     expect(payload.taxIdType).toBe("cnpj");
+  });
+});
+
+describe("toRegisterAdminDto", () => {
+  it("mapeia campos conforme contrato da API", () => {
+    const dto = toRegisterAdminDto({
+      companyName: "Clínica Saúde",
+      taxId: "529.982.247-25",
+      uf: "SP",
+      city: "São Paulo",
+      email: "contato@clinica.com",
+      phone: "11987654321",
+      password: "Senha@123",
+      confirmPassword: "Senha@123",
+      plan: "basic",
+    });
+
+    expect(dto).toEqual({
+      companyName: "Clínica Saúde",
+      taxId: "52998224725",
+      taxIdType: "cpf",
+      uf: "SP",
+      city: "São Paulo",
+      email: "contato@clinica.com",
+      phone: "+5511987654321",
+      password: "Senha@123",
+      confirmPassword: "Senha@123",
+      plan: "basic",
+    });
   });
 });

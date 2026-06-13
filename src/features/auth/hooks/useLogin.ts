@@ -2,13 +2,10 @@
 
 import { useState } from "react";
 
+import { getErrorMessage } from "@/lib/api/error-messages";
+
 import type { LoginFormValues } from "../schemas/loginSchema";
 import { loginClientService } from "../services/auth/authClientService";
-
-const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  INVALID_CREDENTIALS: "Email ou senha incorretos.",
-  INTERNAL_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
-};
 
 export function useLogin() {
   const [isPending, setIsPending] = useState(false);
@@ -21,22 +18,19 @@ export function useLogin() {
     setErrorMessage(null);
 
     try {
-      console.log("payload", payload);
       const response = await loginClientService(payload);
-      console.log("response", response);
-      if (!response.ok) {
-        const message =
-          LOGIN_ERROR_MESSAGES[response.error.code] ??
-          LOGIN_ERROR_MESSAGES.INTERNAL_ERROR;
 
-        setErrorMessage(message);
+      if (!response.ok) {
+        setErrorMessage(
+          getErrorMessage(response.error.code, response.error.message),
+        );
         return null;
       }
 
       setIsSuccess(true);
       return response.data;
     } catch {
-      setErrorMessage(LOGIN_ERROR_MESSAGES.INTERNAL_ERROR);
+      setErrorMessage(getErrorMessage("INTERNAL_ERROR"));
       return null;
     } finally {
       setIsPending(false);

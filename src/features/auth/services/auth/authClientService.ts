@@ -11,15 +11,17 @@ export async function loginClientService(
     },
     body: JSON.stringify(payload),
   });
-  console.log("response", response);
+
   const body = (await response.json()) as LoginServerResponse;
 
   if (!response.ok || !body.ok) {
     return {
       ok: false,
       error: {
-        code: !body.ok ? body.error.code : "INTERNAL_ERROR",
-        message: !body.ok ? body.error.message : "Erro inesperado no login.",
+        code: body.ok ? "INTERNAL_ERROR" : body.error.code,
+        message: body.ok
+          ? "Erro inesperado no login."
+          : body.error.message,
       },
     };
   }
