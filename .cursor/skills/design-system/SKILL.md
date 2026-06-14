@@ -196,6 +196,7 @@ Props principais:
 Regras:
 
 - Usar para confirmações destrutivas, erros de operação e sucesso pós-ação.
+- **Todo endpoint no client:** modal de erro sempre; modal de sucesso em POST/PATCH/DELETE quando necessário. Ver `.cursor/rules/api-feedback-modals.mdc`.
 - Não recriar modais ad hoc com `Dialog` quando `GlobalModal` atender.
 - Modal de warning não exibe botão de fechar (`showCloseButton` ignorado para `type="warning"`).
 

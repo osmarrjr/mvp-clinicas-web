@@ -1,0 +1,57 @@
+---
+description: Feedback de resposta de endpoints via GlobalModal (erro e sucesso)
+alwaysApply: true
+---
+
+# Feedback de endpoints — GlobalModal
+
+`GlobalModal` é o **padrão oficial** de mensagens do sistema. Toda chamada a endpoint no client deve informar status e mensagem da resposta.
+
+## Obrigatório em toda operação
+
+| Momento | Componente | Quando |
+|---------|------------|--------|
+| Carregando | `Loading` | Enquanto `isPending` |
+| Erro | `GlobalModal type="error"` | Sempre que `ok: false` ou exceção |
+| Sucesso | `GlobalModal type="success"` | POST, PATCH ou DELETE, quando necessário (ver abaixo) |
+
+Mensagens via `getErrorMessage(error.message)` (`@/lib/api/error-messages`), que usa a mensagem retornada pela API ou um fallback genérico. Nunca exibir código técnico ao usuário.
+
+## Modal de sucesso — quando usar
+
+**Sim:** POST, PATCH ou DELETE quando o usuário precisa de confirmação explícita da ação (criação, edição, exclusão).
+
+**Não:**
+- Leituras (GET) — atualizar UI/lista silenciosamente;
+- Login com redirect imediato — redirecionar sem modal de sucesso;
+- Ações cujo efeito já é evidente na navegação (ex.: logout → login).
+
+## Exceções de auth
+
+| Fluxo | Comportamento |
+|-------|---------------|
+| Login com sucesso | Redirect (ex.: dashboard), sem modal de sucesso |
+| Primeiro login (`passwordChangeRequired` / `PASSWORD_CHANGE_REQUIRED`) | `GlobalModal type="warning"` → confirmar → redirect para `/change-password` |
+| Erro em qualquer endpoint | `GlobalModal type="error"` sempre |
+| Cadastro / validação de token | Modal de sucesso quando houver próximo passo explícito |
+
+## Padrão de implementação
+
+1. Hook expõe `isPending`, `errorMessage`, estados de sucesso/exceção, `clearError` / `resetSuccess`.
+2. Overlays em componente dedicado (ex.: `LoginFormOverlays`, `RegisterFormOverlays`).
+3. **Proibido:** `Alert`, toast/sonner ou `Dialog` ad hoc para feedback de endpoint.
+
+```tsx
+<GlobalModal
+  type="error"
+  open={errorModalOpen}
+  modalTitle="Ops! Ocorreu um erro!"
+  modalSubTitle={errorMessage ?? ""}
+  showCancel={false}
+  confirmLabel="Fechar"
+  onConfirm={onDismissError}
+  onCancel={onDismissError}
+/>
+```
+
+Referências: `LoginFormOverlays`, `RegisterFormOverlays`, `ValidateTokenOverlays`.

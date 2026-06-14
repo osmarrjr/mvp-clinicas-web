@@ -2,41 +2,42 @@
 
 import { useState } from "react";
 
-import type { LoginFormValues } from "../schemas/loginSchema";
-import { loginClientService } from "../services/auth/authClientService";
+import { getErrorMessage } from "@/lib/api/error-messages";
 
-const LOGIN_ERROR_MESSAGES: Record<string, string> = {
-  INVALID_CREDENTIALS: "Email ou senha incorretos.",
-  INTERNAL_ERROR: "Ocorreu um erro inesperado. Tente novamente.",
-};
+import type { LoginFormValues } from "../schemas/loginSchema";
+import type { LoginClientData } from "../types";
+import { loginClientService } from "../services/auth/authClientService";
 
 export function useLogin() {
   const [isPending, setIsPending] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [passwordChangeRequired, setPasswordChangeRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function login(payload: LoginFormValues) {
+  async function login(payload: LoginFormValues): Promise<LoginClientData | null> {
     setIsPending(true);
-    setIsSuccess(false);
+    setPasswordChangeRequired(false);
     setErrorMessage(null);
 
     try {
-      console.log("payload", payload);
       const response = await loginClientService(payload);
-      console.log("response", response);
-      if (!response.ok) {
-        const message =
-          LOGIN_ERROR_MESSAGES[response.error.code] ??
-          LOGIN_ERROR_MESSAGES.INTERNAL_ERROR;
 
-        setErrorMessage(message);
+      if (!response.ok) {
+        if (response.error.code === "PASSWORD_CHANGE_REQUIRED") {
+          setPasswordChangeRequired(true);
+          return null;
+        }
+
+        setErrorMessage(getErrorMessage(response.error.message));
         return null;
       }
 
-      setIsSuccess(true);
+      if (response.data.passwordChangeRequired) {
+        setPasswordChangeRequired(true);
+      }
+
       return response.data;
     } catch {
-      setErrorMessage(LOGIN_ERROR_MESSAGES.INTERNAL_ERROR);
+      setErrorMessage(getErrorMessage());
       return null;
     } finally {
       setIsPending(false);
@@ -47,11 +48,16 @@ export function useLogin() {
     setErrorMessage(null);
   }
 
+  function clearPasswordChangeRequired() {
+    setPasswordChangeRequired(false);
+  }
+
   return {
     login,
     isPending,
-    isSuccess,
+    passwordChangeRequired,
     errorMessage,
     clearError,
+    clearPasswordChangeRequired,
   };
 }

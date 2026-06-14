@@ -138,7 +138,9 @@ Padrões:
 - Client Component com React Hook Form + Zod;
 - delega submit a `useLogin()`;
 - exibe erros de validação por campo com `role="alert"`;
-- exibe erro de API via `Alert`;
+- exibe erro de API via `GlobalModal` (`LoginFormOverlays`);
+- login bem-sucedido redireciona para `/dashboard`;
+- primeiro acesso (`passwordChangeRequired`) exibe modal `warning` e redireciona para `/change-password`;
 - bloqueia submit enquanto `isPending` ou formulário inválido;
 - usa `Loading` de `@/components/Loader/loaderView` durante `isPending`.
 

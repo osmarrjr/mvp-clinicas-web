@@ -247,21 +247,34 @@ export function useCreatePatient() {
 
 ---
 
+## Feedback ao usuário (modais)
+
+Toda chamada a endpoint no client deve informar status e mensagem da resposta.
+
+Regra completa: `.cursor/rules/api-feedback-modals.mdc`.
+
+Resumo:
+
+- **Erro:** `GlobalModal type="error"` sempre.
+- **Sucesso:** `GlobalModal type="success"` em POST, PATCH ou DELETE quando necessário.
+- **Login:** sucesso redireciona; primeiro acesso exibe modal `warning` → `/change-password`; erro com modal.
+- **GET:** sem modal de sucesso; atualizar dados na UI.
+- Usar `Loading` durante `isPending` e `getErrorMessage()` para mensagens.
+
+---
+
 ## Tratamento de erro
 
-Preferir tratamento por código semântico da API.
-
-Exemplo:
+A API retorna `error.message` em português. O frontend repassa essa mensagem ao usuário via `getErrorMessage()`:
 
 ```ts
-const ERROR_MESSAGES: Record<string, string> = {
-  INVALID_CREDENTIALS: 'Email ou senha incorretos.',
-  PATIENT_NOT_FOUND: 'Paciente não encontrado.',
-  INVALID_STATUS_TRANSITION: 'Transição de status inválida.',
-};
+import { getErrorMessage } from '@/lib/api/error-messages';
+
+// Usa error.message da API; fallback genérico se ausente
+const message = getErrorMessage(response.error.message);
 ```
 
-Nunca exibir o código técnico diretamente para o usuário.
+Nunca exibir o código técnico (`error.code`) diretamente ao usuário.
 
 ---
 
@@ -277,3 +290,4 @@ Nunca exibir o código técnico diretamente para o usuário.
 - [ ] Query keys padronizadas.
 - [ ] Mutações invalidam queries relacionadas.
 - [ ] Erros tratados por mensagem amigável.
+- [ ] Feedback de endpoint segue `.cursor/rules/api-feedback-modals.mdc`.

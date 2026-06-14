@@ -20,9 +20,7 @@ export async function registerClientService(
       ok: false,
       error: {
         code: body.ok ? "REGISTER_ERROR" : body.error.code,
-        message: body.ok
-          ? "Não foi possível concluir o cadastro."
-          : body.error.message,
+        message: body.ok ? "" : (body.error.message ?? ""),
       },
     };
   }

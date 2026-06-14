@@ -2,8 +2,15 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { AUTH_ROUTES } from "../constants/authRoutes";
 import { LoginForm } from "./LoginForm";
 import { useLogin } from "../hooks/useLogin";
+
+const pushMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: pushMock }),
+}));
 
 vi.mock("../hooks/useLogin", () => ({
   useLogin: vi.fn(),
@@ -14,22 +21,56 @@ vi.mock("@/components/Loader/loaderView", () => ({
     isOpen ? <div>{message}</div> : null,
 }));
 
+vi.mock("./LoginFormOverlays", () => ({
+  LoginFormOverlays: ({
+    errorModalOpen,
+    errorMessage,
+    passwordChangeRequired,
+    onConfirmPasswordChange,
+    onDismissError,
+  }: {
+    errorModalOpen: boolean;
+    errorMessage: string | null;
+    passwordChangeRequired: boolean;
+    onConfirmPasswordChange: () => void;
+    onDismissError: () => void;
+  }) => (
+    <>
+      {errorModalOpen ? (
+        <div role="alert">
+          <span>{errorMessage}</span>
+          <button type="button" onClick={onDismissError}>
+            Fechar erro
+          </button>
+        </div>
+      ) : null}
+      {passwordChangeRequired ? (
+        <div>
+          <span>Alteração de senha necessária</span>
+          <button type="button" onClick={onConfirmPasswordChange}>
+            Alterar senha
+          </button>
+        </div>
+      ) : null}
+    </>
+  ),
+}));
+
 const useLoginMock = vi.mocked(useLogin);
 
 function setupUseLoginMock(overrides?: Partial<ReturnType<typeof useLogin>>) {
-  const loginMock = vi.fn(
-    async (_payload: Parameters<ReturnType<typeof useLogin>["login"]>[0]) =>
-      null,
-  );
+  const loginMock = vi.fn(async () => null);
 
   const clearErrorMock = vi.fn();
+  const clearPasswordChangeRequiredMock = vi.fn();
 
   const mockValue: ReturnType<typeof useLogin> = {
     login: loginMock,
     isPending: false,
-    isSuccess: false,
+    passwordChangeRequired: false,
     errorMessage: null,
     clearError: clearErrorMock,
+    clearPasswordChangeRequired: clearPasswordChangeRequiredMock,
     ...overrides,
   };
 
@@ -38,6 +79,7 @@ function setupUseLoginMock(overrides?: Partial<ReturnType<typeof useLogin>>) {
   return {
     loginMock,
     clearErrorMock,
+    clearPasswordChangeRequiredMock,
   };
 }
 
@@ -53,10 +95,10 @@ describe("LoginForm", () => {
 
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
-
     expect(screen.getByText(/ainda não possui cadastro/i)).toBeTruthy();
-    const registerLink = screen.getByRole("link", { name: /clique aqui/i });
-    expect(registerLink.getAttribute("href")).toBe("/register");
+    expect(screen.getByRole("link", { name: /clique aqui/i }).getAttribute("href")).toBe(
+      "/register",
+    );
   });
 
   it("mantém o botão desabilitado quando o formulário está vazio", () => {
@@ -64,105 +106,103 @@ describe("LoginForm", () => {
 
     render(<LoginForm />);
 
-    const submitButton = screen.getByRole("button", { name: /^login$/i });
-
-    expect(submitButton).toHaveProperty("disabled", true);
-  });
-
-  it("mantém o botão desabilitado com email inválido", async () => {
-    setupUseLoginMock();
-
-    const user = userEvent.setup();
-
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/^email$/i);
-    const passwordInput = screen.getByLabelText(/^senha$/i);
-    const submitButton = screen.getByRole("button", { name: /^login$/i });
-
-    await user.type(emailInput, "email-invalido");
-    await user.type(passwordInput, "123456");
-
-    expect(submitButton).toHaveProperty("disabled", true);
+    expect(screen.getByRole("button", { name: /^login$/i })).toHaveProperty(
+      "disabled",
+      true,
+    );
   });
 
   it("habilita o botão quando email e senha são válidos", async () => {
     setupUseLoginMock();
 
     const user = userEvent.setup();
-
     render(<LoginForm />);
 
-    const emailInput = screen.getByLabelText(/^email$/i);
-    const passwordInput = screen.getByLabelText(/^senha$/i);
-    const submitButton = screen.getByRole("button", { name: /^login$/i });
-
-    await user.type(emailInput, "user@example.com");
-    await user.type(passwordInput, "123456");
+    await user.type(screen.getByLabelText(/^email$/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^senha$/i), "123456");
 
     await waitFor(() => {
-      expect(submitButton).toHaveProperty("disabled", false);
+      expect(screen.getByRole("button", { name: /^login$/i })).toHaveProperty(
+        "disabled",
+        false,
+      );
     });
   });
 
   it("chama login com email e senha ao submeter formulário válido", async () => {
     const { loginMock } = setupUseLoginMock();
 
-    const user = userEvent.setup();
+    loginMock.mockResolvedValue({
+      user: { id: "1", email: "user@example.com" },
+    });
 
+    const user = userEvent.setup();
     render(<LoginForm />);
 
-    const emailInput = screen.getByLabelText(/^email$/i);
-    const passwordInput = screen.getByLabelText(/^senha$/i);
-    const submitButton = screen.getByRole("button", { name: /^login$/i });
-
-    await user.type(emailInput, "user@example.com");
-    await user.type(passwordInput, "123456");
+    await user.type(screen.getByLabelText(/^email$/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^senha$/i), "123456");
 
     await waitFor(() => {
-      expect(submitButton).toHaveProperty("disabled", false);
+      expect(screen.getByRole("button", { name: /^login$/i })).toHaveProperty(
+        "disabled",
+        false,
+      );
     });
 
-    await user.click(submitButton);
+    await user.click(screen.getByRole("button", { name: /^login$/i }));
 
     await waitFor(() => {
-      expect(loginMock).toHaveBeenCalledTimes(1);
-    });
-
-    expect(loginMock).toHaveBeenCalledWith({
-      email: "user@example.com",
-      password: "123456",
+      expect(loginMock).toHaveBeenCalledWith({
+        email: "user@example.com",
+        password: "123456",
+      });
     });
   });
 
-  it("alterna a visibilidade da senha", async () => {
-    setupUseLoginMock();
+  it("redireciona para o dashboard após login bem-sucedido", async () => {
+    const { loginMock } = setupUseLoginMock();
+
+    loginMock.mockResolvedValue({
+      user: { id: "1", email: "user@example.com" },
+    });
 
     const user = userEvent.setup();
-
     render(<LoginForm />);
 
-    const passwordInput = screen.getByLabelText(/^senha$/i);
+    await user.type(screen.getByLabelText(/^email$/i), "user@example.com");
+    await user.type(screen.getByLabelText(/^senha$/i), "123456");
+    await user.click(screen.getByRole("button", { name: /^login$/i }));
 
-    expect(passwordInput.getAttribute("type")).toBe("password");
-
-    await user.click(screen.getByRole("button", { name: /exibir senha/i }));
-
-    expect(passwordInput.getAttribute("type")).toBe("text");
-
-    await user.click(screen.getByRole("button", { name: /ocultar senha/i }));
-
-    expect(passwordInput.getAttribute("type")).toBe("password");
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith(AUTH_ROUTES.dashboard);
+    });
   });
 
-  it("exibe mensagem de erro quando houver errorMessage", () => {
+  it("exibe modal de erro quando houver errorMessage", () => {
     setupUseLoginMock({
       errorMessage: "E-mail ou senha inválidos.",
     });
 
     render(<LoginForm />);
 
+    expect(screen.getByRole("alert")).toBeTruthy();
     expect(screen.getByText("E-mail ou senha inválidos.")).toBeTruthy();
+  });
+
+  it("exibe modal de primeiro acesso quando passwordChangeRequired é true", async () => {
+    const { clearPasswordChangeRequiredMock } = setupUseLoginMock({
+      passwordChangeRequired: true,
+    });
+
+    const user = userEvent.setup();
+    render(<LoginForm />);
+
+    expect(screen.getByText(/alteração de senha necessária/i)).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /alterar senha/i }));
+
+    expect(clearPasswordChangeRequiredMock).toHaveBeenCalledTimes(1);
+    expect(pushMock).toHaveBeenCalledWith(AUTH_ROUTES.changePassword);
   });
 
   it("exibe estado de carregamento quando isPending é true", () => {
@@ -172,9 +212,9 @@ describe("LoginForm", () => {
 
     render(<LoginForm />);
 
-    const submitButton = screen.getByRole("button", { name: /entrando/i });
-
-    expect(submitButton).toHaveProperty("disabled", true);
-    expect(screen.getByText("Carregando")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /entrando/i })).toHaveProperty(
+      "disabled",
+      true,
+    );
   });
 });

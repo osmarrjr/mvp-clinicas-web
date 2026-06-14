@@ -1,18 +1,21 @@
 export type ClinicPlan = "basic" | "medium" | "pro";
 
-export interface RegisterClinicDto {
-  clinicName: string;
+export interface RegisterAdminDto {
+  companyName: string;
   taxId: string;
   taxIdType: "cpf" | "cnpj";
   uf: string;
   city: string;
   email: string;
+  phone: string;
   password: string;
+  confirmPassword: string;
   plan: ClinicPlan;
 }
 
-export interface RegisterClinicSuccessData {
-  clinicId: string;
+export interface RegisterAdminSuccessData {
+  status: number;
+  message: string;
 }
 
 type ApiErrorShape = {
@@ -21,7 +24,7 @@ type ApiErrorShape = {
 };
 
 export type RegisterClinicResponse =
-  | { ok: true; data: RegisterClinicSuccessData }
+  | { ok: true; data: RegisterAdminSuccessData }
   | { ok: false; error: ApiErrorShape };
 
 export interface ValidateRegisterTokenDto {
@@ -30,9 +33,36 @@ export interface ValidateRegisterTokenDto {
 }
 
 export interface ValidateRegisterTokenSuccessData {
-  message: string;
+  verified: boolean;
 }
 
 export type ValidateRegisterTokenResponse =
   | { ok: true; data: ValidateRegisterTokenSuccessData }
+  | { ok: false; error: ApiErrorShape };
+
+export interface LoginUser {
+  id: string;
+  email: string;
+}
+
+export interface LoginResult {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+  user: LoginUser;
+  passwordChangeRequired?: boolean;
+}
+
+export interface LoginClientData {
+  user: LoginUser;
+  passwordChangeRequired?: boolean;
+}
+
+export interface ChangePasswordSuccessData {
+  changed: boolean;
+}
+
+export type ChangePasswordResponse =
+  | { ok: true; data: ChangePasswordSuccessData }
   | { ok: false; error: ApiErrorShape };

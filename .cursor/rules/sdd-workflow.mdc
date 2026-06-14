@@ -91,6 +91,7 @@ Tipos derivados de `src/lib/api/types.ts`; erros mapeados via `src/lib/api/error
 Imports híbridos: relativo para arquivos próximos, `@/` para áreas distantes.
 UI prioriza componentes existentes e shadcn/ui (`GlobalModal`, `Loading`, `DataTable` para modais, overlay e listagens).
 Auth segue referência em `.cursor/skills/react/auth.md` (`LoginForm`, Route Handler, cookies HTTP-only).
+Feedback de endpoints: modal de erro sempre; modal de sucesso apenas em criação/edição — ver `.cursor/rules/api-feedback-modals.mdc`.
 
 ---
 

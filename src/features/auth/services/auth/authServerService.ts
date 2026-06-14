@@ -1,31 +1,53 @@
 import "server-only";
 
 import type { LoginFormValues } from "../../schemas/loginSchema";
-
-type LoginSuccessData = {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    clinicId: string;
-    name: string;
-    email: string;
-    role: string;
-    phone: string | null;
-    sex: string | null;
-    createdAt: string;
-    updatedAt: string;
-  };
-};
+import type { LoginResult } from "../../types";
 
 type ApiErrorShape = {
   code: string;
   message: string;
+  verificationCodeResent?: boolean;
+};
+
+type LoginApiBody = {
+  ok?: boolean;
+  data?: LoginResult;
+  error?: ApiErrorShape;
 };
 
 export type LoginServerResponse =
-  | { ok: true; data: LoginSuccessData }
+  | { ok: true; data: LoginResult }
   | { ok: false; error: ApiErrorShape };
+
+function isLoginResult(value: unknown): value is LoginResult {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as LoginResult;
+
+  return (
+    typeof candidate.accessToken === "string" &&
+    typeof candidate.refreshToken === "string" &&
+    typeof candidate.expiresIn === "number" &&
+    typeof candidate.tokenType === "string" &&
+    Boolean(candidate.user?.id && candidate.user?.email)
+  );
+}
+
+function mapPasswordChangeRequiredLogin(body: LoginApiBody): LoginServerResponse | null {
+  if (body.error?.code !== "PASSWORD_CHANGE_REQUIRED" || !isLoginResult(body.data)) {
+    return null;
+  }
+
+  return {
+    ok: true,
+    data: {
+      ...body.data,
+      passwordChangeRequired: true,
+    },
+  };
+}
 
 export async function loginServerService(
   payload: LoginFormValues,
@@ -37,7 +59,7 @@ export async function loginServerService(
       ok: false,
       error: {
         code: "ENV_ERROR",
-        message: "API_URL não configurada.",
+        message: "",
       },
     };
   }
@@ -52,25 +74,45 @@ export async function loginServerService(
       cache: "no-store",
     });
 
-    const body = await response.json().catch(() => null);
+    const body = (await response.json().catch(() => null)) as LoginApiBody | null;
 
-    if (!response.ok) {
+    if (!body) {
       return {
         ok: false,
         error: {
-          code: body?.error?.code ?? "LOGIN_ERROR",
-          message: body?.error?.message ?? "Não foi possível realizar o login.",
+          code: "LOGIN_ERROR",
+          message: "",
         },
       };
     }
 
-    return body as LoginServerResponse;
+    const passwordChangeLogin = mapPasswordChangeRequiredLogin(body);
+
+    if (passwordChangeLogin) {
+      return passwordChangeLogin;
+    }
+
+    if (!response.ok || !body.ok || !isLoginResult(body.data)) {
+      return {
+        ok: false,
+        error: {
+          code: body.error?.code ?? "LOGIN_ERROR",
+          message: body.error?.message ?? "",
+          verificationCodeResent: body.error?.verificationCodeResent,
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      data: body.data,
+    };
   } catch {
     return {
       ok: false,
       error: {
         code: "NETWORK_ERROR",
-        message: "Erro de conexão com o servidor.",
+        message: "",
       },
     };
   }

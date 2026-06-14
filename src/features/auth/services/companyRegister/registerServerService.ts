@@ -1,29 +1,12 @@
 import "server-only";
 
 import type { CompanyRegisterFormValues } from "../../schemas/companyRegisterSchema";
-import type { RegisterClinicDto, RegisterClinicResponse } from "../../types";
-import { buildRegisterApiPayload } from "../companyRegister/registerPayload";
-
-function toRegisterClinicDto(
-  values: CompanyRegisterFormValues,
-): RegisterClinicDto {
-  const { taxId, taxIdType } = buildRegisterApiPayload(values);
-
-  return {
-    clinicName: values.companyName,
-    taxId,
-    taxIdType,
-    uf: values.uf,
-    city: values.city,
-    email: values.email,
-    password: values.password,
-    plan: values.plan,
-  };
-}
+import type { RegisterClinicResponse } from "../../types";
+import { toRegisterAdminDto } from "./registerPayload";
 
 type ApiRegisterSuccess = {
   ok: true;
-  data: { clinicId?: string; userId?: string; accessToken?: string };
+  data: { status: number; message: string };
 };
 
 type ApiErrorShape = {
@@ -41,12 +24,12 @@ export async function registerServerService(
       ok: false,
       error: {
         code: "ENV_ERROR",
-        message: "API_URL não configurada.",
+        message: "",
       },
     };
   }
 
-  const payload = toRegisterClinicDto(values);
+  const payload = toRegisterAdminDto(values);
 
   try {
     const response = await fetch(`${apiUrl}/auth/register-admin`, {
@@ -69,35 +52,24 @@ export async function registerServerService(
         error: {
           code: body && !body.ok ? body.error.code : "REGISTER_ERROR",
           message:
-            body && !body.ok
-              ? body.error.message
-              : "Não foi possível concluir o cadastro.",
-        },
-      };
-    }
-
-    const clinicId = body.data.clinicId;
-
-    if (!clinicId) {
-      return {
-        ok: false,
-        error: {
-          code: "REGISTER_ERROR",
-          message: "Resposta de cadastro inválida.",
+            body && !body.ok ? (body.error.message ?? "") : "",
         },
       };
     }
 
     return {
       ok: true,
-      data: { clinicId },
+      data: {
+        status: body.data.status,
+        message: body.data.message,
+      },
     };
   } catch {
     return {
       ok: false,
       error: {
         code: "NETWORK_ERROR",
-        message: "Erro de conexão com o servidor.",
+        message: "",
       },
     };
   }
