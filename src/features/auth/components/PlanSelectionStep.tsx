@@ -19,11 +19,7 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
   return (
     <div className="w-full max-w-5xl">
       <div className="mb-8 text-center">
-        <img
-          src="/loading-logo.svg"
-          alt="Logo"
-          className="mx-auto w-[265px] h-auto"
-        />
+        <img src="/logo.png" alt="Logo" className="mx-auto w-[265px] h-auto" />
         <h1 className="mt-6 text-3xl font-bold tracking-tight text-white">
           Escolha seu plano
         </h1>
