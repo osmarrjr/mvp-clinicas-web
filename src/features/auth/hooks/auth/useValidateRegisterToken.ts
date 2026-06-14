@@ -5,11 +5,15 @@ import { useMutation } from "@tanstack/react-query";
 import { getErrorMessage } from "@/lib/api/error-messages";
 
 import { authMutationKeys } from "../../constants/queryKeys";
+import { resendRegisterTokenClientService } from "../../services/companyRegister/resendRegisterTokenClientService";
 import { validateRegisterTokenClientService } from "../../services/companyRegister/validateRegisterTokenClientService";
-import type { ValidateRegisterTokenDto } from "../../types";
+import type {
+  ResendRegisterTokenDto,
+  ValidateRegisterTokenDto,
+} from "../../types";
 
 export function useValidateRegisterToken() {
-  const mutation = useMutation({
+  const validateMutation = useMutation({
     mutationKey: authMutationKeys.validateRegisterToken,
     mutationFn: async (payload: ValidateRegisterTokenDto) => {
       let response;
@@ -28,28 +32,67 @@ export function useValidateRegisterToken() {
     },
   });
 
+  const resendMutation = useMutation({
+    mutationKey: authMutationKeys.resendRegisterToken,
+    mutationFn: async (payload: ResendRegisterTokenDto) => {
+      let response;
+
+      try {
+        response = await resendRegisterTokenClientService(payload);
+      } catch {
+        throw new Error(getErrorMessage());
+      }
+
+      if (!response.ok) {
+        throw new Error(getErrorMessage(response.error.message));
+      }
+
+      return response.data;
+    },
+  });
+
   async function validateToken(payload: ValidateRegisterTokenDto) {
     try {
-      return await mutation.mutateAsync(payload);
+      return await validateMutation.mutateAsync(payload);
+    } catch {
+      return null;
+    }
+  }
+
+  async function resendToken(payload: ResendRegisterTokenDto) {
+    try {
+      return await resendMutation.mutateAsync(payload);
     } catch {
       return null;
     }
   }
 
   function clearError() {
-    mutation.reset();
+    validateMutation.reset();
   }
 
   function resetSuccess() {
-    mutation.reset();
+    validateMutation.reset();
+  }
+
+  function clearResendStatus() {
+    resendMutation.reset();
   }
 
   return {
     validateToken,
-    isPending: mutation.isPending,
-    isSuccess: mutation.isSuccess,
-    errorMessage: mutation.error?.message ?? null,
+    resendToken,
+
+    isPending: validateMutation.isPending,
+    isSuccess: validateMutation.isSuccess,
+    errorMessage: validateMutation.error?.message ?? null,
+
+    isResendPending: resendMutation.isPending,
+    isResendSuccess: resendMutation.isSuccess,
+    resendErrorMessage: resendMutation.error?.message ?? null,
+
     clearError,
     resetSuccess,
+    clearResendStatus,
   };
 }

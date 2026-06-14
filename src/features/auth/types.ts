@@ -40,6 +40,18 @@ export type ValidateRegisterTokenResponse =
   | { ok: true; data: ValidateRegisterTokenSuccessData }
   | { ok: false; error: ApiErrorShape };
 
+export interface ResendRegisterTokenDto {
+  email: string;
+}
+
+export interface ResendRegisterTokenSuccessData {
+  sent: boolean;
+}
+
+export type ResendRegisterTokenResponse =
+  | { ok: true; data: ResendRegisterTokenSuccessData }
+  | { ok: false; error: ApiErrorShape };
+
 export interface LoginUser {
   id: string;
   email: string;

@@ -3,4 +3,5 @@ export const AUTH_ROUTES = {
   companyRegister: "/register",
   changePassword: "/change-password",
   dashboard: "/dashboard",
+  profile: "/profile",
 } as const;

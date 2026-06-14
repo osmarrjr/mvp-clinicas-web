@@ -41,3 +41,27 @@ export async function loginClientService(
 
   return body;
 }
+
+type LogoutClientResponse =
+  | { ok: true; data: { loggedOut: boolean } }
+  | LoginClientError;
+
+export async function logoutClientService(): Promise<LogoutClientResponse> {
+  const response = await fetch("/api/auth/logout", {
+    method: "POST",
+  });
+
+  const body = (await response.json()) as LogoutClientResponse;
+
+  if (!response.ok || !body.ok) {
+    return {
+      ok: false,
+      error: {
+        code: body.ok ? "INTERNAL_ERROR" : body.error.code,
+        message: body.ok ? "" : (body.error.message ?? ""),
+      },
+    };
+  }
+
+  return body;
+}
