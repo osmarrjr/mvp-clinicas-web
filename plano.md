@@ -1,191 +1,155 @@
-# Plano: Tela de cadastro de convênios
+# Plano: Convênios autenticados + ErrorState (404/403)
 
 ## Contexto
 
-O menu lateral já expõe **Convênios → Cadastrar** (`/convenios/cadastrar`), mas a rota ainda não possui `page.tsx` nem feature associada. É necessário entregar o formulário de cadastro com validação Zod, feedback via `GlobalModal`/`Loading` e fluxo autenticado (Client Service → Route Handler → API). O Swagger v0.1.0 **não possui endpoint de convênios**; a implementação deve preparar a camada de integração com contrato provisório alinhado ao formulário, documentando-o em `docs/api-contracts.md` até a API NestJS disponibilizar o recurso.
+A página de cadastro de convênios já está em `(app)`, mas o Route Handler interno permanece fora do padrão autenticado (`/clinic-convenio-register`), quebrando a convenção Client Service → `/api/*` → API NestJS. Paralelamente, o projeto não possui tratamento visual padronizado para rotas inexistentes (404) nem para acesso sem permissão (403), embora a arquitetura e o design system prevejam `not-found.tsx` e um componente de estado de erro em `src/components/shared/`.
 
 ## Validação arquitetural
 
-- Feature: nova (`src/features/convenios/`)
-- Reutiliza componente existente: sim (`PageContainer`, `GlobalModal`, `Loading`, `Button`, `Input`, `Label`, `Card`, `Select`)
-- Reutiliza GlobalModal / Loading / DataTable: sim (`GlobalModal`, `Loading`; `DataTable` não aplicável)
-- Reutiliza hook existente: não
-- Reutiliza service existente: não
-- Reutiliza schema existente: não
-- Reutiliza tipos existentes: não (criar tipos da feature; envelope `ok/error` segue padrão global)
-- Usa shadcn/ui ou componente existente: sim
-- Exige novo componente shadcn/ui: não (`select`, `input`, `label`, `button`, `card` já existem; `form` do shadcn não existe no projeto — seguir padrão `LoginForm` com `Label` + `Input` + mensagens de erro)
-- Há impacto em autenticação: sim (rota protegida; Route Handler lê cookie `accessToken`)
-- Há impacto em permissões/RBAC: não (sem regra explícita no escopo; endpoint futuro provavelmente exigirá sessão de clínica)
-- Há impacto em contrato de API: sim (contrato provisório a documentar; endpoint ainda ausente no Swagger)
-- Há impacto em Route Handler: sim (`POST /api/convenios`)
-- Exige teste unitário/componente: não (solicitação explícita do usuário para ignorar testes)
+- Feature: existente (`convenios`) + infraestrutura compartilhada nova (`ErrorState`, helpers de permissão)
+- Reutiliza componente existente: sim (`PageContainer`, `Button`, `AppShell`)
+- Reutiliza GlobalModal / Loading / DataTable: não aplicável (telas de erro estáticas)
+- Reutiliza hook existente: sim (`useCreateConvenio` — apenas atualização indireta via client service)
+- Reutiliza service existente: sim (`createConvenioServerService` — endpoint NestJS permanece `/clinic-convenio-register`)
+- Reutiliza schema existente: sim (`createConvenioSchema`)
+- Reutiliza tipos existentes: sim (`CreateConvenioResponse`, `AppRole`, `SessionUser`)
+- Usa shadcn/ui ou componente existente: sim (`Button` de `src/components/ui/button.tsx`)
+- Exige novo componente shadcn/ui: não
+- Há impacto em autenticação: sim (Route Handler sob `/api/convenios`; helper `requireAppRole`; `authInterrupts`)
+- Há impacto em permissões/RBAC: sim (403 por role nas páginas de convênios; helper reutilizável)
+- Há impacto em contrato de API: não (NestJS continua `POST /clinic-convenio-register`)
+- Há impacto em Route Handler: sim (mover e remover handler legado)
+- Exige teste unitário/componente: sim (`ErrorState`, `requireAppRole`, route handler `/api/convenios`)
 
 ## Páginas/componentes afetados
 
-- `src/config/navigation.ts`
-- `src/app/(app)/convenios/cadastrar/page.tsx`
-- `src/app/api/convenios/route.ts`
-- `src/features/convenios/constants/categories.ts`
-- `src/features/convenios/constants/queryKeys.ts`
-- `src/features/convenios/schemas/createConvenioSchema.ts`
-- `src/features/convenios/types.ts`
-- `src/features/convenios/services/createConvenioPayload.ts`
+- `src/app/api/convenios/route.ts` (novo)
+- `src/app/clinic-convenio-register/route.ts` (remover)
 - `src/features/convenios/services/createConvenioClientService.ts`
-- `src/features/convenios/services/createConvenioServerService.ts`
-- `src/features/convenios/hooks/useCreateConvenio.ts`
-- `src/features/convenios/components/ConvenioRegisterForm.tsx`
-- `src/features/convenios/components/ConvenioRegisterFormOverlays.tsx`
-- `docs/api-contracts.md` (seção provisória de convênios)
+- `src/app/(app)/convenios/cadastrar/page.tsx`
+- `src/components/shared/ErrorState.tsx` (novo)
+- `src/lib/auth/requireAppRole.ts` (novo)
+- `src/config/permissions.ts` (novo)
+- `src/app/not-found.tsx` (novo)
+- `src/app/forbidden.tsx` (novo)
+- `src/app/(app)/not-found.tsx` (novo)
+- `src/app/(app)/forbidden.tsx` (novo)
+- `next.config.ts`
 
 ## Contrato de API utilizado
 
-**Provisório** (endpoint ainda não publicado no Swagger v0.1.0; alinhar com backend quando disponível):
-
-- `POST /convenios` — cadastrar convênio da clínica autenticada
-- Request body (camelCase):
-
-```typescript
-{
-  name: string;              // 5–60 chars, sem @ # !
-  acronym: string;           // 5–30 chars, sem @ # !
-  category: "particular" | "convenio";
-  ansRegistration?: string;  // 6 dígitos numéricos, opcional
-  cardNumberMask?: string;   // até 30 chars, apenas 0 - . /
-}
-```
-
-- Response 201 (envelope padrão):
-
-```typescript
-{
-  ok: true,
-  data: {
-    id: string;
-    clinic_id: string;
-    name: string;
-    acronym: string;
-    category: "particular" | "convenio";
-    ans_registration: string | null;
-    card_number_mask: string | null;
-    created_at: string;
-    updated_at: string;
-  }
-}
-```
-
-- Route Handler interno: `POST /api/convenios` (valida sessão + schema Zod, repassa ao Server Service)
+- `POST /clinic-convenio-register` (NestJS, via `createConvenioServerService` — sem alteração de contrato externo)
 
 ## Dependências/configurações necessárias
 
-- Nenhuma nova dependência npm
-- Variável de ambiente existente: `API_URL` (usada pelos Server Services autenticados)
-- Componentes shadcn/ui já presentes: `button`, `input`, `label`, `card`, `select`
+- Habilitar `experimental.authInterrupts: true` em `next.config.ts` (obrigatório para `forbidden()` no Next.js 16 — ver `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/authInterrupts.md`)
+- Nenhuma dependência npm nova
 
 ## Estratégia de testes
 
-- Unitário/componente: Não aplicável por solicitação do usuário
-- Cenários principais: Não aplicável por solicitação do usuário
+- Unitário/componente:
+  - `src/components/shared/ErrorState.spec.tsx`
+  - `src/lib/auth/requireAppRole.spec.ts`
+  - `src/app/api/convenios/route.spec.ts`
+- Cenários principais:
+  - `ErrorState` renderiza título, descrição, código HTTP e ação primária para variantes `not-found` e `forbidden`
+  - `requireAppRole` chama `forbidden()` quando role ausente ou não permitida; retorna sessão quando role permitida
+  - `POST /api/convenios` retorna 401 sem cookie, 400 em JSON/schema inválido, 201 em sucesso
+  - `createConvenioClientService` passa a chamar `/api/convenios` (ajustar mock se existir teste futuro)
 
 ## Passos de implementação
 
-### 1. Proteger rotas `/convenios/*`
+### 1. Spec do componente ErrorState
 
-- Arquivo: `src/config/navigation.ts`
-- O que fazer: incluir `"/convenios"` em `PROTECTED_ROUTE_PREFIXES` para que usuários não autenticados sejam redirecionados ao login com `callbackUrl`.
-- Spec primeiro: Não aplicável
+- Arquivo: `src/components/shared/ErrorState.spec.tsx`
+- O que fazer: definir contrato do componente compartilhado de erro de página (nome alinhado ao design system e `docs/architecture.md`, não `PageError`). Props esperadas: `statusCode: 404 | 403`, `title`, `description`, `actionLabel`, `actionHref`; opcional `secondaryAction`. Usar `Button` e ícone Lucide (`FileQuestion` / `ShieldX`). Textos em pt-BR.
+- Spec primeiro: este arquivo
 - Depende de: Nenhum
 
-### 2. Documentar contrato provisório de convênios
+### 2. Implementar ErrorState
 
-- Arquivo: `docs/api-contracts.md`
-- O que fazer: adicionar seção **Convênios** com `POST /convenios`, payload/request, response `data` em snake_case, códigos de erro esperados (`VALIDATION_ERROR`, `CLINIC_NOT_FOUND`, `CONVENIO_CREATE_FAILED`, `AUTH_MISSING`, `AUTH_INVALID`) e nota de que o endpoint ainda não consta no Swagger v0.1.0.
-- Spec primeiro: Não aplicável
+- Arquivo: `src/components/shared/ErrorState.tsx`
+- O que fazer: componente Server ou Client conforme necessidade (preferir Server Component se não houver hooks). Layout centralizado, acessível (`role="alert"`, heading semântico, foco em botão de ação). Exportar também presets/helpers leves, ex.: `notFoundErrorStateProps` e `forbiddenErrorStateProps`, para reutilizar em `not-found.tsx` e `forbidden.tsx`.
+- Spec primeiro: `src/components/shared/ErrorState.spec.tsx`
+- Depende de: passo 1
+
+### 3. Spec e helper de permissão por role
+
+- Arquivo: `src/lib/auth/requireAppRole.spec.ts`
+- O que fazer: testar helper que compõe `requireServerSession()` + verificação de `AppRole`. Se role não estiver em `allowedRoles`, chamar `forbidden()` de `next/navigation` (mock como em `session.spec.ts`). Se permitido, retornar `ServerSession`.
+- Spec primeiro: `src/lib/auth/requireAppRole.spec.ts`
 - Depende de: Nenhum
 
-### 3. Criar schema Zod e tipos da feature
+### 4. Config de permissões e helper requireAppRole
 
-- Arquivo: `src/features/convenios/schemas/createConvenioSchema.ts`
-- O que fazer: definir `createConvenioSchema` e `CreateConvenioFormValues` com regras:
-  - `name`: obrigatório, trim, min 5, max 60, regex rejeitando `@`, `#`, `!`
-  - `acronym`: obrigatório, trim, min 5, max 30, regex rejeitando `@`, `#`, `!`
-  - `category`: `z.enum(["particular", "convenio"])` com mensagem amigável; labels de UI mapeadas em constante
-  - `ansRegistration`: string opcional; se preenchida após trim, exatamente 6 dígitos (`/^\d{6}$/`)
-  - `cardNumberMask`: string opcional; se preenchida, max 30 e regex `/^[0\-./]*$/`
-  - Campos opcionais vazios normalizados para `undefined` no payload (helper em `createConvenioPayload.ts`)
-- Arquivo: `src/features/convenios/constants/categories.ts` — opções `{ value: "particular", label: "Particular" }` e `{ value: "convenio", label: "Convênio" }`
-- Arquivo: `src/features/convenios/types.ts` — tipos de request/response e envelope `{ ok, data?, error? }`
-- Spec primeiro: Não aplicável
-- Depende de: Passo 2
+- Arquivo: `src/config/permissions.ts`, `src/lib/auth/requireAppRole.ts`
+- O que fazer: mapear rotas/recursos a roles permitidas. Para convênios, definir constante `CONVENIOS_ALLOWED_ROLES` (padrão inicial: `AppRole.ClinicAdmin` e `AppRole.Receptionist` — registrar no plano/risco que product deve confirmar). Exportar `requireAppRole(allowedRoles: AppRole[])` reutilizável por páginas server-side.
+- Spec primeiro: `src/lib/auth/requireAppRole.spec.ts`
+- Depende de: passo 3
 
-### 4. Implementar services e payload builder
+### 5. Habilitar authInterrupts e criar páginas 404/403
 
-- Arquivo: `src/features/convenios/services/createConvenioPayload.ts`
-- O que fazer: mapear `CreateConvenioFormValues` → body camelCase da API; omitir campos opcionais vazios.
-- Arquivo: `src/features/convenios/services/createConvenioClientService.ts`
-- O que fazer: `fetch("/api/convenios", { method: "POST", ... })`, parse do envelope, retorno tipado (padrão `registerClientService`).
-- Arquivo: `src/features/convenios/services/createConvenioServerService.ts`
-- O que fazer: `server-only`; ler `API_URL`; `POST ${apiUrl}/convenios` com `Authorization: Bearer ${accessToken}`; tratar erres de rede/envelope como demais Server Services autenticados.
-- Arquivo: `src/features/convenios/constants/queryKeys.ts` — chave de mutation (ex.: `conveniosMutationKeys.create`)
-- Spec primeiro: Não aplicável
-- Depende de: Passo 3
-
-### 5. Criar Route Handler autenticado
-
-- Arquivo: `src/app/api/convenios/route.ts`
-- O que fazer: espelhar padrão de `src/app/api/auth/change-password/route.ts`:
-  - ler cookie `accessToken`; 401 se ausente;
-  - parse JSON + `createConvenioSchema.safeParse`;
-  - chamar `createConvenioServerService`;
-  - responder 201 com `{ ok: true, data }` ou erro com `getErrorMessage`.
-- Spec primeiro: Não aplicável
-- Depende de: Passo 4
-
-### 6. Criar hook de mutation
-
-- Arquivo: `src/features/convenios/hooks/useCreateConvenio.ts`
-- O que fazer: `useMutation` (TanStack Query) chamando `createConvenioClientService`; expor `create`, `isPending`, `isSuccess`, `errorMessage`, `clearError`, `resetSuccess`; mapear falhas com `getErrorMessage` (padrão `useCompanyRegister`).
-- Spec primeiro: Não aplicável
-- Depende de: Passo 4
-
-### 7. Implementar formulário e overlays
-
-- Arquivo: `src/features/convenios/components/ConvenioRegisterFormOverlays.tsx`
-- O que fazer: `Loading` durante `isPending`; `GlobalModal type="error"` para falhas; `GlobalModal type="success"` após cadastro (POST) com título/subtítulo de confirmação; callbacks de dismiss/confirm.
-- Arquivo: `src/features/convenios/components/ConvenioRegisterForm.tsx`
+- Arquivo: `next.config.ts`, `src/app/not-found.tsx`, `src/app/forbidden.tsx`, `src/app/(app)/not-found.tsx`, `src/app/(app)/forbidden.tsx`
 - O que fazer:
-  - `'use client'`; React Hook Form + `zodResolver(createConvenioSchema)` + `mode: "onChange"` + `defaultValues` para todos os campos;
-  - layout com `Card`/`PageContainer` interno, título "Cadastrar convênio", labels acessíveis;
-  - campos texto com `Input` + `Label` + mensagem de erro com `role="alert"`;
-  - `category` com `Select` (shadcn) via `Controller` do RHF — placeholder "Categoria", sem filtro interno, duas opções da constante;
-  - `isSubmitDisabled = !form.formState.isValid || isPending`;
-  - submit chama `useCreateConvenio`; em sucesso abre modal; ao confirmar sucesso, `form.reset()` e `resetSuccess()`;
-  - placeholders conforme especificação da tarefa.
-- Spec primeiro: Não aplicável
-- Depende de: Passo 6
+  - Adicionar `experimental: { authInterrupts: true }` em `next.config.ts`.
+  - Root `not-found.tsx` e `forbidden.tsx`: renderizar `ErrorState` com copy pt-BR; ação primária para `/login` ou `/` conforme contexto público.
+  - `(app)/not-found.tsx` e `(app)/forbidden.tsx`: renderizar `ErrorState` dentro do fluxo autenticado (herda `AppShell` via layout `(app)`); ação primária para `/dashboard`.
+  - Consultar docs Next 16: `notFound()` → `not-found.tsx`; `forbidden()` → `forbidden.tsx` (HTTP 403).
+- Spec primeiro: coberto indiretamente por `ErrorState.spec.tsx`
+- Depende de: passos 2 e 4
 
-### 8. Criar página fina da rota
+### 6. Proteger página de cadastro de convênios por role
 
 - Arquivo: `src/app/(app)/convenios/cadastrar/page.tsx`
-- O que fazer: Server Component fino (como `dashboard/page.tsx`); renderizar `PageContainer` + `ConvenioRegisterForm`; layout `(app)` já garante sessão via `getServerSession()`.
+- O que fazer: tornar Server Component async; chamar `requireAppRole(CONVENIOS_ALLOWED_ROLES)` antes de renderizar `PageContainer` + `ConvenioRegisterForm`. Usuário autenticado sem role adequada deve ver 403 via `forbidden()`, não redirect para login.
+- Spec primeiro: Não aplicável (coberto por `requireAppRole.spec.ts`)
+- Depende de: passo 4
+
+### 7. Spec do Route Handler /api/convenios
+
+- Arquivo: `src/app/api/convenios/route.spec.ts`
+- O que fazer: espelhar padrão de `src/app/api/auth/login/route.spec.ts` e `change-password/route.ts`: mock de cookies, `createConvenioServerService`, cenários 401/400/201.
+- Spec primeiro: este arquivo
+- Depende de: Nenhum
+
+### 8. Mover Route Handler de convênios para /api/convenios
+
+- Arquivo: `src/app/api/convenios/route.ts`
+- O que fazer: migrar lógica de `src/app/clinic-convenio-register/route.ts` (validação cookie, `createConvenioSchema`, `createConvenioServerService`, envelope `{ ok, data | error }`). Manter status codes atuais. Opcional defensivo: retornar 403 JSON se role não permitida (alinhado a `CONVENIOS_ALLOWED_ROLES`) — apenas se não aumentar escopo além do necessário.
+- Spec primeiro: `src/app/api/convenios/route.spec.ts`
+- Depende de: passo 7
+
+### 9. Atualizar client service e remover rota legada
+
+- Arquivo: `src/features/convenios/services/createConvenioClientService.ts`
+- O que fazer: alterar `fetch("/clinic-convenio-register")` para `fetch("/api/convenios")`. Manter envelope e tratamento de erro.
+- Arquivo: `src/app/clinic-convenio-register/route.ts`
+- O que fazer: remover arquivo/pasta após migração. Garantir que nenhuma referência permaneça no repo (grep).
 - Spec primeiro: Não aplicável
-- Depende de: Passo 7
+- Depende de: passo 8
+
+### 10. Verificação final de escopo
+
+- Arquivo: Nenhum (grep + build)
+- O que fazer: confirmar que staff (`clinic-user-register`, `clinic-user-types`) não foi alterado; `/convenios/listar` continua inexistente e cai em 404 global/(app) conforme layout; `PROTECTED_ROUTE_PREFIXES` já inclui `/convenios` — sem mudança necessária; sidebar permanece apontando para rotas futuras.
+- Spec primeiro: Não aplicável
+- Depende de: passos 5–9
 
 ## Riscos / atenções
 
-- **Endpoint inexistente na API:** até o backend publicar `POST /convenios`, o cadastro retornará erro de rede/404 — UI deve exibir `GlobalModal` de erro; não simular sucesso falso.
-- **Contrato provisório:** nomes de campos e enum `category` podem mudar quando o Swagger for atualizado; revisar `createConvenioPayload.ts`, tipos e `docs/api-contracts.md` na integração real.
-- **Rota protegida:** sem incluir `/convenios` em `PROTECTED_ROUTE_PREFIXES`, usuários deslogados acessariam a tela dentro do `(app)` layout (que redireciona), mas middleware/guards de callback podem falhar — passo 1 é obrigatório.
-- **Select + RHF:** garantir valor controlado e validação de categoria obrigatória (evitar `undefined` permanente no default).
-- **Campos opcionais:** strings vazias não devem falhar validação nem ser enviadas como `""` na API.
-- **Acessibilidade:** associar `htmlFor`/`id`, `aria-invalid` nos inputs inválidos, mensagens com `role="alert"`.
-- **Escopo de testes:** usuário pediu ignorar specs; checklist de PR com testes fica pendente para entrega futura.
+- `forbidden()` exige `experimental.authInterrupts: true`; sem isso, build/runtime falha ao chamar o helper.
+- Matriz de roles para convênios não está documentada na API; confirmar com product se `doctor` deve ou não acessar cadastro antes de fixar `CONVENIOS_ALLOWED_ROLES`.
+- `(app)/not-found.tsx` só preserva shell autenticado quando o 404 ocorre dentro do segmento `(app)`; URLs globais inexistentes usam root `app/not-found.tsx` (sem sidebar) — comportamento esperado.
+- Sidebar referencia `/convenios/listar`, que ainda não existe: usuário verá 404 até feature de listagem — fora deste escopo.
+- Não mover handlers de staff nesta tarefa.
+- `createConvenioServerService` continua chamando NestJS em `/clinic-convenio-register`; alterar apenas o Route Handler interno Next.js.
+- Manter feedback de formulário via `GlobalModal`/`Loading` existentes em `ConvenioRegisterFormOverlays` — telas 404/403 não usam toast/Alert ad hoc.
 
 ## Checklist final
 
-- [x] Specs unitárias/componentes escritas e passando quando aplicável *(dispensado nesta entrega)*
+- [x] Specs unitárias/componentes escritas e passando quando aplicável
 - [x] Componente sem lógica de negócio: delega a hooks/services
-- [x] Tipos derivados dos contratos em `src/features/convenios/types.ts` (atualizar `src/lib/api/types.ts` somente se houver tipo global reutilizável)
+- [x] Tipos derivados dos contratos em `src/lib/api/types.ts`
 - [x] Estados de loading, erro e vazio tratados na UI
 - [x] Client Components não acessam token
 - [x] Route Handler usado para chamadas autenticadas do client
@@ -195,6 +159,6 @@ O menu lateral já expõe **Convênios → Cadastrar** (`/convenios/cadastrar`),
 - [x] Imports seguem regra híbrida: relativo perto, alias longo
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
-- [x] `npm run test` sem erros quando aplicável *(não bloqueante nesta entrega)*
-- [x] `npm run lint` sem erros
+- [x] `npm run test` sem erros quando aplicável (novos specs OK; 2 falhas pré-existentes em UserMenu.spec)
+- [ ] `npm run lint` sem erros (5 erros pré-existentes fora do escopo)
 - [x] `npm run build` sem erros
