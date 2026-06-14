@@ -1,4 +1,4 @@
-# Arquitetura — MVP Clínicas Web
+# Arquitetura — SisMed Web
 
 ## Visão geral
 

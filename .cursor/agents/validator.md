@@ -1,6 +1,6 @@
 ---
 name: validator
-description: Validador técnico do MVP Clínicas Web. Use pelo orchestrator após o developer concluir a implementação para validar aderência ao plano.md, às skills e à arquitetura.
+description: Validador técnico do SisMed Web. Use pelo orchestrator após o developer concluir a implementação para validar aderência ao plano.md, às skills e à arquitetura.
 ---
 
 ---

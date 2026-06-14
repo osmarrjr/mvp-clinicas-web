@@ -1,14 +1,14 @@
 ---
 name: design-system
-description: Padrões de design system com Tailwind CSS v4, shadcn/ui Radix e preset Nova - Lucide / Geist para o MVP Clínicas Web.
+description: Padrões de design system com Tailwind CSS v4, shadcn/ui Radix e preset Nova - Lucide / Geist para o SisMed Web.
 disable-model-invocation: true
 ---
 
-# Design System — MVP Clínicas Web
+# Design System — SisMed Web
 
 ## Objetivo
 
-Garantir consistência visual, acessibilidade e reaproveitamento de componentes no MVP Clínicas Web.
+Garantir consistência visual, acessibilidade e reaproveitamento de componentes no SisMed Web.
 
 Use esta skill sempre que criar ou alterar:
 
@@ -156,7 +156,7 @@ src/components/Loader/loaderView.tsx   → exporta Loading
 Import:
 
 ```tsx
-import { Loading } from '@/components/Loader/loaderView';
+import { Loading } from "@/components/Loader/loaderView";
 ```
 
 Props: `isOpen: boolean`, `message: string`.
@@ -174,24 +174,24 @@ src/components/GlobalModal/GlobalModal.tsx
 Import:
 
 ```tsx
-import { GlobalModal } from '@/components/GlobalModal';
+import { GlobalModal } from "@/components/GlobalModal";
 ```
 
 Tipos: `GlobalModalType = "warning" | "error" | "success" | "none"`.
 
 Props principais:
 
-| Prop | Descrição |
-|------|-----------|
-| `type` | Define ícone e cores (warning, error, success, none) |
-| `open` | Controla visibilidade |
-| `modalTitle` / `modalSubTitle` | Título e subtítulo |
-| `onConfirm` / `onCancel` | Callbacks dos botões |
-| `loading` | Spinner no botão confirmar |
-| `showCancel` / `showConfirm` | Exibir/ocultar botões |
+| Prop                           | Descrição                                            |
+| ------------------------------ | ---------------------------------------------------- |
+| `type`                         | Define ícone e cores (warning, error, success, none) |
+| `open`                         | Controla visibilidade                                |
+| `modalTitle` / `modalSubTitle` | Título e subtítulo                                   |
+| `onConfirm` / `onCancel`       | Callbacks dos botões                                 |
+| `loading`                      | Spinner no botão confirmar                           |
+| `showCancel` / `showConfirm`   | Exibir/ocultar botões                                |
 | `confirmLabel` / `cancelLabel` | Textos dos botões (padrão: "Continuar" / "Cancelar") |
-| `showContent` / `content` | Área de conteúdo extra |
-| `titleAlign` / `footerAlign` | Alinhamento do cabeçalho e rodapé |
+| `showContent` / `content`      | Área de conteúdo extra                               |
+| `titleAlign` / `footerAlign`   | Alinhamento do cabeçalho e rodapé                    |
 
 Regras:
 
@@ -216,26 +216,26 @@ src/components/Table/
 Import:
 
 ```tsx
-import DataTable from '@/components/Table';
+import DataTable from "@/components/Table";
 ```
 
 Dependência: `@tanstack/react-table`.
 
 Props principais:
 
-| Prop | Descrição |
-|------|-----------|
-| `data` / `columns` | Dados e definição de colunas (`ColumnDef[]`) |
-| `isLoading` | Exibe linha de loading com spinner |
-| `noResults` | Mensagem ou node quando vazio |
-| `pagination` / `setPagination` | Paginação manual (server-side) |
-| `sorting` / `setSorting` | Ordenação controlada |
-| `rowSelection` / `setRowSelection` | Seleção de linhas |
-| `rowCount` | Total de registros (paginação manual) |
-| `getRowId` | Função customizada de ID da linha |
-| `onRowSelectionChange` | Callback com linhas selecionadas |
-| `rowSize` | `"sm"` \| `"md"` \| `"lg"` — padding das células |
-| `centralizeInformation` | Centraliza conteúdo das células |
+| Prop                               | Descrição                                        |
+| ---------------------------------- | ------------------------------------------------ |
+| `data` / `columns`                 | Dados e definição de colunas (`ColumnDef[]`)     |
+| `isLoading`                        | Exibe linha de loading com spinner               |
+| `noResults`                        | Mensagem ou node quando vazio                    |
+| `pagination` / `setPagination`     | Paginação manual (server-side)                   |
+| `sorting` / `setSorting`           | Ordenação controlada                             |
+| `rowSelection` / `setRowSelection` | Seleção de linhas                                |
+| `rowCount`                         | Total de registros (paginação manual)            |
+| `getRowId`                         | Função customizada de ID da linha                |
+| `onRowSelectionChange`             | Callback com linhas selecionadas                 |
+| `rowSize`                          | `"sm"` \| `"md"` \| `"lg"` — padding das células |
+| `centralizeInformation`            | Centraliza conteúdo das células                  |
 
 `ColumnMeta` estendido:
 
@@ -253,16 +253,25 @@ Regras:
 Exemplo mínimo:
 
 ```tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
-import DataTable from '@/components/Table';
+import { useState } from "react";
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+} from "@tanstack/react-table";
+import DataTable from "@/components/Table";
 
-const columns: ColumnDef<Patient>[] = [/* ... */];
+const columns: ColumnDef<Patient>[] = [
+  /* ... */
+];
 
 export function PatientsTable({ data, total }: Props) {
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [sorting, setSorting] = useState<SortingState>([]);
 
   return (
@@ -341,8 +350,8 @@ Evitar pensar primeiro em desktop e adaptar mobile depois.
 Como componentes shadcn/ui ficam fora da feature, usar alias:
 
 ```ts
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 ```
 
 Dentro da mesma pasta ou feature, usar import relativo.

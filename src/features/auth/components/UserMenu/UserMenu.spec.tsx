@@ -8,15 +8,21 @@ import { UserMenu } from "./UserMenu";
 const USER: LoginUser = {
   id: "user-1",
   email: "user@example.com",
+  name: null,
+  phone: null,
 };
 
 const getStoredUserMock = vi.fn();
 
-vi.mock("@/lib/auth/user-storage", () => ({
-  getStoredUser: () => getStoredUserMock(),
-  getUserDisplayName: (user: LoginUser) =>
-    (user as LoginUser & { name?: string }).name?.trim() || user.email,
-}));
+vi.mock("@/lib/auth/user-storage", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/user-storage")>();
+
+  return {
+    ...actual,
+    getStoredUser: () => getStoredUserMock(),
+    getUserDisplayName: (user: LoginUser) => user.name?.trim() || user.email,
+  };
+});
 
 vi.mock("next/link", () => ({
   default: ({
@@ -43,12 +49,14 @@ describe("UserMenu", () => {
     getStoredUserMock.mockReturnValue(USER);
   });
 
-  it("não renderiza quando não há usuário armazenado", () => {
+  it("renderiza menu com ícone padrão quando não há usuário armazenado", () => {
     getStoredUserMock.mockReturnValue(null);
 
-    const { container } = render(<UserMenu />);
+    render(<UserMenu />);
 
-    expect(container.firstChild).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Abrir menu do usuário" }),
+    ).toBeTruthy();
   });
 
   it("exibe o e-mail do usuário e as opções do menu", async () => {

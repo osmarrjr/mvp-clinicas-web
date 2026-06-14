@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MVP Clínicas Web",
-  description: "MVP Clínicas Web",
+  title: "SisMed Web",
+  description: "SisMed Web",
 };
 
 export default function RootLayout({

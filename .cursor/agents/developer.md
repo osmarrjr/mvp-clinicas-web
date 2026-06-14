@@ -1,6 +1,6 @@
 ---
 name: developer
-description: Desenvolvedor principal do MVP Clínicas Web. Use pelo orchestrator após o planner gerar o plano.md. Executa exatamente o plano.md, sem desvios.
+description: Desenvolvedor principal do SisMed Web. Use pelo orchestrator após o planner gerar o plano.md. Executa exatamente o plano.md, sem desvios.
 ---
 
 ---
