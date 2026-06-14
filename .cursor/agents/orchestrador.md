@@ -233,9 +233,21 @@ fi
 "$GH_CMD" pr create \
   --base main \
   --head "$BRANCH_ATUAL" \
-  --title "$BRANCH_ATUAL" \
-  --body "Implementação concluída pelo fluxo orchestrator → planner → developer → validator → qa."
+  --title "feat: ${BRANCH_ATUAL}" \
+  --body "$(cat <<EOF
+## Summary
+
+Implementação concluída conforme plano.md.
+
+EOF
+)"
 ```
+
+Regras do corpo do PR:
+
+- Incluir apenas seções objetivas (ex.: Summary, Contexto, O que foi implementado).
+- **Não** incluir seção "Test plan".
+- **Não** incluir rodapé "Made with Cursor" nem menções promocionais a ferramentas.
 
 ### Shell no Windows, Git Bash ou Cursor
 

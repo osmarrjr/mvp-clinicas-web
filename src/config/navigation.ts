@@ -13,6 +13,7 @@ export const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
   "/appointments",
   "/staff",
+  "/convenios",
 ] as const;
 
 export const AUTH_PUBLIC_ROUTES = ["/login", "/register"] as const;

@@ -6,14 +6,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 import { NavChildLink } from "./NavChildLink";
 import { NavLinkContent } from "./NavLinkContent";
-import { FLYOUT_PANEL_CLASS, getMenuItemClass, HOVER_FLYOUT_WRAPPER_CLASS } from "./styles";
+import {
+  FLYOUT_PANEL_CLASS,
+  getMenuItemClass,
+  HOVER_FLYOUT_WRAPPER_CLASS,
+} from "./styles";
 import type { AppNavItem } from "./types";
 import { isNavItemActive } from "./utils";
 
@@ -24,7 +25,12 @@ type NavMenuItemProps = {
   compact: boolean;
 };
 
-function NavClickFlyout({ item, pathname, isActive, compact }: NavMenuItemProps) {
+function NavClickFlyout({
+  item,
+  pathname,
+  isActive,
+  compact,
+}: NavMenuItemProps) {
   return (
     <SidebarMenuItem>
       <DropdownMenu modal={false}>

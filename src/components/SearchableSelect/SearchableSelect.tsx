@@ -14,6 +14,7 @@ export type SearchableSelectOption = {
 };
 
 type SearchableSelectProps = {
+  id?: string;
   value?: string;
   onValueChange: (value: string) => void;
   options: SearchableSelectOption[];
@@ -27,6 +28,7 @@ type SearchableSelectProps = {
 };
 
 export function SearchableSelect({
+  id,
   value,
   onValueChange,
   options,
@@ -86,20 +88,21 @@ export function SearchableSelect({
       <Popover.Trigger asChild>
         <button
           ref={triggerRef}
+          id={id}
           type="button"
           disabled={disabled}
           aria-invalid={ariaInvalid}
           className={cn(
-            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border border-white/40 bg-white/95 px-4 text-base text-slate-900 shadow-sm transition outline-none focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300/50 aria-invalid:border-red-300 aria-invalid:ring-red-200",
+            "flex h-12 w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-input bg-white px-4 text-base text-foreground transition outline-none focus-visible:border-ring/50 aria-invalid:border-destructive",
             disabledFieldClassName,
-            !selectedLabel && "text-slate-400",
+            !selectedLabel && "text-muted-foreground",
             triggerClassName,
           )}
         >
           <span
             className={cn(
               "truncate text-left",
-              !selectedLabel && "text-sm text-slate-400",
+              !selectedLabel && "text-sm text-muted-foreground",
             )}
           >
             {selectedLabel ?? placeholder}
@@ -132,7 +135,7 @@ export function SearchableSelect({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={searchPlaceholder}
-                className="h-9 w-full rounded-xl border-slate-200 bg-white text-base text-slate-900 placeholder:text-sm placeholder:text-slate-400 focus-visible:ring-sky-300/40"
+                className="h-9 w-full"
                 aria-label={searchPlaceholder}
               />
             </div>
@@ -159,7 +162,7 @@ export function SearchableSelect({
                     <button
                       type="button"
                       className={cn(
-                        "flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left text-base hover:bg-slate-100",
+                        "flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-slate-100",
                         isSelected && "bg-slate-100 font-medium",
                       )}
                       onClick={() => handleSelect(option.value)}

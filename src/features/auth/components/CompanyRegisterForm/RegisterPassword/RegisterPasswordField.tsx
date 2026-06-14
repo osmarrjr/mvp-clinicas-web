@@ -60,7 +60,10 @@ export function RegisterPasswordField({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
-        <Label htmlFor="password" className="text-base font-medium text-blue-50">
+        <Label
+          htmlFor="password"
+          className="text-base font-medium text-blue-50"
+        >
           Senha
         </Label>
 
@@ -79,7 +82,7 @@ export function RegisterPasswordField({
             <TooltipContent
               side="top"
               align="center"
-              className="max-w-[260px] text-center"
+              className="max-w-[260px] text-center bg-white!"
             >
               {PASSWORD_REQUIREMENTS_TOOLTIP}
             </TooltipContent>
