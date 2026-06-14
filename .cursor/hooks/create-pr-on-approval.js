@@ -84,9 +84,6 @@ const prBody = [
   riscos ? `## Riscos / atenções\n${riscos}` : "",
   `## QA`,
   qaSummary,
-  `---`,
-  `> PR sugerido após aprovação do agente \`qa\` — aguardando confirmação manual do usuário.`,
-  `> Implementação conforme [\`plano.md\`](plano.md). Revisão humana necessária antes do merge.`,
 ]
   .filter(Boolean)
   .join("\n\n");
