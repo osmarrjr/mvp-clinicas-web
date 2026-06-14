@@ -9,7 +9,7 @@ const GRADIENT_BACKGROUND_ACTIVE_ITEM =
 const GRADIENT_TEXT = cn(GRADIENT_BACKGROUND, "bg-clip-text text-transparent");
 
 export const FLYOUT_PANEL_CLASS =
-  "w-60 rounded-2xl border bg-white p-2 shadow-lg";
+  "w-60 rounded-md border bg-white p-2 shadow-lg";
 
 export const HOVER_FLYOUT_WRAPPER_CLASS = cn(
   "invisible pointer-events-none absolute left-full top-0 z-50 w-63 pl-3 opacity-0 transition-all duration-150",
@@ -31,7 +31,7 @@ function getIconClass(isActive: boolean, compact = false) {
 
 export function getMenuItemClass(isActive: boolean, compact = false) {
   return cn(
-    "flex h-auto w-full items-center gap-2 rounded-2xl text-sm font-medium leading-5 transition-colors",
+    "flex h-auto w-full items-center gap-2 rounded-md text-sm font-medium leading-5 transition-colors",
     compact
       ? "flex-col items-center justify-center gap-1 px-0.5 py-1.5 group-data-[collapsible=icon]:!h-auto group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!max-w-full"
       : "px-2 py-3",

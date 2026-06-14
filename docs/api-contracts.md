@@ -657,6 +657,57 @@ interface ChangeStatusDto {
 
 ---
 
+## Convênios
+
+> **Provisório:** o endpoint abaixo **não consta** no Swagger v0.1.0. Contrato alinhado ao formulário de cadastro do frontend; revisar quando o backend publicar o recurso em [`/docs-json`](https://api.portalsismed.com.br/docs-json).
+
+### POST /convenios
+
+Cadastra um convênio (ou plano particular) vinculado à clínica autenticada.
+
+**Autenticação:** `Authorization: Bearer <accessToken>`
+
+**Request (camelCase):**
+```typescript
+interface CreateConvenioDto {
+  name: string;              // 5–60 chars, sem @ # !
+  acronym: string;           // 5–30 chars, sem @ # !
+  category: "particular" | "convenio";
+  ansRegistration?: string;  // 6 dígitos numéricos, opcional
+  cardNumberMask?: string;   // até 30 chars, apenas 0 - . /
+}
+```
+
+**Response (201):**
+```typescript
+{
+  ok: true,
+  data: {
+    id: string;
+    clinic_id: string;
+    name: string;
+    acronym: string;
+    category: "particular" | "convenio";
+    ans_registration: string | null;
+    card_number_mask: string | null;
+    created_at: string;
+    updated_at: string;
+  }
+}
+```
+
+**Erros esperados:**
+
+| Código | HTTP | Descrição |
+|--------|------|-----------|
+| `VALIDATION_ERROR` | 400 | Payload inválido |
+| `CLINIC_NOT_FOUND` | 400 | Clínica da sessão não encontrada |
+| `CONVENIO_CREATE_FAILED` | 400 | Falha ao persistir convênio |
+| `AUTH_MISSING` | 401 | Token ausente |
+| `AUTH_INVALID` | 401 | Token inválido ou expirado |
+
+---
+
 ## Códigos de erro semânticos
 
 A API retorna erros no formato `{ ok: false, error: { code, message } }`. A `message` já vem em português e é a fonte de verdade exibida ao usuário.
