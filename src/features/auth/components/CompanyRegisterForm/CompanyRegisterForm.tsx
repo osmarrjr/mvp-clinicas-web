@@ -176,7 +176,7 @@ export function CompanyRegisterForm() {
 
   return (
     <>
-      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/[0.14] shadow-2xl shadow-blue-950/40 ring-1 ring-white/10 backdrop-blur-2xl">
+      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/[0.14] shadow-2xl shadow-blue-950/40 ring-1 ring-white/10 ">
         <RegisterFormHeader />
 
         <CardContent className="px-7 pb-8">

@@ -73,14 +73,10 @@ export function LoginForm() {
 
   return (
     <>
-      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/10 shadow-2xl shadow-blue-950/40 backdrop-blur-2xl">
+      <Card className="relative z-10 w-full max-w-md rounded-[32px] border border-white/20 bg-white/[0.14]">
         <CardHeader className="space-y-4 text-center pt-9 pb-5">
           <div className="mx-auto">
-            <img
-              src="/loading-logo.svg"
-              alt="Loading"
-              className="w-[265px] h-auto"
-            />
+            <img src="logo.png" alt="Loading" className="w-[265px] h-auto" />
           </div>
 
           <div>

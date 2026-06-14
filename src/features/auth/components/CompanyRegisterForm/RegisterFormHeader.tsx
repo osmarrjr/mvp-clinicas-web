@@ -4,11 +4,7 @@ export function RegisterFormHeader() {
   return (
     <CardHeader className="space-y-4 text-center pt-9 pb-5">
       <div className="mx-auto">
-        <img
-          src="/loading-logo.svg"
-          alt="Logo"
-          className="w-[265px] h-auto"
-        />
+        <img src="/logo.png" alt="Logo" className="w-[265px] h-auto" />
       </div>
       <div>
         <CardTitle className="text-3xl font-bold tracking-tight text-white">

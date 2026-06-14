@@ -107,7 +107,7 @@ export function ValidateRegisterTokenForm() {
         <CardHeader className="space-y-5 px-7 pt-9 pb-5 text-center">
           <div className="mx-auto">
             <img
-              src="/loading-logo.svg"
+              src="/logo.png"
               alt="Logo"
               className="h-auto w-[240px] max-w-full sm:w-[265px]"
             />

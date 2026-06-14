@@ -30,11 +30,7 @@ export const Loading = ({ isOpen, message }: LoadingProps) => {
             gap: "10px",
           }}
         >
-          <img
-            src="/loading-logo.svg"
-            alt="Loading"
-            className="w-[265px] h-auto"
-          />
+          <img src="/logo.png" alt="Loading" className="w-[265px] h-auto" />
           <Loader2 className="mr-2 animate-spin" color="#1C5DB7" />
           <p className="text-center text-sm" style={{ color: "#1C5DB7" }}>
             {message} ...<span className="animate-spin">⏳</span>
