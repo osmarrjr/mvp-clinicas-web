@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { AUTH_FORM_INPUT_CLASS_NAME, AUTH_ROUTES } from "../constants";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../hooks/auth/useLogin";
 import { loginSchema, type LoginFormValues } from "../schemas/loginSchema";
 import { LoginFormOverlays } from "./LoginFormOverlays";
 

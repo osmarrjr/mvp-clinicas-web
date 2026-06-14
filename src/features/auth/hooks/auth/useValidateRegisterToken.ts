@@ -4,9 +4,9 @@ import { useMutation } from "@tanstack/react-query";
 
 import { getErrorMessage } from "@/lib/api/error-messages";
 
-import { authMutationKeys } from "../constants/queryKeys";
-import { validateRegisterTokenClientService } from "../services/companyRegister/validateRegisterTokenClientService";
-import type { ValidateRegisterTokenDto } from "../types";
+import { authMutationKeys } from "../../constants/queryKeys";
+import { validateRegisterTokenClientService } from "../../services/companyRegister/validateRegisterTokenClientService";
+import type { ValidateRegisterTokenDto } from "../../types";
 
 export function useValidateRegisterToken() {
   const mutation = useMutation({

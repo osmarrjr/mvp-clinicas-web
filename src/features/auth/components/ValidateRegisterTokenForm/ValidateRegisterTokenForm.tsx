@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME } from "../../constants";
 import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
-import { useValidateRegisterToken } from "../../hooks/useValidateRegisterToken";
+import { useValidateRegisterToken } from "../../hooks/auth/useValidateRegisterToken";
 import {
   registerTokenSchema,
   type RegisterTokenFormValues,

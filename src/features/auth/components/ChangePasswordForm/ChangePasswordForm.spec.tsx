@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ChangePasswordForm } from "./ChangePasswordForm";
-import { useChangePassword } from "../../hooks/useChangePassword";
+import { useChangePassword } from "../../hooks/auth/useChangePassword";
 
 const pushMock = vi.fn();
 const VALID_PASSWORD = "Abcdef1!";
@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
 }));
 
-vi.mock("../../hooks/useChangePassword", () => ({
+vi.mock("../../hooks/auth/useChangePassword", () => ({
   useChangePassword: vi.fn(),
 }));
 
@@ -75,7 +75,7 @@ function getConfirmPasswordToggle() {
     throw new Error("Confirm password wrapper not found");
   }
 
-  return within(wrapper).getByRole("button", {
+  return within(wrapper as HTMLElement).getByRole("button", {
     name: /exibir senha|ocultar senha/i,
   });
 }
@@ -120,7 +120,8 @@ describe("ChangePasswordForm", () => {
     const user = userEvent.setup();
     render(<ChangePasswordForm />);
 
-    const newPasswordInput = screen.getByPlaceholderText(/digite a nova senha/i);
+    const newPasswordInput =
+      screen.getByPlaceholderText(/digite a nova senha/i);
 
     await user.type(newPasswordInput, VALID_PASSWORD);
 

@@ -4,16 +4,18 @@ import { useState } from "react";
 
 import { getErrorMessage } from "@/lib/api/error-messages";
 
-import type { LoginFormValues } from "../schemas/loginSchema";
-import type { LoginClientData } from "../types";
-import { loginClientService } from "../services/auth/authClientService";
+import type { LoginFormValues } from "../../schemas/loginSchema";
+import type { LoginClientData } from "../../types";
+import { loginClientService } from "../../services/auth/authClientService";
 
 export function useLogin() {
   const [isPending, setIsPending] = useState(false);
   const [passwordChangeRequired, setPasswordChangeRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function login(payload: LoginFormValues): Promise<LoginClientData | null> {
+  async function login(
+    payload: LoginFormValues,
+  ): Promise<LoginClientData | null> {
     setIsPending(true);
     setPasswordChangeRequired(false);
     setErrorMessage(null);

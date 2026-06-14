@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { useValidateRegisterToken } from "../../hooks/useValidateRegisterToken";
+import { useValidateRegisterToken } from "../../hooks/auth/useValidateRegisterToken";
 import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
 import { ValidateRegisterTokenForm } from "./ValidateRegisterTokenForm";
 
@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: pushMock }),
 }));
 
-vi.mock("../../hooks/useValidateRegisterToken", () => ({
+vi.mock("../../hooks/auth/useValidateRegisterToken", () => ({
   useValidateRegisterToken: vi.fn(),
 }));
 
@@ -110,12 +110,12 @@ describe("ValidateRegisterTokenForm", () => {
 
     await pasteToken(user, "123456");
 
-    expect((screen.getByLabelText("Dígito 1 de 6") as HTMLInputElement).value).toBe(
-      "1",
-    );
-    expect((screen.getByLabelText("Dígito 6 de 6") as HTMLInputElement).value).toBe(
-      "6",
-    );
+    expect(
+      (screen.getByLabelText("Dígito 1 de 6") as HTMLInputElement).value,
+    ).toBe("1");
+    expect(
+      (screen.getByLabelText("Dígito 6 de 6") as HTMLInputElement).value,
+    ).toBe("6");
   });
 
   it("dispara validação automaticamente ao completar 6 dígitos", async () => {
@@ -201,9 +201,7 @@ describe("ValidateRegisterTokenForm", () => {
     rerender(<ValidateRegisterTokenForm />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(errorMessage),
-      ).toBeTruthy();
+      expect(screen.getByText(errorMessage)).toBeTruthy();
     });
 
     expect(validateTokenMock).toHaveBeenCalledTimes(1);

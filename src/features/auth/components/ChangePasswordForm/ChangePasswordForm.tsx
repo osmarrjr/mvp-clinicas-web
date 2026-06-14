@@ -17,7 +17,7 @@ import {
   AUTH_ROUTES,
   PASSWORD_REQUIREMENTS_TOOLTIP,
 } from "../../constants";
-import { useChangePassword } from "../../hooks/useChangePassword";
+import { useChangePassword } from "../../hooks/auth/useChangePassword";
 import {
   changePasswordSchema,
   type ChangePasswordFormValues,
@@ -162,9 +162,7 @@ export function ChangePasswordForm() {
                 <button
                   type="button"
                   disabled={!isNewPasswordValid}
-                  onClick={() =>
-                    setShowConfirmPassword((current) => !current)
-                  }
+                  onClick={() => setShowConfirmPassword((current) => !current)}
                   className={`absolute right-4 top-1/2 -translate-y-1/2 transition cursor-pointer ${disabledFieldClassName}`}
                   aria-label={
                     showConfirmPassword ? "Ocultar senha" : "Exibir senha"

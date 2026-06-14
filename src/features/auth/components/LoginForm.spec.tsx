@@ -4,15 +4,21 @@ import userEvent from "@testing-library/user-event";
 
 import { AUTH_ROUTES } from "../constants/authRoutes";
 import { LoginForm } from "./LoginForm";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../hooks/auth/useLogin";
+import type { LoginFormValues } from "../schemas/loginSchema";
+import type { LoginClientData } from "../types";
 
 const pushMock = vi.fn();
+
+const SUCCESS_LOGIN_DATA: LoginClientData = {
+  user: { id: "1", email: "user@example.com" },
+};
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
 }));
 
-vi.mock("../hooks/useLogin", () => ({
+vi.mock("../hooks/auth/useLogin", () => ({
   useLogin: vi.fn(),
 }));
 
@@ -59,7 +65,9 @@ vi.mock("./LoginFormOverlays", () => ({
 const useLoginMock = vi.mocked(useLogin);
 
 function setupUseLoginMock(overrides?: Partial<ReturnType<typeof useLogin>>) {
-  const loginMock = vi.fn(async () => null);
+  const loginMock = vi.fn(
+    async (_payload: LoginFormValues): Promise<LoginClientData | null> => null,
+  );
 
   const clearErrorMock = vi.fn();
   const clearPasswordChangeRequiredMock = vi.fn();
@@ -96,9 +104,9 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText(/^email$/i)).toBeTruthy();
     expect(screen.getByLabelText(/^senha$/i)).toBeTruthy();
     expect(screen.getByText(/ainda não possui cadastro/i)).toBeTruthy();
-    expect(screen.getByRole("link", { name: /clique aqui/i }).getAttribute("href")).toBe(
-      "/register",
-    );
+    expect(
+      screen.getByRole("link", { name: /clique aqui/i }).getAttribute("href"),
+    ).toBe("/register");
   });
 
   it("mantém o botão desabilitado quando o formulário está vazio", () => {
@@ -132,9 +140,7 @@ describe("LoginForm", () => {
   it("chama login com email e senha ao submeter formulário válido", async () => {
     const { loginMock } = setupUseLoginMock();
 
-    loginMock.mockResolvedValue({
-      user: { id: "1", email: "user@example.com" },
-    });
+    loginMock.mockResolvedValue(SUCCESS_LOGIN_DATA);
 
     const user = userEvent.setup();
     render(<LoginForm />);
@@ -162,9 +168,7 @@ describe("LoginForm", () => {
   it("redireciona para o dashboard após login bem-sucedido", async () => {
     const { loginMock } = setupUseLoginMock();
 
-    loginMock.mockResolvedValue({
-      user: { id: "1", email: "user@example.com" },
-    });
+    loginMock.mockResolvedValue(SUCCESS_LOGIN_DATA);
 
     const user = userEvent.setup();
     render(<LoginForm />);
