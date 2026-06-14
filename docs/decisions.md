@@ -91,7 +91,7 @@ A API retorna erros no formato:
 { ok: false, error: { code: string, message: string } }
 ```
 
-O frontend deve mapear `code` para mensagens amigáveis em português em arquivo central, por exemplo:
+O frontend exibe `error.message` retornada pela API. Quando a mensagem estiver ausente, usa fallback genérico em:
 
 ```txt
 src/lib/api/error-messages.ts

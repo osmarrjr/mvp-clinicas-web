@@ -22,9 +22,7 @@ export async function validateRegisterTokenClientService(
       ok: false,
       error: {
         code: body.ok ? "VALIDATION_ERROR" : body.error.code,
-        message: body.ok
-          ? "Não foi possível validar o token."
-          : body.error.message,
+        message: body.ok ? "" : (body.error.message ?? ""),
       },
     };
   }

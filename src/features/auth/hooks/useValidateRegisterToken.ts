@@ -17,16 +17,11 @@ export function useValidateRegisterToken() {
       try {
         response = await validateRegisterTokenClientService(payload);
       } catch {
-        throw new Error(getErrorMessage("INTERNAL_ERROR"));
+        throw new Error(getErrorMessage());
       }
 
       if (!response.ok) {
-        const message = getErrorMessage(
-          response.error.code,
-          response.error.message,
-        );
-
-        throw new Error(message);
+        throw new Error(getErrorMessage(response.error.message));
       }
 
       return response.data;

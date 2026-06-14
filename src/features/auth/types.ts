@@ -51,4 +51,18 @@ export interface LoginResult {
   expiresIn: number;
   tokenType: string;
   user: LoginUser;
+  passwordChangeRequired?: boolean;
 }
+
+export interface LoginClientData {
+  user: LoginUser;
+  passwordChangeRequired?: boolean;
+}
+
+export interface ChangePasswordSuccessData {
+  changed: boolean;
+}
+
+export type ChangePasswordResponse =
+  | { ok: true; data: ChangePasswordSuccessData }
+  | { ok: false; error: ApiErrorShape };

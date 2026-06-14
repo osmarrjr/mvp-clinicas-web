@@ -4,16 +4,16 @@ import { loginSchema } from "@/features/auth/schemas/loginSchema";
 import { loginServerService } from "@/features/auth/services/auth/authServerService";
 import { getErrorMessage } from "@/lib/api/error-messages";
 
-function errorResponse(code: string, message: string) {
+function errorResponse(code: string, message?: string, status = 400) {
   return NextResponse.json(
     {
       ok: false,
       error: {
         code,
-        message: getErrorMessage(code, message),
+        message: getErrorMessage(message),
       },
     },
-    { status: 400 },
+    { status },
   );
 }
 
@@ -23,16 +23,13 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return errorResponse("INVALID_JSON", "Corpo da requisição inválido.");
+    return errorResponse("INVALID_JSON");
   }
 
   const parsed = loginSchema.safeParse(json);
 
   if (!parsed.success) {
-    return errorResponse(
-      "VALIDATION_ERROR",
-      "Dados inválidos. Verifique os campos e tente novamente.",
-    );
+    return errorResponse("VALIDATION_ERROR");
   }
 
   const response = await loginServerService(parsed.data);
@@ -41,10 +38,13 @@ export async function POST(request: Request) {
     return errorResponse(response.error.code, response.error.message);
   }
 
+  const passwordChangeRequired = response.data.passwordChangeRequired === true;
+
   const nextResponse = NextResponse.json({
     ok: true,
     data: {
       user: response.data.user,
+      passwordChangeRequired,
     },
   });
 

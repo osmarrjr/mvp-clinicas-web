@@ -4,13 +4,13 @@ import { validateRegisterTokenRequestSchema } from "@/features/auth/schemas/regi
 import { validateRegisterTokenServerService } from "@/features/auth/services/companyRegister/validateRegisterTokenServerService";
 import { getErrorMessage } from "@/lib/api/error-messages";
 
-function errorResponse(code: string, message: string) {
+function errorResponse(code: string, message?: string) {
   return NextResponse.json(
     {
       ok: false,
       error: {
         code,
-        message: getErrorMessage(code, message),
+        message: getErrorMessage(message),
       },
     },
     { status: 400 },
@@ -23,19 +23,13 @@ export async function POST(request: Request) {
   try {
     json = await request.json();
   } catch {
-    return errorResponse(
-      "VALIDATION_ERROR",
-      "Corpo da requisição inválido.",
-    );
+    return errorResponse("VALIDATION_ERROR");
   }
 
   const parsed = validateRegisterTokenRequestSchema.safeParse(json);
 
   if (!parsed.success) {
-    return errorResponse(
-      "VALIDATION_ERROR",
-      "Dados inválidos. Verifique o código e tente novamente.",
-    );
+    return errorResponse("VALIDATION_ERROR");
   }
 
   const response = await validateRegisterTokenServerService(parsed.data);

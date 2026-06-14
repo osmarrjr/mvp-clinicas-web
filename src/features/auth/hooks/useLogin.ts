@@ -5,32 +5,39 @@ import { useState } from "react";
 import { getErrorMessage } from "@/lib/api/error-messages";
 
 import type { LoginFormValues } from "../schemas/loginSchema";
+import type { LoginClientData } from "../types";
 import { loginClientService } from "../services/auth/authClientService";
 
 export function useLogin() {
   const [isPending, setIsPending] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [passwordChangeRequired, setPasswordChangeRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function login(payload: LoginFormValues) {
+  async function login(payload: LoginFormValues): Promise<LoginClientData | null> {
     setIsPending(true);
-    setIsSuccess(false);
+    setPasswordChangeRequired(false);
     setErrorMessage(null);
 
     try {
       const response = await loginClientService(payload);
 
       if (!response.ok) {
-        setErrorMessage(
-          getErrorMessage(response.error.code, response.error.message),
-        );
+        if (response.error.code === "PASSWORD_CHANGE_REQUIRED") {
+          setPasswordChangeRequired(true);
+          return null;
+        }
+
+        setErrorMessage(getErrorMessage(response.error.message));
         return null;
       }
 
-      setIsSuccess(true);
+      if (response.data.passwordChangeRequired) {
+        setPasswordChangeRequired(true);
+      }
+
       return response.data;
     } catch {
-      setErrorMessage(getErrorMessage("INTERNAL_ERROR"));
+      setErrorMessage(getErrorMessage());
       return null;
     } finally {
       setIsPending(false);
@@ -41,11 +48,16 @@ export function useLogin() {
     setErrorMessage(null);
   }
 
+  function clearPasswordChangeRequired() {
+    setPasswordChangeRequired(false);
+  }
+
   return {
     login,
     isPending,
-    isSuccess,
+    passwordChangeRequired,
     errorMessage,
     clearError,
+    clearPasswordChangeRequired,
   };
 }

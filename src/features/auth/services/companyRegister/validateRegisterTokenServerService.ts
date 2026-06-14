@@ -26,7 +26,7 @@ export async function validateRegisterTokenServerService(
       ok: false,
       error: {
         code: "ENV_ERROR",
-        message: "API_URL não configurada.",
+        message: "",
       },
     };
   }
@@ -57,9 +57,7 @@ export async function validateRegisterTokenServerService(
         error: {
           code: body && !body.ok ? body.error.code : "VALIDATION_ERROR",
           message:
-            body && !body.ok
-              ? body.error.message
-              : "Não foi possível validar o código.",
+            body && !body.ok ? (body.error.message ?? "") : "",
         },
       };
     }
@@ -73,7 +71,7 @@ export async function validateRegisterTokenServerService(
       ok: false,
       error: {
         code: "NETWORK_ERROR",
-        message: "Erro de conexão com o servidor.",
+        message: "",
       },
     };
   }

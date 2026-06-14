@@ -1,9 +1,24 @@
 import type { LoginFormValues } from "../../schemas/loginSchema";
-import type { LoginServerResponse } from "./authServerService";
+import type { LoginClientData } from "../../types";
+
+type LoginClientError = {
+  ok: false;
+  error: {
+    code: string;
+    message: string;
+  };
+};
+
+type LoginClientSuccess = {
+  ok: true;
+  data: LoginClientData;
+};
+
+export type LoginClientResponse = LoginClientSuccess | LoginClientError;
 
 export async function loginClientService(
   payload: LoginFormValues,
-): Promise<LoginServerResponse> {
+): Promise<LoginClientResponse> {
   const response = await fetch("/api/auth/login", {
     method: "POST",
     headers: {
@@ -12,16 +27,14 @@ export async function loginClientService(
     body: JSON.stringify(payload),
   });
 
-  const body = (await response.json()) as LoginServerResponse;
+  const body = (await response.json()) as LoginClientResponse;
 
   if (!response.ok || !body.ok) {
     return {
       ok: false,
       error: {
         code: body.ok ? "INTERNAL_ERROR" : body.error.code,
-        message: body.ok
-          ? "Erro inesperado no login."
-          : body.error.message,
+        message: body.ok ? "" : (body.error.message ?? ""),
       },
     };
   }

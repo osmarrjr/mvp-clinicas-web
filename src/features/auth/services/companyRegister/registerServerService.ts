@@ -24,7 +24,7 @@ export async function registerServerService(
       ok: false,
       error: {
         code: "ENV_ERROR",
-        message: "API_URL não configurada.",
+        message: "",
       },
     };
   }
@@ -52,9 +52,7 @@ export async function registerServerService(
         error: {
           code: body && !body.ok ? body.error.code : "REGISTER_ERROR",
           message:
-            body && !body.ok
-              ? body.error.message
-              : "Não foi possível concluir o cadastro.",
+            body && !body.ok ? (body.error.message ?? "") : "",
         },
       };
     }
@@ -71,7 +69,7 @@ export async function registerServerService(
       ok: false,
       error: {
         code: "NETWORK_ERROR",
-        message: "Erro de conexão com o servidor.",
+        message: "",
       },
     };
   }
