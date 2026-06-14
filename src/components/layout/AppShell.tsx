@@ -12,12 +12,16 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <AppSidebarProvider>
       <AppSidebar />
+
       <SidebarInset>
         <header className="flex h-14 items-center justify-between gap-2 border-b px-4 md:px-6">
-          <SidebarTrigger aria-label="Alternar menu lateral" />
-          <UserMenu />
+          <SidebarTrigger className="md:hidden" aria-label="Abrir menu" />
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
         </header>
-        {children}
+
+        <main className="flex-1">{children}</main>
       </SidebarInset>
     </AppSidebarProvider>
   );
