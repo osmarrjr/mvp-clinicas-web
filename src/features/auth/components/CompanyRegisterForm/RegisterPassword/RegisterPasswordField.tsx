@@ -16,8 +16,8 @@ import {
   getPasswordHintMessage,
   getPasswordStrength,
   getPasswordValidationError,
-  PASSWORD_REQUIREMENTS_TOOLTIP,
 } from "../../../validators/password/password";
+import { PASSWORD_REQUIREMENTS_TOOLTIP } from "../../../constants";
 import { CompanyRegisterFormValues } from "@/features/auth/schemas/companyRegisterSchema";
 
 type RegisterPasswordFieldProps = {

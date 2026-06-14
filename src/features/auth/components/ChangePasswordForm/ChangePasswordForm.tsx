@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,18 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { disabledFieldClassName } from "@/lib/styles/disabled-field";
 
-import { AUTH_ROUTES } from "../../constants/authRoutes";
+import {
+  AUTH_FORM_INPUT_CLASS_NAME,
+  AUTH_ROUTES,
+  PASSWORD_REQUIREMENTS_TOOLTIP,
+} from "../../constants";
 import { useChangePassword } from "../../hooks/useChangePassword";
 import {
   changePasswordSchema,
   type ChangePasswordFormValues,
 } from "../../schemas/changePasswordSchema";
-import { PASSWORD_REQUIREMENTS_TOOLTIP } from "../../validators/password/password";
+import { getPasswordValidationError } from "../../validators/password/password";
 import { ChangePasswordOverlays } from "./ChangePasswordOverlays";
-
-const INPUT_CLASS_NAME =
-  "h-12 w-full rounded-2xl border border-white/40 bg-white/95 px-4 text-base text-slate-900 shadow-sm outline-none placeholder:text-sm placeholder:text-slate-400 transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300/50 aria-[invalid=true]:border-red-300 aria-[invalid=true]:ring-red-200";
 
 export function ChangePasswordForm() {
   const router = useRouter();
@@ -45,6 +47,19 @@ export function ChangePasswordForm() {
       confirmPassword: "",
     },
   });
+
+  const newPassword = form.watch("newPassword");
+  const confirmPassword = form.watch("confirmPassword");
+  const isNewPasswordValid = useMemo(
+    () => getPasswordValidationError(newPassword, {}) === null,
+    [newPassword],
+  );
+
+  useEffect(() => {
+    if (!isNewPasswordValid && confirmPassword) {
+      form.setValue("confirmPassword", "", { shouldValidate: true });
+    }
+  }, [confirmPassword, form, isNewPasswordValid]);
 
   const errorModalOpen = Boolean(errorMessage) && !errorDismissed;
   const newPasswordError = form.formState.errors.newPassword?.message;
@@ -101,7 +116,7 @@ export function ChangePasswordForm() {
                   placeholder="Digite a nova senha"
                   aria-invalid={Boolean(newPasswordError)}
                   title={PASSWORD_REQUIREMENTS_TOOLTIP}
-                  className={INPUT_CLASS_NAME}
+                  className={AUTH_FORM_INPUT_CLASS_NAME}
                   {...form.register("newPassword")}
                 />
                 <button
@@ -139,16 +154,18 @@ export function ChangePasswordForm() {
                   type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   placeholder="Confirme a nova senha"
+                  disabled={!isNewPasswordValid}
                   aria-invalid={Boolean(confirmPasswordError)}
-                  className={INPUT_CLASS_NAME}
+                  className={AUTH_FORM_INPUT_CLASS_NAME}
                   {...form.register("confirmPassword")}
                 />
                 <button
                   type="button"
+                  disabled={!isNewPasswordValid}
                   onClick={() =>
                     setShowConfirmPassword((current) => !current)
                   }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-slate-500 transition hover:text-blue-700"
+                  className={`absolute right-4 top-1/2 -translate-y-1/2 transition cursor-pointer ${disabledFieldClassName}`}
                   aria-label={
                     showConfirmPassword ? "Ocultar senha" : "Exibir senha"
                   }

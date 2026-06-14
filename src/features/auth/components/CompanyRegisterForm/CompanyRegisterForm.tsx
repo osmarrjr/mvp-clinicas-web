@@ -20,7 +20,7 @@ import {
 } from "../../schemas/companyRegisterSchema";
 import type { ClinicPlan } from "../../types";
 
-import { REGISTER_INPUT_CLASS_NAME } from "./constants";
+import { AUTH_FORM_INPUT_CLASS_NAME } from "../../constants";
 import { RegisterCompanyNameField } from "./RegisterCompanyNameField/RegisterCompanyNameField";
 import { RegisterEmailField } from "./RegisterEmailField/RegisterEmailField";
 import { RegisterFormHeader } from "./RegisterFormHeader";
@@ -199,7 +199,7 @@ export function CompanyRegisterForm() {
               register={form.register}
               setValue={form.setValue}
               errors={form.formState.errors}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <RegisterTaxIdField
@@ -207,7 +207,7 @@ export function CompanyRegisterForm() {
               setValue={form.setValue}
               trigger={form.trigger}
               errors={form.formState.errors}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <RegisterLocationFields
@@ -225,7 +225,7 @@ export function CompanyRegisterForm() {
             <RegisterEmailField
               register={form.register}
               errors={form.formState.errors}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <RegisterPhoneField
@@ -233,7 +233,7 @@ export function CompanyRegisterForm() {
               setValue={form.setValue}
               phoneValue={phoneValue}
               errors={form.formState.errors}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <RegisterPasswordField
@@ -241,7 +241,7 @@ export function CompanyRegisterForm() {
               companyName={companyName}
               taxId={taxId}
               email={emailValue}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <RegisterConfirmPasswordField
@@ -249,7 +249,7 @@ export function CompanyRegisterForm() {
               passwordValue={passwordValue}
               confirmPasswordValue={confirmPasswordValue}
               isPasswordValid={isPasswordValid}
-              inputClassName={REGISTER_INPUT_CLASS_NAME}
+              inputClassName={AUTH_FORM_INPUT_CLASS_NAME}
             />
 
             <div className="flex flex-col gap-4 mt-10">
