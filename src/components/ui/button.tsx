@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100",
+          "rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100",
         outline:
           "border-border bg-background font-medium hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground font-medium hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
-          "bg-transparent font-semibold tracking-wide text-blue-800 shadow-none transition-all hover:bg-white hover:text-blue-700 active:scale-[0.99] dark:text-blue-400 dark:hover:bg-white/10 dark:hover:text-blue-300",
+          "bg-transparent font-semibold text-blue-800 shadow-none transition-all hover:bg-white hover:text-blue-700 active:scale-[0.99] dark:text-blue-400 dark:hover:bg-white/10 dark:hover:text-blue-300",
         destructive:
           "bg-destructive/10 text-destructive font-medium hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary font-medium underline-offset-4 hover:underline",

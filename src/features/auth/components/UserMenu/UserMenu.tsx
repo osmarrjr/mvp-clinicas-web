@@ -49,7 +49,7 @@ export function UserMenu() {
               {user ? (
                 getUserInitials(user)
               ) : (
-                <UserRound className="size-4" aria-hidden />
+                <UserRound className="size-10" aria-hidden />
               )}
             </AvatarFallback>
           </Avatar>
@@ -63,7 +63,9 @@ export function UserMenu() {
               {displayName}
             </span>
             {user && displayName !== user.email ? (
-              <span className="text-xs text-muted-foreground">{user.email}</span>
+              <span className="text-xs text-muted-foreground">
+                {user.email}
+              </span>
             ) : null}
           </div>
         </DropdownMenuLabel>
