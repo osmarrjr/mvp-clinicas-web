@@ -134,7 +134,7 @@ export function GlobalModal({
             <div className="space-y-2">
               <DialogTitle
                 className={cn(
-                  "text-xl font-semibold tracking-tight text-primary",
+                  "text-lg font-semibold tracking-tight text-primary",
                   titleAlign === "center" && "text-center",
                   titleAlign === "right" && "text-right",
                 )}
@@ -145,7 +145,7 @@ export function GlobalModal({
               {modalSubTitle ? (
                 <DialogDescription
                   className={cn(
-                    "text-sm leading-6 text-slate-500",
+                    "text-base leading-6 text-slate-500",
                     titleAlign === "center" && "text-center",
                     titleAlign === "right" && "text-right",
                   )}
@@ -162,7 +162,7 @@ export function GlobalModal({
         </DialogHeader>
 
         {showContent && (
-          <div className="flex-1 overflow-y-auto text-sm leading-6 text-slate-600">
+          <div className="flex-1 overflow-y-auto text-base leading-6 text-slate-600">
             {content}
           </div>
         )}

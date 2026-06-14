@@ -252,23 +252,25 @@ export function CompanyRegisterForm() {
               inputClassName={REGISTER_INPUT_CLASS_NAME}
             />
 
-            <Button
-              type="submit"
-              className="h-12 mt-2 w-full rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100"
-              disabled={isSubmitDisabled}
-            >
-              {isPending ? "Cadastrando..." : "Cadastrar empresa"}
-            </Button>
-
-            <p className="text-center text-base text-blue-100/75">
-              Já possui conta?{" "}
-              <Link
-                href="/login"
-                className="font-semibold text-white underline-offset-4 transition hover:text-sky-200 hover:underline"
+            <div className="flex flex-col gap-4 mt-10">
+              <Button
+                type="submit"
+                className="h-12 w-full rounded-2xl bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)] font-semibold tracking-wide text-white shadow-lg shadow-blue-950/30 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-blue-950/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-none disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:hover:scale-100"
+                disabled={isSubmitDisabled}
               >
-                Faça login
-              </Link>
-            </p>
+                {isPending ? "Cadastrando..." : "Cadastrar empresa"}
+              </Button>
+
+              <p className="text-center text-base text-blue-100/75">
+                Já possui conta?{" "}
+                <Link
+                  href="/login"
+                  className="font-semibold text-white underline-offset-4 transition hover:text-sky-200 hover:underline"
+                >
+                  Faça login
+                </Link>
+              </p>
+            </div>
           </form>
         </CardContent>
       </Card>

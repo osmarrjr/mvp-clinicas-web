@@ -26,8 +26,8 @@ export function LoginFormOverlays({
       <GlobalModal
         type="error"
         open={errorModalOpen}
-        modalTitle="Ops! Ocorreu um erro!"
-        modalSubTitle={errorMessage ?? ""}
+        modalTitle="Não foi possível realizar o login"
+        modalSubTitle={"Sentimos muito pelo ocorrido. " + errorMessage}
         showCancel={false}
         confirmLabel="Fechar"
         onConfirm={onDismissError}

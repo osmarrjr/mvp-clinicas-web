@@ -19,7 +19,7 @@ export function SelectedPlanSummary({
             Plano selecionado
           </p>
 
-          <p className="truncate text-base font-semibold text-slate-900">
+          <p className="truncate text-sm font-semibold text-blue-700 tracking-wide">
             {planName} — {priceLabel}
           </p>
         </div>
