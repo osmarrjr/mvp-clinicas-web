@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { loginSchema } from "@/features/auth/schemas/loginSchema";
 import { loginServerService } from "@/features/auth/services/auth/authServerService";
 import { getErrorMessage } from "@/lib/api/error-messages";
+import { decodeAccessToken } from "@/lib/auth/jwt";
 
 function errorResponse(code: string, message?: string, status = 400) {
   return NextResponse.json(
@@ -38,12 +39,18 @@ export async function POST(request: Request) {
     return errorResponse(response.error.code, response.error.message);
   }
 
+  const decodedUser = decodeAccessToken(response.data.accessToken);
+
+  if (!decodedUser) {
+    return errorResponse("INVALID_TOKEN", undefined, 500);
+  }
+
   const passwordChangeRequired = response.data.passwordChangeRequired === true;
 
   const nextResponse = NextResponse.json({
     ok: true,
     data: {
-      user: response.data.user,
+      user: decodedUser,
       passwordChangeRequired,
     },
   });

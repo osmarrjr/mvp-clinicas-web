@@ -1,6 +1,6 @@
 ---
 name: react
-description: Índice e regras essenciais de Next.js 16 + React 19 para o MVP Clínicas Web.
+description: Índice e regras essenciais de Next.js 16 + React 19 para o SisMed Web.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Objetivo
 
-Esta skill é a fonte principal dos padrões React/Next.js do MVP Clínicas Web.
+Esta skill é a fonte principal dos padrões React/Next.js do SisMed Web.
 
 Ela deve ser lida antes de qualquer implementação que envolva:
 

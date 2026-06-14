@@ -98,7 +98,7 @@ export function clearStoredUser(): void {
 }
 
 export function getUserDisplayName(user: LoginUser): string {
-  const name = (user as LoginUser & { name?: string }).name?.trim();
+  const name = user.name?.trim();
 
   return name || user.email;
 }

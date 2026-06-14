@@ -67,7 +67,7 @@ const FEATURES = [
   },
 ] as const;
 
-const SUPPORT_EMAIL = "suporte@mvpclinicas.com.br";
+const SUPPORT_EMAIL = "suporte@portalsismed.com.br";
 const SUPPORT_WHATSAPP = "(11) 98765-4321";
 const SUPPORT_WHATSAPP_LINK = "https://wa.me/5511987654321";
 
@@ -135,32 +135,28 @@ export function LandingPage() {
             className={`${LANDING_GLOW_SECONDARY} right-0 bottom-0 h-[420px] w-[420px]`}
           />
 
-          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-12 lg:py-28">
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-10 lg:py-24">
             <div className="text-center lg:text-left">
               <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-[2.5rem] lg:leading-tight">
                 Gestão inteligente para o seu negócio de saúde
               </h1>
-              <p className="mt-6 text-lg leading-relaxed text-blue-100/90 sm:text-xl">
+
+              <p className="mt-5 text-lg leading-relaxed text-blue-100/90 sm:text-xl">
                 Somos um software de clínicas médicas voltado para a gestão
                 inteligente do seu negócio. Utilizamos alto padrão de
                 desenvolvimento e funcionalidades para dar mais produtividade e
                 agilidade no seu dia a dia.
               </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row lg:justify-start">
-                <Button
-                  asChild
-                  className="h-11 rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] px-6 text-base font-semibold text-white shadow-lg shadow-blue-950/40"
-                >
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:justify-start">
+                <Button asChild variant="default">
                   <Link href="#planos">
                     Conhecer planos
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="h-11 rounded-2xl border-white/25 bg-white/5 px-6 text-base font-semibold text-white hover:bg-white/10 hover:text-white"
-                >
+
+                <Button asChild variant="default">
                   <Link href="/register">Cadastrar minha clínica</Link>
                 </Button>
               </div>
@@ -176,18 +172,18 @@ export function LandingPage() {
         </section>
 
         <div className={LANDING_SECTION_CLASS}>
-          <section id="quem-somos" className="py-20 sm:py-24">
+          <section id="quem-somos" className="py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                   Quem somos
                 </h2>
-                <p className="mt-4 text-blue-100/80">
+                <p className="mt-3 text-blue-100/80">
                   Conheça a proposta por trás da nossa plataforma
                 </p>
               </div>
 
-              <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+              <div className="mt-8 grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
                 <LandingImage
                   src={LANDING_IMAGES.about}
                   alt="Equipe de saúde colaborando com tecnologia para gestão de clínicas"
@@ -195,12 +191,13 @@ export function LandingPage() {
                   className="mx-auto w-full max-w-[500px] lg:aspect-3/2 lg:max-w-none lg:w-full"
                 />
 
-                <div className="space-y-6 text-base leading-relaxed text-blue-50/90 sm:text-lg">
+                <div className="space-y-5 text-base leading-relaxed text-blue-50/90 sm:text-lg">
                   <p>
                     Nascemos com a missão de simplificar a rotina de clínicas e
                     consultórios médicos por meio de tecnologia acessível,
                     moderna e pensada para o dia a dia de quem cuida de pessoas.
                   </p>
+
                   <p>
                     Acreditamos que a gestão de uma clínica deve ser tão
                     eficiente quanto o atendimento prestado aos pacientes. Por
@@ -209,6 +206,7 @@ export function LandingPage() {
                     intuitiva — do profissional autônomo à rede com múltiplas
                     unidades.
                   </p>
+
                   <p>
                     Nossa equipe combina expertise em saúde e engenharia de
                     software para entregar um produto confiável, seguro e em
@@ -220,13 +218,13 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="funcionalidades" className="py-20 sm:py-24">
+          <section id="funcionalidades" className="py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                   Funcionalidades
                 </h2>
-                <p className="mt-4 text-blue-100/80">
+                <p className="mt-3 text-blue-100/80">
                   Tudo o que sua clínica precisa para crescer com organização e
                   eficiência
                 </p>
@@ -236,10 +234,10 @@ export function LandingPage() {
                 src={LANDING_IMAGES.features}
                 alt="Funcionalidades do software: agenda, prontuário, financeiro e relatórios"
                 aspect="compact"
-                className="mx-auto mt-12 max-w-xl"
+                className="mx-auto mt-8 max-w-xl"
               />
 
-              <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 {FEATURES.map((feature) => (
                   <Card
                     key={feature.title}
@@ -249,10 +247,12 @@ export function LandingPage() {
                       <div className="flex size-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
                         <feature.icon className="size-5" aria-hidden />
                       </div>
+
                       <CardTitle className="text-xl text-white">
                         {feature.title}
                       </CardTitle>
                     </CardHeader>
+
                     <CardContent>
                       <p className="text-sm leading-relaxed text-blue-100/85">
                         {feature.description}
@@ -264,18 +264,18 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="suporte" className="py-20 sm:py-24">
+          <section id="suporte" className="py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                   Suporte
                 </h2>
-                <p className="mt-4 text-blue-100/80">
+                <p className="mt-3 text-blue-100/80">
                   Estamos prontos para ajudar você e sua equipe
                 </p>
               </div>
 
-              <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:items-stretch">
+              <div className="mx-auto mt-8 grid max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:items-stretch">
                 <LandingImage
                   src={LANDING_IMAGES.support}
                   alt="Equipe de suporte pronta para ajudar clínicas e consultórios"
@@ -288,6 +288,7 @@ export function LandingPage() {
                     <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
                       <Mail className="size-5" aria-hidden />
                     </div>
+
                     <div>
                       <p className="font-semibold text-white">E-mail</p>
                       <a
@@ -297,6 +298,7 @@ export function LandingPage() {
                         {SUPPORT_EMAIL}
                       </a>
                     </div>
+
                     <p className="text-sm text-blue-100/75">
                       Atendimento em horário comercial, de segunda a sexta.
                     </p>
@@ -308,6 +310,7 @@ export function LandingPage() {
                     <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
                       <MessageCircle className="size-5" aria-hidden />
                     </div>
+
                     <div>
                       <p className="font-semibold text-white">WhatsApp</p>
                       <a
@@ -319,6 +322,7 @@ export function LandingPage() {
                         {SUPPORT_WHATSAPP}
                       </a>
                     </div>
+
                     <p className="text-sm text-blue-100/75">
                       Fale conosco para dúvidas rápidas sobre planos e
                       funcionalidades.
@@ -327,7 +331,7 @@ export function LandingPage() {
                 </Card>
               </div>
 
-              <div className="mx-auto mt-8 flex max-w-3xl items-center justify-center gap-2 text-sm text-blue-100/70">
+              <div className="mx-auto mt-6 flex max-w-3xl items-center justify-center gap-2 text-sm text-blue-100/70">
                 <Headphones className="size-4 shrink-0" aria-hidden />
                 <span>
                   Planos Pro incluem suporte dedicado 24/7 para operações
@@ -337,13 +341,14 @@ export function LandingPage() {
             </div>
           </section>
 
-          <section id="planos" className="py-20 sm:py-24">
+          <section id="planos" className="py-12 sm:py-16">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                   Planos
                 </h2>
-                <p className="mt-4 text-lg leading-relaxed text-blue-100/90">
+
+                <p className="mt-3 text-lg leading-relaxed text-blue-100/90">
                   Gostou de algum plano? Confira abaixo uma prévia das opções e{" "}
                   <Link
                     href="/register"
@@ -355,7 +360,7 @@ export function LandingPage() {
                 </p>
               </div>
 
-              <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
+              <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
                 {CLINIC_PLAN_OPTIONS.map((plan) => (
                   <Card
                     key={plan.id}
@@ -365,10 +370,12 @@ export function LandingPage() {
                       <CardTitle className="text-2xl font-bold capitalize text-white">
                         {plan.name}
                       </CardTitle>
+
                       <p className="text-lg font-semibold text-sky-200">
                         {plan.priceLabel}
                       </p>
                     </CardHeader>
+
                     <CardContent className="flex flex-1 flex-col px-6 pb-6">
                       <ul className="mb-6 flex-1 space-y-2.5 text-left text-sm text-blue-50/90">
                         {plan.features.slice(0, 4).map((feature) => (
@@ -380,6 +387,7 @@ export function LandingPage() {
                             <span>{feature}</span>
                           </li>
                         ))}
+
                         {plan.features.length > 4 ? (
                           <li className="text-xs text-blue-100/60">
                             + {plan.features.length - 4} funcionalidades
@@ -391,20 +399,19 @@ export function LandingPage() {
                 ))}
               </div>
 
-              <div className="mt-12 flex flex-col items-center gap-4 text-center">
+              <div className="mt-8 flex flex-col items-center gap-7 text-center">
                 <p className="max-w-2xl text-base text-blue-100/85">
                   Escolha o plano ideal, preencha o cadastro da sua clínica e
                   comece a transformar a gestão do seu consultório hoje mesmo.
                 </p>
-                <Button
-                  asChild
-                  className="h-11 rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] px-8 text-base font-semibold text-white shadow-lg shadow-blue-950/40"
-                >
+
+                <Button asChild variant="default">
                   <Link href="/register">
                     Quero cadastrar minha clínica
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
+
                 <p className="text-sm text-blue-100/70">
                   Já possui conta?{" "}
                   <Link
@@ -418,16 +425,10 @@ export function LandingPage() {
             </div>
           </section>
 
-          <footer className="py-8">
-            <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-sm text-blue-100/60 sm:flex-row sm:px-6">
-              <div className="flex items-center gap-2">
-                <FileText className="size-4" aria-hidden />
-                <span>
-                  MVP Clínicas — gestão inteligente para clínicas médicas
-                </span>
-              </div>
+          <footer className="py-6">
+            <div className="mx-auto flex max-w-6xl flex-col items-center justify-center text-sm text-blue-100/60 sm:flex-row sm:px-6">
               <p>
-                © {new Date().getFullYear()} MVP Clínicas. Todos os direitos
+                © {new Date().getFullYear()} SisMed. Todos os direitos
                 reservados.
               </p>
             </div>

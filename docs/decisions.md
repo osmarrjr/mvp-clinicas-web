@@ -1,4 +1,4 @@
-# Decisões Técnicas — MVP Clínicas Web
+# Decisões Técnicas — SisMed Web
 
 ## Token em cookie HTTP-only
 
@@ -125,11 +125,11 @@ Não recriar manualmente `Button`, `Input`, `Dialog`, `Select`, `Card`, `Table` 
 
 Além dos primitivos em `src/components/ui`, o projeto possui componentes compostos reutilizáveis:
 
-| Componente | Caminho | Uso |
-|------------|---------|-----|
-| `GlobalModal` | `src/components/GlobalModal/` | Confirmações e feedback (warning, error, success) |
-| `Loading` | `src/components/Loader/` | Overlay de carregamento durante operações assíncronas |
-| `DataTable` | `src/components/Table/` | Listagens com sort, paginação manual e seleção de linhas |
+| Componente    | Caminho                       | Uso                                                      |
+| ------------- | ----------------------------- | -------------------------------------------------------- |
+| `GlobalModal` | `src/components/GlobalModal/` | Confirmações e feedback (warning, error, success)        |
+| `Loading`     | `src/components/Loader/`      | Overlay de carregamento durante operações assíncronas    |
+| `DataTable`   | `src/components/Table/`       | Listagens com sort, paginação manual e seleção de linhas |
 
 Regras:
 
@@ -161,15 +161,15 @@ Referência: `.cursor/skills/react/auth.md`.
 Imports próximos usam caminho relativo:
 
 ```ts
-import { patientSchema } from '../schemas/patientSchema';
-import { PatientForm } from './PatientForm';
+import { patientSchema } from "../schemas/patientSchema";
+import { PatientForm } from "./PatientForm";
 ```
 
 Imports fora da área imediata usam alias `@/`:
 
 ```ts
-import { Button } from '@/components/ui/button';
-import { apiClient } from '@/lib/api/client';
+import { Button } from "@/components/ui/button";
+import { apiClient } from "@/lib/api/client";
 ```
 
 Evitar tanto alias para arquivo vizinho quanto caminho relativo profundo.

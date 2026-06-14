@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { decodeAccessToken } from "./jwt";
+import type { SessionUser } from "./types";
+
 export type ServerSession = {
   isAuthenticated: true;
+  user: SessionUser;
 };
 
 export async function getServerSession(): Promise<ServerSession | null> {
@@ -13,7 +17,13 @@ export async function getServerSession(): Promise<ServerSession | null> {
     return null;
   }
 
-  return { isAuthenticated: true };
+  const user = decodeAccessToken(accessToken);
+
+  if (!user) {
+    return null;
+  }
+
+  return { isAuthenticated: true, user };
 }
 
 export async function requireServerSession(): Promise<ServerSession> {

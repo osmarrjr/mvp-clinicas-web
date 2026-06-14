@@ -33,11 +33,7 @@ export function LandingHeader() {
     <header className={LANDING_HEADER_CLASS}>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="#home" className="shrink-0">
-          <img
-            src="/logo.png"
-            alt="MVP Clínicas"
-            className="h-9 w-auto sm:h-10"
-          />
+          <img src="/logo.png" alt="SisMed" className="h-9 w-auto sm:h-10" />
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -56,10 +52,7 @@ export function LandingHeader() {
             ))}
           </nav>
 
-          <Button
-            asChild
-            className="ml-2 h-10 rounded-2xl bg-white px-5 text-sm font-semibold text-blue-950 shadow-md transition hover:bg-blue-50"
-          >
+          <Button asChild variant="white" className="ml-2 h-10 px-5 text-sm">
             <Link href="/login">Sou cliente</Link>
           </Button>
         </div>
@@ -100,10 +93,7 @@ export function LandingHeader() {
                   </Link>
                 ))}
 
-                <Button
-                  asChild
-                  className="mt-4 h-10 w-full rounded-2xl bg-white px-5 text-sm font-semibold text-blue-950 shadow-md transition hover:bg-blue-50"
-                >
+                <Button asChild variant="white" className="mt-4">
                   <Link href="/login" onClick={() => setMobileOpen(false)}>
                     Sou cliente
                   </Link>

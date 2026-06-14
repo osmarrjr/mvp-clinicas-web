@@ -52,10 +52,11 @@ export type ResendRegisterTokenResponse =
   | { ok: true; data: ResendRegisterTokenSuccessData }
   | { ok: false; error: ApiErrorShape };
 
-export interface LoginUser {
-  id: string;
-  email: string;
-}
+export { AppRole, type SessionUser } from "@/lib/auth/types";
+
+import type { SessionUser } from "@/lib/auth/types";
+
+export type LoginUser = SessionUser;
 
 export interface LoginResult {
   accessToken: string;
