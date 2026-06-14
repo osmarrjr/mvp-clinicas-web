@@ -1,45 +1,43 @@
-# Plano: Centralizar constantes em auth e bloquear confirmar senha no change-password
+# Plano: Rotas autenticadas, proteção de sessão e sidebar
 
 ## Contexto
 
-Constantes de UI e mensagens de tooltip estão espalhadas em componentes (`LOGIN_INPUT_CLASS_NAME`, `INPUT_CLASS_NAME`) e em subpastas de componente (`CompanyRegisterForm/constants.ts`), enquanto `validators/password/password.ts` mistura strings de UI com lógica de validação. Isso gera duplicação e dificulta manter consistência visual entre formulários de auth. Além disso, `ChangePasswordForm` permite digitar a confirmação de senha antes da nova senha ser válida, comportamento já corrigido no fluxo de cadastro (`RegisterConfirmPasswordField`).
+O login já grava `accessToken` e `refreshToken` em cookies HTTP-only, mas rotas como `/dashboard` ainda são públicas — não há `proxy.ts`/`middleware`, nem `getServerSession()`. Esta tarefa protege as telas autenticadas, centraliza o layout do app com menu lateral e prepara a estrutura `(app)` prevista em `docs/architecture.md` para Dashboard, Agenda e Usuários (placeholders sem integração com API).
 
 ## Validação arquitetural
 
-- Feature: existente (`auth`)
-- Reutiliza componente existente: sim (`Input`, `Label`, `Tooltip`, padrão de `RegisterConfirmPasswordField`)
-- Reutiliza GlobalModal / Loading / DataTable: sim (`ChangePasswordOverlays` já usa `GlobalModal` e `Loading`)
-- Reutiliza hook existente: sim (`useChangePassword`)
-- Reutiliza service existente: não aplicável
-- Reutiliza schema existente: sim (`changePasswordSchema`)
-- Reutiliza tipos existentes: sim (`ChangePasswordFormValues`)
+- Feature: existente (`auth` + infra compartilhada de layout/sessão)
+- Reutiliza componente existente: sim (`Button`, `Separator`, `Sheet` para mobile; `PageHeader` se aplicável)
+- Reutiliza GlobalModal / Loading / DataTable: não aplicável (layout estático e placeholders)
+- Reutiliza hook existente: não
+- Reutiliza service existente: não
+- Reutiliza schema existente: não
+- Reutiliza tipos existentes: sim (`LoginUser` em `src/features/auth/types.ts` como base mínima de sessão, se necessário)
 - Usa shadcn/ui ou componente existente: sim
-- Exige novo componente shadcn/ui: não
-- Há impacto em autenticação: não (apenas UX de formulário já autenticado)
-- Há impacto em permissões/RBAC: não
+- Exige novo componente shadcn/ui: sim (`sidebar` — ainda não existe em `src/components/ui/`)
+- Há impacto em autenticação: sim
+- Há impacto em permissões/RBAC: não (apenas presença de cookie; RBAC fica para fases futuras)
 - Há impacto em contrato de API: não
-- Há impacto em Route Handler: não
+- Há impacto em Route Handler: não (handlers existentes continuam lendo cookie no servidor)
 - Exige teste unitário/componente: sim
 
 ## Páginas/componentes afetados
 
-- `src/features/auth/constants/index.ts` (novo — barrel central)
-- `src/features/auth/constants/formStyles.ts` (novo)
-- `src/features/auth/constants/passwordTooltips.ts` (novo)
-- `src/features/auth/constants/authRoutes.ts` (re-export via index; sem alteração de conteúdo)
-- `src/features/auth/constants/plans.ts` (re-export via index; sem alteração de conteúdo)
-- `src/features/auth/constants/queryKeys.ts` (re-export via index; sem alteração de conteúdo)
-- `src/features/auth/constants/registerValidation.ts` (re-export via index; sem alteração de conteúdo)
-- `src/features/auth/components/CompanyRegisterForm/constants.ts` (remover após migração)
-- `src/features/auth/components/LoginForm.tsx`
-- `src/features/auth/components/ChangePasswordForm/ChangePasswordForm.tsx`
-- `src/features/auth/components/CompanyRegisterForm/CompanyRegisterForm.tsx`
-- `src/features/auth/components/CompanyRegisterForm/RegisterPassword/RegisterPasswordField.tsx`
-- `src/features/auth/components/CompanyRegisterForm/RegisterPassword/RegisterConfirmPasswordField.tsx`
-- `src/features/auth/components/ValidateRegisterTokenForm/ValidateRegisterTokenForm.tsx`
-- `src/features/auth/validators/password/password.ts`
-- `src/features/auth/components/ChangePasswordForm/ChangePasswordForm.spec.tsx` (novo)
-- `.cursor/skills/react/conventions.md` (documentar padrão)
+- `src/proxy.ts` (novo — proteção de rotas no Next.js 16)
+- `src/lib/auth/session.ts` (novo)
+- `src/lib/auth/route-guards.ts` (novo — lógica testável extraída do proxy)
+- `src/config/navigation.ts` (novo — itens do menu)
+- `src/components/layout/AppSidebar.tsx` (novo)
+- `src/components/layout/AppSidebar.spec.tsx` (novo)
+- `src/components/layout/AppShell.tsx` (novo — Client Component com `SidebarProvider`)
+- `src/components/layout/PageContainer.tsx` (novo — container padrão de páginas internas)
+- `src/components/ui/sidebar.tsx` e dependências geradas pelo shadcn (novo)
+- `src/app/(app)/layout.tsx` (novo)
+- `src/app/(app)/dashboard/page.tsx` (mover de `src/app/dashboard/page.tsx`)
+- `src/app/(app)/appointments/page.tsx` (novo — placeholder “Agenda”)
+- `src/app/(app)/staff/page.tsx` (novo — placeholder “Usuários”)
+- `src/app/dashboard/page.tsx` (remover após migração)
+- `src/features/auth/constants/authRoutes.ts` (atualizar/estender rotas protegidas, se necessário)
 
 ## Contrato de API utilizado
 
@@ -47,179 +45,125 @@ Nenhum.
 
 ## Dependências/configurações necessárias
 
-Nenhuma.
-
-## Estrutura do constants central
-
-### O que mover para `src/features/auth/constants/`
-
-| Constante atual | Origem | Destino | Nome final |
-|---|---|---|---|
-| `REGISTER_INPUT_CLASS_NAME` | `CompanyRegisterForm/constants.ts` | `formStyles.ts` | `AUTH_FORM_INPUT_CLASS_NAME` |
-| `REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME` | `CompanyRegisterForm/constants.ts` | `formStyles.ts` | `AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME` |
-| `LOGIN_INPUT_CLASS_NAME` | `LoginForm.tsx` (local) | `formStyles.ts` | `AUTH_FORM_INPUT_CLASS_NAME` (mesma constante) |
-| `INPUT_CLASS_NAME` | `ChangePasswordForm.tsx` (local) | `formStyles.ts` | `AUTH_FORM_INPUT_CLASS_NAME` (mesma constante) |
-| `PASSWORD_REQUIREMENTS_TOOLTIP` | `validators/password/password.ts` | `passwordTooltips.ts` | manter nome |
-| `CONFIRM_NEW_PASSWORD_TOOLTIP` | `validators/password/password.ts` | `passwordTooltips.ts` | manter nome |
-
-**Canônico de estilo:** usar a string de `REGISTER_INPUT_CLASS_NAME` como base (inclui `disabledFormControlClassName` e `aria-[invalid=true]:ring-2`), unificando pequenas diferenças entre login e change-password.
-
-### O que manter em arquivos separados dentro de `constants/`
-
-| Arquivo | Conteúdo | Motivo |
-|---|---|---|
-| `authRoutes.ts` | rotas de navegação auth | domínio de roteamento |
-| `plans.ts` | opções de plano | dados de domínio |
-| `queryKeys.ts` | chaves TanStack Query | infra de cache |
-| `registerValidation.ts` | chaves de sessão/localStorage do registro | domínio específico do fluxo |
-
-### Entry point central
-
-Criar **`src/features/auth/constants/index.ts`** como barrel público da feature (equivalente ao `constants.ts` solicitado, evitando conflito entre arquivo `constants.ts` e pasta `constants/` no mesmo nível).
-
-Exports esperados:
-
-```ts
-export * from "./formStyles";
-export * from "./passwordTooltips";
-export * from "./authRoutes";
-export * from "./plans";
-export * from "./queryKeys";
-export * from "./registerValidation";
-```
-
-Imports recomendados após migração:
-
-- Dentro de `features/auth/components/*`: `from "../../constants"` ou `from "../constants"` conforme profundidade
-- Cruzando módulos distantes: `@/features/auth/constants`
-
-### O que remover
-
-- `src/features/auth/components/CompanyRegisterForm/constants.ts` (conteúdo migrado; deletar arquivo)
-
-### O que permanece em `validators/password/password.ts`
-
-Somente lógica de validação (`getPasswordValidationError`, `getPasswordStrength`, tipos e helpers). Sem strings de tooltip.
-
----
-
-## Padrão para futuras features
-
-Documentar em `.cursor/skills/react/conventions.md` (nova seção **Constantes por feature**):
-
-1. **Pasta `constants/`** na raiz da feature para qualquer valor compartilhado entre 2+ arquivos da mesma feature.
-2. **`constants/index.ts`** como entry point único (barrel) — importar sempre de `../constants` ou `@/features/<feature>/constants`.
-3. **Arquivos temáticos** dentro de `constants/` quando houver agrupamento claro (`formStyles.ts`, `routes.ts`, `queryKeys.ts`).
-4. **Proibido** definir constantes compartilhadas inline em componentes ou em `constants.ts` dentro de subpastas de componente.
-5. **Validators/schemas** guardam apenas lógica e mensagens de erro de validação; tooltips, classNames e labels reutilizáveis ficam em `constants/`.
-6. **Features pequenas** podem usar um único `constants.ts` na raiz da feature; ao crescer, migrar para pasta `constants/` + `index.ts` sem alterar o padrão de import (`@/features/<feature>/constants`).
-
----
+- Adicionar componente shadcn/ui Sidebar (e dependências que o CLI instalar, ex.: `collapsible`, `tooltip` se ausentes):
+  ```bash
+  npx shadcn@latest add sidebar
+  ```
+- Verificar convenção Next.js 16.2.6: usar `src/proxy.ts` com export `proxy` e `ProxyConfig` (conforme `docs/architecture.md` e tipos `NextProxy`/`ProxyConfig` em `next/server`). Não criar `middleware.ts` em paralelo.
 
 ## Estratégia de testes
 
-- Unitário/componente: `src/features/auth/components/ChangePasswordForm/ChangePasswordForm.spec.tsx` (novo)
+- Unitário/componente:
+  - `src/lib/auth/route-guards.spec.ts`
+  - `src/lib/auth/session.spec.ts`
+  - `src/components/layout/AppSidebar.spec.tsx`
 - Cenários principais:
-  - Campo "Confirmar senha" inicia `disabled` quando nova senha está vazia ou inválida
-  - Campo "Confirmar senha" habilita quando nova senha atende `getPasswordValidationError(..., {}) === null`
-  - Ao invalidar nova senha após preencher confirmação, confirmação é limpa e volta a `disabled`
-  - Botão de exibir/ocultar confirmação respeita o mesmo `disabled`
-  - Submit continua bloqueado até formulário válido (`changePasswordSchema`)
-- Regressão: `npm run test` nos specs existentes (`changePasswordSchema.spec.ts`, `LoginForm.spec.tsx`, `companyRegisterSchema.spec.ts`) após atualizar imports
-
----
+  - Rota protegida sem cookie `accessToken` → decisão de redirect para `/login` com `callbackUrl` seguro
+  - Rota pública de auth (`/login`, `/register`) com cookie presente → redirect para `/dashboard`
+  - `/change-password` permanece acessível mesmo autenticado (fluxo de primeiro acesso)
+  - `getServerSession()` retorna `null`/ausente quando cookie inexistente; retorna sessão mínima quando cookie presente
+  - Sidebar renderiza 3 itens (Dashboard, Agenda, Usuários) com links corretos (`/dashboard`, `/appointments`, `/staff`)
+  - Item ativo reflete `pathname` atual
+  - Placeholders das páginas internas renderizam título esperado
 
 ## Passos de implementação
 
-### 1. Criar módulos centralizados de constantes
+### 1. Constantes de navegação e rotas protegidas
 
-- Arquivo: `src/features/auth/constants/formStyles.ts`
-- O que fazer: criar `AUTH_FORM_INPUT_CLASS_NAME` e `AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME` consolidando as strings duplicadas; importar `disabledFormControlClassName` de `@/lib/styles/disabled-field`.
+- Arquivo: `src/config/navigation.ts`
+- O que fazer: definir `APP_NAV_ITEMS` com label PT-BR e path alinhado à arquitetura:
+  - Dashboard → `/dashboard`
+  - Agenda → `/appointments`
+  - Usuários → `/staff`
+  Exportar também listas auxiliares (`PROTECTED_ROUTE_PREFIXES`, `AUTH_PUBLIC_ROUTES`, `AUTH_ROUTES_REDIRECT_WHEN_AUTHENTICATED`) para uso no proxy e nos testes.
+- Spec primeiro: Não aplicável (constantes puras; cobertura indireta via `route-guards.spec.ts`)
+- Depende de: Nenhum
+
+### 2. Utilitário de sessão server-side
+
+- Arquivo: `src/lib/auth/session.ts`
+- O que fazer: criar `getServerSession()` usando `cookies()` de `next/headers`. Ler cookie `accessToken`; se ausente, retornar `null`. Se presente, retornar objeto mínimo tipado (ex.: `{ isAuthenticated: true }` — sem expor token ao client). Criar `requireServerSession()` que redireciona para `/login` quando sessão ausente (uso opcional em páginas/layout server-side como camada extra).
+- Spec primeiro: `src/lib/auth/session.spec.ts`
+- Depende de: Nenhum
+
+### 3. Lógica testável de guardas de rota
+
+- Arquivo: `src/lib/auth/route-guards.ts`
+- O que fazer: extrair funções puras, ex.: `resolveProtectedRouteRedirect(pathname, hasAccessToken)` e `resolveAuthRouteRedirect(pathname, hasAccessToken)`, encapsulando regras de redirect. Validar `callbackUrl`/`next` de forma segura (apenas paths internos começando com `/`, rejeitando `//` e URLs externas).
+- Spec primeiro: `src/lib/auth/route-guards.spec.ts`
+- Depende de: Passo 1
+
+### 4. Proxy de proteção de rotas (Next.js 16)
+
+- Arquivo: `src/proxy.ts`
+- O que fazer: implementar export `proxy(request: NextRequest)` que:
+  1. Ignora assets estáticos via `matcher`/`config.matcher` adequado (`_next/static`, `_next/image`, favicon, imagens).
+  2. Verifica existência do cookie `accessToken` (checagem otimista — sem validar JWT no proxy).
+  3. Bloqueia rotas protegidas (`/dashboard`, `/appointments`, `/staff` e prefixos futuros do grupo `(app)`) redirecionando para `/login?callbackUrl=<path>` quando sem cookie.
+  4. Redireciona usuários autenticados que tentam acessar `/login` ou `/register` para `/dashboard`.
+  5. **Não** redireciona autenticados em `/change-password` nem `/register/validate-token`.
+  6. Não interfere em `POST /api/auth/*` (matcher ou early return para `/api/`).
+  Delegar decisões às funções do passo 3.
+- Spec primeiro: coberto por `src/lib/auth/route-guards.spec.ts` (proxy fino; evitar teste E2E do runtime Next no Vitest)
+- Depende de: Passos 1 e 3
+
+### 5. Instalar Sidebar shadcn/ui
+
+- Arquivo: `src/components/ui/sidebar.tsx` (+ arquivos gerados pelo CLI)
+- O que fazer: executar `npx shadcn@latest add sidebar`. Revisar imports gerados para usar alias `@/` conforme projeto. Não customizar tokens além do necessário.
 - Spec primeiro: Não aplicável
 - Depende de: Nenhum
 
-### 2. Extrair tooltips de senha para constants
+### 6. Sidebar do app
 
-- Arquivo: `src/features/auth/constants/passwordTooltips.ts`
-- O que fazer: mover `PASSWORD_REQUIREMENTS_TOOLTIP` e `CONFIRM_NEW_PASSWORD_TOOLTIP` de `password.ts`; remover exports de tooltip do validator.
-- Spec primeiro: Não aplicável
-- Depende de: Nenhum
+- Arquivo: `src/components/layout/AppSidebar.tsx`
+- O que fazer: Client Component usando primitivos shadcn Sidebar. Renderizar logo/título do app, lista de navegação a partir de `APP_NAV_ITEMS`, ícones Lucide (`LayoutDashboard`, `Calendar`, `Users`). Destacar item ativo via `usePathname()`. Links com `next/link`. Sem chamadas de API. Garantir `aria-label` em botões de ícone e navegação por teclado (preservar acessibilidade do shadcn).
+- Spec primeiro: `src/components/layout/AppSidebar.spec.tsx`
+- Depende de: Passos 1 e 5
 
-### 3. Criar barrel central da feature
+### 7. Shell de layout autenticado
 
-- Arquivo: `src/features/auth/constants/index.ts`
-- O que fazer: re-exportar todos os módulos de `constants/` incluindo os novos; garantir resolução de import `@/features/auth/constants`.
-- Spec primeiro: Não aplicável
-- Depende de: Passos 1 e 2
-
-### 4. Migrar imports nos componentes auth
-
-- Arquivo: `LoginForm.tsx`, `ChangePasswordForm.tsx`, `CompanyRegisterForm.tsx`, `RegisterPasswordField.tsx`, `RegisterConfirmPasswordField.tsx`, `ValidateRegisterTokenForm.tsx`
-- O que fazer: substituir constantes locais e imports antigos por `@/features/auth/constants` (ou caminho relativo curto conforme convenção híbrida); usar `AUTH_FORM_INPUT_CLASS_NAME` / `AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME` e tooltips centralizados.
-- Spec primeiro: Não aplicável
-- Depende de: Passo 3
-
-### 5. Remover arquivo duplicado de componente
-
-- Arquivo: `src/features/auth/components/CompanyRegisterForm/constants.ts`
-- O que fazer: deletar após todos os imports migrados; confirmar que nenhum import residual aponta para `./constants` local.
-- Spec primeiro: Não aplicável
-- Depende de: Passo 4
-
-### 6. Bloquear confirmar senha no ChangePasswordForm
-
-- Arquivo: `src/features/auth/components/ChangePasswordForm/ChangePasswordForm.tsx`
+- Arquivo: `src/components/layout/AppShell.tsx`, `src/components/layout/PageContainer.tsx`
 - O que fazer:
-  - `watch("newPassword")` e `watch("confirmNewPassword")`
-  - `isNewPasswordValid = useMemo(() => getPasswordValidationError(newPassword, {}) === null, [newPassword])`
-  - `useEffect`: se `!isNewPasswordValid && confirmNewPassword`, chamar `form.setValue("confirmNewPassword", "", { shouldValidate: true })`
-  - Aplicar `disabled={!isNewPasswordValid}` no `Input` de confirmação e no botão de toggle de visibilidade
-  - Aplicar `disabledFieldClassName` no botão de toggle (mesmo padrão de `RegisterConfirmPasswordField`)
-  - Manter validação final no `changePasswordSchema` (sem duplicar regra no componente além do gate de UX)
-- Spec primeiro: `ChangePasswordForm.spec.tsx`
-- Depende de: Passo 4
-
-### 7. Escrever spec de componente do ChangePasswordForm
-
-- Arquivo: `src/features/auth/components/ChangePasswordForm/ChangePasswordForm.spec.tsx`
-- O que fazer: seguir padrão de `LoginForm.spec.tsx` (mock de `useChangePassword`, `useRouter`, `ChangePasswordOverlays`); cobrir cenários de disabled/enabled/clear descritos na estratégia de testes.
-- Spec primeiro: este arquivo
+  - `AppShell`: Client Component com `SidebarProvider`, `AppSidebar`, área principal (`SidebarInset` ou equivalente) e slot `{children}`.
+  - `PageContainer`: wrapper server-friendly com padding/responsividade padrão para conteúdo das páginas.
+- Spec primeiro: Não aplicável (coberto indiretamente pelo spec da sidebar e smoke das páginas)
 - Depende de: Passo 6
 
-### 8. Documentar padrão de constants em conventions
+### 8. Layout do grupo de rotas `(app)`
 
-- Arquivo: `.cursor/skills/react/conventions.md`
-- O que fazer: adicionar seção **Constantes por feature** conforme definido acima; incluir exemplo de estrutura e regra de proibição de constantes compartilhadas em componentes.
+- Arquivo: `src/app/(app)/layout.tsx`
+- O que fazer: Server Component que envolve `{children}` com `AppShell`. Opcionalmente chamar `getServerSession()` e `redirect('/login')` como defesa em profundidade (proxy já protege). Manter layout enxuto — sem lógica de domínio.
 - Spec primeiro: Não aplicável
-- Depende de: Passos 1–5 concluídos (para documentar estrutura final real)
+- Depende de: Passos 2 e 7
 
----
+### 9. Migrar Dashboard e criar placeholders
+
+- Arquivo: `src/app/(app)/dashboard/page.tsx`, `src/app/(app)/appointments/page.tsx`, `src/app/(app)/staff/page.tsx`
+- O que fazer:
+  - Mover conteúdo atual de `src/app/dashboard/page.tsx` para `(app)/dashboard/page.tsx`, adaptando para usar `PageContainer` e título via `PageHeader` (se criado) ou heading simples.
+  - Criar placeholders em `appointments` (“Agenda — em breve”) e `staff` (“Usuários — em breve”).
+  - Remover `src/app/dashboard/page.tsx` antigo para evitar rota duplicada fora do grupo protegido.
+  - Manter URLs públicas inalteradas: `/dashboard`, `/appointments`, `/staff` (grupo `(app)` não altera URL).
+- Spec primeiro: Não aplicável (conteúdo estático; validar manualmente ou snapshot mínimo se desejado)
+- Depende de: Passo 8
+
+### 10. Ajustes finais de rotas auth e verificação
+
+- Arquivo: `src/features/auth/constants/authRoutes.ts` (se necessário)
+- O que fazer: garantir consistência das constantes de redirect pós-login (`AUTH_ROUTES.dashboard` continua `/dashboard`). Confirmar que `LoginForm` e links da landing continuam funcionando após migração. Rodar `npm run test`, `npm run lint`, `npm run build`.
+- Spec primeiro: Não aplicável
+- Depende de: Passos 4 e 9
 
 ## Riscos / atenções
 
-- Unificação de classNames pode alterar levemente aparência do login/change-password (ex.: adição de estilos `disabled:` e `ring-2` no estado inválido); validar visualmente nos três formulários.
-- `constants/index.ts` + pasta `constants/` exige cuidado para não criar também `src/features/auth/constants.ts` na raiz (conflito de resolução de módulo).
-- `RegisterConfirmPasswordField` usa `@/` para tooltip enquanto outros usam relativo — aproveitar migração para padronizar imports conforme skill híbrida.
-- Gate de UX no change-password usa contexto vazio `{}` (correto para troca de senha); cadastro continua passando contexto com dados pessoais no schema/validator.
-- Acessibilidade: campo disabled deve permanecer associado ao `Label`; tooltip de confirmação já informa dependência da senha válida.
-
----
-
-## Critérios de aceite
-
-1. Não existe constante compartilhada de className ou tooltip definida inline em componentes auth ou em `CompanyRegisterForm/constants.ts`.
-2. `AUTH_FORM_INPUT_CLASS_NAME` é usada por Login, Register, Change Password e demais campos de formulário auth que hoje duplicam estilo.
-3. `AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME` é usada por `ValidateRegisterTokenForm`.
-4. Tooltips de senha importados exclusivamente de `@/features/auth/constants` (ou barrel relativo equivalente).
-5. `password.ts` contém apenas lógica de validação (sem tooltips).
-6. Em `/change-password`, o campo "Confirmar senha" e seu botão de visibilidade ficam `disabled` até a nova senha ser válida.
-7. Se a nova senha ficar inválida após digitar confirmação, o valor de confirmação é limpo automaticamente.
-8. Comportamento de submit inalterado: botão só habilita com formulário válido e sem `isPending`.
-9. Spec `ChangePasswordForm.spec.tsx` cobre os três cenários de gate (disabled inicial, habilita com senha válida, limpa ao invalidar).
-10. `.cursor/skills/react/conventions.md` documenta o padrão para novas features.
-11. `npm run test`, `npm run lint` e `npm run build` passam sem erros.
-
----
+- **Next.js 16 proxy vs middleware:** usar `src/proxy.ts` com export `proxy`; confirmar na documentação local (`node_modules/next/dist/docs/` ou tipos em `next/server`) antes de implementar — não manter os dois arquivos.
+- **Segurança em camadas:** o proxy faz checagem otimista de cookie; validação real de token permanece nos Route Handlers (`change-password` já lê `accessToken`). Não decodificar/expor JWT em Client Components.
+- **Open redirect:** sanitizar `callbackUrl`/`next` ao redirecionar para login pós-auth.
+- **`/change-password`:** usuário autenticado com `passwordChangeRequired` precisa acessar a rota — excluir do redirect “auth → dashboard”.
+- **Sidebar mobile:** shadcn Sidebar usa `Sheet` em viewport pequeno — validar toggle e foco.
+- **Escopo de menu vs arquitetura:** labels “Agenda” e “Usuários” no menu; paths `/appointments` e `/staff` conforme `docs/architecture.md` (não criar `/agenda` ou `/usuarios` para evitar divergência futura).
+- **Duplicação:** centralizar itens de menu em `src/config/navigation.ts`; não hardcodar links no sidebar e nas páginas separadamente.
 
 ## Checklist final
 
@@ -236,5 +180,5 @@ Documentar em `.cursor/skills/react/conventions.md` (nova seção **Constantes p
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
 - [x] `npm run test` sem erros quando aplicável
-- [ ] `npm run lint` sem erros (5 erros pré-existentes em main: Table/index.tsx, create-pr-on-approval.js)
+- [ ] `npm run lint` sem erros (5 erros pré-existentes fora do escopo: Table/index.tsx, create-pr-on-approval.js)
 - [x] `npm run build` sem erros
