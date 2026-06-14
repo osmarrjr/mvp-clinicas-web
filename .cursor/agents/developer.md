@@ -193,6 +193,7 @@ Regras mínimas obrigatórias:
 
 Proibido:
 
+- fazer `git commit`, `git push` ou criar Pull Request (responsabilidade do orchestrator, somente após confirmação manual do usuário);
 - criar funcionalidades extras;
 - alterar contrato de API sem previsão no plano;
 - alterar arquitetura sem previsão no plano;

@@ -83,7 +83,7 @@ Ao finalizar, gravar `.cursor/qa-result.json`.
 }
 ```
 
-O hook de PR só dispara quando `"approved": true`.
+O hook de PR só dispara quando `"approved": true`. O hook **não autoriza** commit nem PR — apenas sugere os próximos passos e pede confirmação manual.
 
 ---
 
@@ -99,7 +99,7 @@ O hook de PR só dispara quando `"approved": true`.
 | Fluxos do plano | ✅     |
 | Regressão       | ✅     |
 
-Validação de QA aprovada. Orchestrator pode seguir para criação do PR.
+Validação de QA aprovada. Orchestrator deve apresentar resumo e **aguardar confirmação manual** do usuário antes de commit e PR.
 ```
 
 ---
@@ -146,6 +146,6 @@ O ciclo é controlado pelo agente `orchestrator`.
 
 ```txt
 orchestrator → qa
-qa → aprovado → orchestrator → PR
+qa → aprovado → orchestrator → aguarda confirmação manual → commit + PR (se confirmado)
 qa → reprovado → orchestrator → developer → validator → qa
 ```

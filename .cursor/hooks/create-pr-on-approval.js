@@ -85,17 +85,21 @@ const prBody = [
   `## QA`,
   qaSummary,
   `---`,
-  `> PR gerado automaticamente após aprovação do agente \`qa\`.`,
+  `> PR sugerido após aprovação do agente \`qa\` — aguardando confirmação manual do usuário.`,
   `> Implementação conforme [\`plano.md\`](plano.md). Revisão humana necessária antes do merge.`,
 ]
   .filter(Boolean)
   .join("\n\n");
 
-// 7. Instrução de followup para o agente principal executar o fluxo git + PR
+// 7. Instrução de followup — aguardar confirmação manual antes de git/PR
 const followup = `\
 ✅ O QA aprovou a implementação — testes e checklist do plano.md completo.
 
-Execute o fluxo abaixo para abrir o PR de revisão:
+**Revise a implementação antes de commitar.** O commit e o PR **não serão executados automaticamente**.
+
+Deseja que eu faça commit, push e abra o PR? Responda explicitamente (ex.: "pode commitar e criar o PR").
+
+Quando confirmar, o fluxo será:
 
 **1. Commit das alterações:**
 \`\`\`
@@ -108,7 +112,7 @@ git commit -m "feat: ${titulo}"
 git push -u origin HEAD
 \`\`\`
 
-**3. Criar o PR como draft para revisão:**
+**3. Criar o PR para revisão:**
 \`\`\`
 gh pr create \\
   --title "feat: ${titulo}" \\
@@ -116,7 +120,7 @@ gh pr create \\
   --draft
 \`\`\`
 
-O PR será aberto como **draft**. Revise e aprove antes do merge.`;
+Até sua confirmação, nenhum comando git ou gh será executado.`;
 
 process.stdout.write(JSON.stringify({ followup_message: followup }));
 process.exit(0);

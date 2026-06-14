@@ -26,12 +26,12 @@ Este projeto usa quatro agentes especializados. Invoque-os nesta ordem:
 
 ```
 planner → plano.md → developer → validator → ❌ código → developer (loop até 3x)
-                                            → ✅ código → PR draft (hook automático)
+                                            → ✅ código → aguarda confirmação manual → commit + PR
 
 deploy (paralelo): devops → infra/plano-deploy.md → configs → deploy
 ```
 
-Ao final da aprovação pelo `validator`, um **hook** dispara automaticamente e instrui o agente a fazer commit, push e abrir um **PR draft** descritivo para revisão humana.
+Após aprovação do QA, o **orchestrator** apresenta o resumo e **aguarda confirmação manual** do usuário antes de commit, push e abertura de PR. Um hook pode sugerir os próximos passos, mas **não executa** git nem `gh` automaticamente.
 
 ---
 
@@ -95,7 +95,9 @@ Feedback de endpoints: modal de erro sempre; modal de sucesso apenas em criaçã
 
 ---
 
-## Checklist antes de abrir PR
+## Checklist antes de abrir PR (após confirmação manual)
+
+Só abrir PR quando o usuário confirmar explicitamente.
 
 [ ] Specs unitárias/componentes escritas e passando (`npm run test`)
 [ ] `npm run lint` e `npm run build` sem erros
