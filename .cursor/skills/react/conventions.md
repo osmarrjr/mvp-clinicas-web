@@ -50,6 +50,37 @@ import { Button } from '../../../../components/ui/button';
 
 ---
 
+## Constantes por feature
+
+1. **Pasta `constants/`** na raiz da feature para qualquer valor compartilhado entre 2+ arquivos da mesma feature.
+2. **`constants/index.ts`** como entry point único (barrel) — importar sempre de `../constants` ou `@/features/<feature>/constants`.
+3. **Arquivos temáticos** dentro de `constants/` quando houver agrupamento claro (`formStyles.ts`, `routes.ts`, `queryKeys.ts`).
+4. **Proibido** definir constantes compartilhadas inline em componentes ou em `constants.ts` dentro de subpastas de componente.
+5. **Validators/schemas** guardam apenas lógica e mensagens de erro de validação; tooltips, classNames e labels reutilizáveis ficam em `constants/`.
+6. **Features pequenas** podem usar um único `constants.ts` na raiz da feature; ao crescer, migrar para pasta `constants/` + `index.ts` sem alterar o padrão de import (`@/features/<feature>/constants`).
+
+Exemplo de estrutura:
+
+```txt
+src/features/auth/constants/
+  index.ts
+  formStyles.ts
+  passwordTooltips.ts
+  authRoutes.ts
+  plans.ts
+  queryKeys.ts
+  registerValidation.ts
+```
+
+Imports recomendados:
+
+```ts
+import { AUTH_FORM_INPUT_CLASS_NAME } from "../constants";
+import { AUTH_ROUTES } from "@/features/auth/constants";
+```
+
+---
+
 ## Nomeação
 
 Componentes:

@@ -16,9 +16,7 @@ import {
 import type { CompanyRegisterFormValues } from "../../../schemas/companyRegisterSchema";
 import { disabledFieldClassName } from "@/lib/styles/disabled-field";
 
-const CONFIRM_PASSWORD_TOOLTIP =
-  "Digite uma senha válida no campo acima antes de confirmar.";
-
+import { CONFIRM_NEW_PASSWORD_TOOLTIP } from "../../../constants";
 type RegisterConfirmPasswordFieldProps = {
   form: UseFormReturn<CompanyRegisterFormValues>;
   passwordValue: string;
@@ -83,7 +81,7 @@ export function RegisterConfirmPasswordField({
               align="center"
               className="max-w-[260px] text-center"
             >
-              {CONFIRM_PASSWORD_TOOLTIP}
+              {CONFIRM_NEW_PASSWORD_TOOLTIP}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -11,13 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { AUTH_ROUTES } from "../constants/authRoutes";
-import { useLogin } from "../hooks/useLogin";
+import { AUTH_FORM_INPUT_CLASS_NAME, AUTH_ROUTES } from "../constants";
+import { useLogin } from "../hooks/auth/useLogin";
 import { loginSchema, type LoginFormValues } from "../schemas/loginSchema";
 import { LoginFormOverlays } from "./LoginFormOverlays";
-
-const LOGIN_INPUT_CLASS_NAME =
-  "h-12 w-full rounded-2xl border border-white/40 bg-white/95 px-4 text-base text-slate-900 shadow-sm outline-none placeholder:text-sm placeholder:text-slate-400 transition focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-300/50 aria-[invalid=true]:border-red-300 aria-[invalid=true]:ring-red-200";
 
 export function LoginForm() {
   const router = useRouter();
@@ -110,7 +107,7 @@ export function LoginForm() {
                 autoComplete="email"
                 placeholder="seuemail@exemplo.com"
                 aria-invalid={Boolean(emailError)}
-                className={LOGIN_INPUT_CLASS_NAME}
+                className={AUTH_FORM_INPUT_CLASS_NAME}
                 {...form.register("email")}
               />
 
@@ -136,7 +133,7 @@ export function LoginForm() {
                   autoComplete="current-password"
                   placeholder="Digite sua senha"
                   aria-invalid={Boolean(passwordError)}
-                  className={LOGIN_INPUT_CLASS_NAME}
+                  className={AUTH_FORM_INPUT_CLASS_NAME}
                   {...form.register("password")}
                 />
 

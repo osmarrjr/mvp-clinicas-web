@@ -1,6 +1,3 @@
-export const PASSWORD_REQUIREMENTS_TOOLTIP =
-  "Mínimo de 8 caracteres, máximo de 20, com letras, números, pelo menos uma letra maiúscula e um caractere especial (ex.: !, @, #).";
-
 export type PasswordValidationContext = {
   companyName?: string;
   taxId?: string;

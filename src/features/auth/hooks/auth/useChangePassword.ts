@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { getErrorMessage } from "@/lib/api/error-messages";
 
-import type { ChangePasswordFormValues } from "../schemas/changePasswordSchema";
-import { changePasswordClientService } from "../services/changePassword/changePasswordClientService";
+import type { ChangePasswordFormValues } from "../../schemas/changePasswordSchema";
+import { changePasswordClientService } from "../../services/changePassword/changePasswordClientService";
 
 export function useChangePassword() {
   const [isPending, setIsPending] = useState(false);

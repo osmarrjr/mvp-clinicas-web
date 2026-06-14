@@ -8,9 +8,9 @@ import { useForm } from "react-hook-form";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME } from "../CompanyRegisterForm/constants";
+import { AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME } from "../../constants";
 import { REGISTER_VALIDATION_EMAIL_KEY } from "../../constants/registerValidation";
-import { useValidateRegisterToken } from "../../hooks/useValidateRegisterToken";
+import { useValidateRegisterToken } from "../../hooks/auth/useValidateRegisterToken";
 import {
   registerTokenSchema,
   type RegisterTokenFormValues,
@@ -139,7 +139,7 @@ export function ValidateRegisterTokenForm() {
               <RegisterTokenDigitInputs
                 value={tokenValue}
                 onChange={handleTokenChange}
-                inputClassName={REGISTER_TOKEN_DIGIT_INPUT_CLASS_NAME}
+                inputClassName={AUTH_TOKEN_DIGIT_INPUT_CLASS_NAME}
                 ariaDescribedBy={
                   showTokenHint ? "register-token-hint" : undefined
                 }
