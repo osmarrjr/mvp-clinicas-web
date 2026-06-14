@@ -13,7 +13,7 @@ export function LogoutButton() {
     <DropdownMenuItem
       variant="destructive"
       disabled={isPending}
-      className="px-4 py-4 "
+      className="px-4 py-4 hover:bg-none"
       onSelect={(event) => {
         event.preventDefault();
         void logout();

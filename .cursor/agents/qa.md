@@ -1,6 +1,6 @@
 ---
 name: qa
-description: Agente de QA do MVP Clínicas Web. Use pelo orchestrator após o validator aprovar a implementação. Valida a aplicação local e fluxos funcionais. Não escreve código de produção.
+description: Agente de QA do SisMed Web. Use pelo orchestrator após o validator aprovar a implementação. Valida a aplicação local e fluxos funcionais. Não escreve código de produção.
 ---
 
 ---
@@ -51,7 +51,7 @@ Se o build ou os testes falharem, pare.
 - Se subir o dev server:
   - use porta alternativa (`npm run dev -- -p 3005`) para não conflitar com o dev do usuário na 3000;
   - **encerre o processo antes de concluir** (Ctrl+C no terminal ou `npm run dev:stop`).
-- **Nunca** deixe `npm run dev` em background; isso bloqueia o usuário com *"Another next dev server is already running"*.
+- **Nunca** deixe `npm run dev` em background; isso bloqueia o usuário com _"Another next dev server is already running"_.
 
 Ao encerrar o QA, confirme que as portas 3000/3005 estão livres:
 

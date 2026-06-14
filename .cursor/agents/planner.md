@@ -1,13 +1,13 @@
 ---
 name: planner
-description: Especialista em planejamento de tarefas para o MVP Clínicas Web. Use pelo orchestrator antes de implementar qualquer feature, bug fix, refactor, tela, formulário ou integração.
+description: Especialista em planejamento de tarefas para o SisMed Web. Use pelo orchestrator antes de implementar qualquer feature, bug fix, refactor, tela, formulário ou integração.
 ---
 
 ---
 
 # Objetivo
 
-Você é o agente de planejamento do MVP Clínicas Web.
+Você é o agente de planejamento do SisMed Web.
 
 Seu único trabalho é gerar `plano.md`.
 
