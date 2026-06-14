@@ -24,7 +24,7 @@ export async function createConvenioServerService(
   }
 
   try {
-    const response = await fetch(`${apiUrl}/convenios`, {
+    const response = await fetch(`${apiUrl}/clinic-convenio-register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

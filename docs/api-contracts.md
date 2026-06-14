@@ -661,7 +661,7 @@ interface ChangeStatusDto {
 
 > **Provisório:** o endpoint abaixo **não consta** no Swagger v0.1.0. Contrato alinhado ao formulário de cadastro do frontend; revisar quando o backend publicar o recurso em [`/docs-json`](https://api.portalsismed.com.br/docs-json).
 
-### POST /convenios
+### POST /clinic-convenio-register
 
 Cadastra um convênio (ou plano particular) vinculado à clínica autenticada.
 

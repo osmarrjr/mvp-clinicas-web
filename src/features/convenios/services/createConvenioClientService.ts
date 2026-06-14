@@ -5,7 +5,7 @@ import { buildCreateConvenioPayload } from "./createConvenioPayload";
 export async function createConvenioClientService(
   payload: CreateConvenioFormValues,
 ): Promise<CreateConvenioResponse> {
-  const response = await fetch("/api/convenios", {
+  const response = await fetch("/clinic-convenio-register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
