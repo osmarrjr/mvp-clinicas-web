@@ -182,7 +182,7 @@ export function GlobalModal({
                 variant="ghost"
                 onClick={onCancel}
                 disabled={loading}
-                className="h-10 px-5 text-sm font-medium text-primary"
+                className="h-10 px-5 text-sm font-medium"
               >
                 {cancelLabel}
               </Button>
@@ -194,8 +194,7 @@ export function GlobalModal({
                 onClick={onConfirm}
                 disabled={loading || confirmDisabled}
                 className={cn(
-                  "h-10 min-w-[120px] px-5 text-sm font-medium text-white",
-                  "bg-primary ",
+                  "h-10 min-w-[120px] px-5 text-sm font-medium",
                   "disabled:cursor-not-allowed disabled:opacity-60",
                 )}
               >

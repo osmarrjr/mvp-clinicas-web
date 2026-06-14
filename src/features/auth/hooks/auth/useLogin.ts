@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { getErrorMessage } from "@/lib/api/error-messages";
+import { setStoredUser } from "@/lib/auth/user-storage";
 
 import type { LoginFormValues } from "../../schemas/loginSchema";
 import type { LoginClientData } from "../../types";
@@ -35,7 +36,10 @@ export function useLogin() {
 
       if (response.data.passwordChangeRequired) {
         setPasswordChangeRequired(true);
+        return null;
       }
+
+      setStoredUser(response.data.user);
 
       return response.data;
     } catch {

@@ -15,3 +15,11 @@ export const validateRegisterTokenRequestSchema = registerTokenSchema.extend({
 export type ValidateRegisterTokenRequest = z.infer<
   typeof validateRegisterTokenRequestSchema
 >;
+
+export const resendRegisterTokenRequestSchema = z.object({
+  email: z.string().min(1, "Email é obrigatório.").email("Email inválido."),
+});
+
+export type ResendRegisterTokenRequest = z.infer<
+  typeof resendRegisterTokenRequestSchema
+>;

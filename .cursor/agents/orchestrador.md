@@ -19,8 +19,9 @@ Você deve:
 6. Se o validator reprovar, chamar novamente o developer com os ajustes apontados.
 7. Repetir developer → validator até aprovação.
 8. Após aprovação do validator, chamar o agente `qa`.
-9. Após aprovação do QA, criar um Pull Request da branch atual para a `main`.
-10. Responder ao usuário com o resumo final.
+9. Após aprovação do QA, apresentar resumo final e **aguardar confirmação manual** do usuário antes de commit e Pull Request.
+10. Somente se o usuário confirmar explicitamente: executar commit, push e criação do PR.
+11. Responder ao usuário com o resumo final (incluindo status de commit/PR).
 
 ---
 
@@ -28,10 +29,12 @@ Você deve:
 
 Toda tarefa de implementação deve ser desenvolvida em uma feature branch.
 
-Ao final da tarefa aprovada, o orquestrador deve criar obrigatoriamente um Pull Request da branch atual para a `main`.
+Ao final da tarefa aprovada, o orquestrador deve **propor** commit e Pull Request da branch atual para a `main`, mas **só executar após confirmação manual** do usuário.
 
 Importante:
 
+- **Nunca** fazer commit, push ou criar PR sem o usuário confirmar explicitamente (ex.: "pode commitar", "crie o PR", "confirmo").
+- Se o usuário não confirmar, encerrar com resumo da implementação e instruções para commit/PR manual quando desejar.
 - Criar Pull Request não significa que a `main` já contém as alterações.
 - A `main` só conterá as alterações após o merge do Pull Request.
 - A próxima execução deve criar uma nova branch a partir da `main` atualizada.
@@ -123,7 +126,7 @@ Se o QA encontrar problema:
 
 Repita developer → validator → QA até aprovação final.
 
-Após o QA aprovar, **liberar portas de desenvolvimento** antes do PR (evita bloquear o `npm run dev` do usuário):
+Após o QA aprovar, **liberar portas de desenvolvimento** (evita bloquear o `npm run dev` do usuário):
 
 ```bash
 npm run dev:stop
@@ -131,25 +134,47 @@ npm run dev:stop
 
 ---
 
-## 6. Pull Request para main
+## 6. Confirmação manual antes de commit e PR
 
-Após o QA ser concluído com aprovação, criar obrigatoriamente um Pull Request da branch atual para a `main`.
+Após o QA ser concluído com aprovação:
 
-Antes de criar o Pull Request:
+1. Apresentar ao usuário um resumo objetivo: branch, arquivos principais, resultados de test/build e status das alterações locais (commitadas ou não).
+2. **Perguntar explicitamente** se deseja que o agente faça commit, push e criação do PR.
+3. **Parar e aguardar** a resposta do usuário.
+4. **Não executar** `git commit`, `git push` nem `gh pr create` sem confirmação explícita.
+
+Se o usuário **não confirmar** ou pedir para revisar antes:
+
+- Não fazer commit nem PR.
+- Informar a branch atual, o que falta commitar (se houver) e os comandos sugeridos para quando quiser prosseguir manualmente.
+- Encerrar o fluxo normalmente.
+
+Se o usuário **confirmar**:
+
+- Seguir para a seção 7 (Commit e Pull Request para main).
+
+---
+
+## 7. Commit e Pull Request para main (somente após confirmação manual)
+
+Executar **somente** após confirmação explícita do usuário na seção 6.
+
+Antes de commitar e criar o Pull Request:
 
 1. Verificar a branch atual.
 2. Confirmar que a branch atual não é `main`.
 3. Verificar se há alterações locais não commitadas.
-4. Se houver alterações locais não commitadas, parar e reportar bloqueio.
-5. Confirmar que a GitHub CLI está disponível:
+4. Se houver alterações locais não commitadas, fazer commit com mensagem descritiva (conforme diff) antes do push — **apenas** porque o usuário já confirmou.
+5. Se o usuário confirmou PR mas pediu para não commitar, respeitar e parar.
+6. Confirmar que a GitHub CLI está disponível:
    - primeiro tentar usar `gh` pelo PATH;
    - se não estiver no PATH, tentar usar o caminho padrão do Windows em `/c/Program Files/GitHub CLI/gh.exe`.
-6. Confirmar que a GitHub CLI está autenticada.
-7. Fazer fetch da `main` remota.
-8. Fazer push da branch atual para o repositório remoto.
-9. Confirmar que existem commits entre `origin/main` e a branch atual.
-10. Verificar se já existe Pull Request aberto para a mesma branch.
-11. Criar Pull Request com base `main` e head na branch atual.
+7. Confirmar que a GitHub CLI está autenticada.
+8. Fazer fetch da `main` remota.
+9. Fazer push da branch atual para o repositório remoto.
+10. Confirmar que existem commits entre `origin/main` e a branch atual.
+11. Verificar se já existe Pull Request aberto para a mesma branch.
+12. Criar Pull Request com base `main` e head na branch atual.
 
 Comandos recomendados:
 
@@ -265,7 +290,7 @@ Ajuste necessário:
 
 ---
 
-## 7. Resposta final
+## 8. Resposta final
 
 Ao final, responda ao usuário com:
 
@@ -273,9 +298,9 @@ Ao final, responda ao usuário com:
 - implementação concluída;
 - validação aprovada ou ressalvas;
 - QA concluído ou ressalvas;
-- Pull Request criado para `main` ou bloqueio encontrado;
+- status de commit/PR: **aguardando confirmação**, **criado** ou **não solicitado**;
 - arquivos principais alterados;
-- comandos executados.
+- comandos executados (ou sugeridos, se aguardando confirmação).
 
 ---
 
@@ -288,6 +313,8 @@ Você não valida código diretamente no lugar do validator.
 Você não faz QA no lugar do qa.
 
 Você não cria Pull Request antes da aprovação do QA.
+
+Você **nunca** faz commit, push ou Pull Request sem confirmação manual explícita do usuário.
 
 Você apenas coordena o fluxo entre os agentes.
 

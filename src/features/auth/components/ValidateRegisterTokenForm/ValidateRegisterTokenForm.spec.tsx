@@ -61,18 +61,24 @@ function setupValidateTokenMock(
   overrides?: Partial<ReturnType<typeof useValidateRegisterToken>>,
 ) {
   const validateTokenMock = vi.fn(async () => null);
+  const resendTokenMock = vi.fn(async () => null);
 
   useValidateRegisterTokenMock.mockReturnValue({
     validateToken: validateTokenMock,
+    resendToken: resendTokenMock,
     isPending: false,
     isSuccess: false,
     errorMessage: null,
     clearError: vi.fn(),
     resetSuccess: vi.fn(),
+    isResendPending: false,
+    isResendSuccess: false,
+    resendErrorMessage: null,
+    clearResendStatus: vi.fn(),
     ...overrides,
   });
 
-  return { validateTokenMock };
+  return { validateTokenMock, resendTokenMock };
 }
 
 describe("ValidateRegisterTokenForm", () => {
@@ -118,27 +124,57 @@ describe("ValidateRegisterTokenForm", () => {
     ).toBe("6");
   });
 
-  it("dispara validação automaticamente ao completar 6 dígitos", async () => {
-    const { validateTokenMock } = setupValidateTokenMock();
+  it("mantém botão Validar desabilitado enquanto token incompleto", async () => {
+    const user = userEvent.setup();
+    render(<ValidateRegisterTokenForm />);
+
+    expect(screen.getByRole("button", { name: /validar/i })).toHaveProperty(
+      "disabled",
+      true,
+    );
+
+    await pasteToken(user, "12345");
+
+    expect(screen.getByRole("button", { name: /validar/i })).toHaveProperty(
+      "disabled",
+      true,
+    );
+  });
+
+  it("habilita botão Validar ao completar 6 dígitos", async () => {
     const user = userEvent.setup();
     render(<ValidateRegisterTokenForm />);
 
     await pasteToken(user, "123456");
 
-    await waitFor(() => {
-      expect(validateTokenMock).toHaveBeenCalledWith({
-        email: "clinica@example.com",
-        token: "123-456",
-      });
-    });
+    expect(screen.getByRole("button", { name: /validar/i })).toHaveProperty(
+      "disabled",
+      false,
+    );
   });
 
-  it("não chama service antes de 6 dígitos", async () => {
+  it("dispara validação ao clicar em Validar com token completo", async () => {
     const { validateTokenMock } = setupValidateTokenMock();
     const user = userEvent.setup();
     render(<ValidateRegisterTokenForm />);
 
-    await pasteToken(user, "12345");
+    await pasteToken(user, "123456");
+    await user.click(screen.getByRole("button", { name: /validar/i }));
+
+    await waitFor(() => {
+      expect(validateTokenMock).toHaveBeenCalledWith({
+        email: "clinica@example.com",
+        token: "123456",
+      });
+    });
+  });
+
+  it("não chama service antes de clicar em Validar", async () => {
+    const { validateTokenMock } = setupValidateTokenMock();
+    const user = userEvent.setup();
+    render(<ValidateRegisterTokenForm />);
+
+    await pasteToken(user, "123456");
 
     expect(validateTokenMock).not.toHaveBeenCalled();
   });
@@ -189,6 +225,7 @@ describe("ValidateRegisterTokenForm", () => {
     const { rerender } = render(<ValidateRegisterTokenForm />);
 
     await pasteToken(user, "123456");
+    await user.click(screen.getByRole("button", { name: /validar/i }));
 
     await waitFor(() => {
       expect(validateTokenMock).toHaveBeenCalledTimes(1);
@@ -234,11 +271,12 @@ describe("ValidateRegisterTokenForm", () => {
     expect(screen.queryByText(errorMessage)).toBeNull();
 
     await pasteToken(user, "654321");
+    await user.click(screen.getByRole("button", { name: /validar/i }));
 
     await waitFor(() => {
       expect(validateTokenMock).toHaveBeenCalledWith({
         email: "clinica@example.com",
-        token: "654-321",
+        token: "654321",
       });
     });
 
@@ -258,5 +296,54 @@ describe("ValidateRegisterTokenForm", () => {
     render(<ValidateRegisterTokenForm />);
 
     expect(pushMock).toHaveBeenCalledWith("/register");
+  });
+
+  it("chama resendToken ao clicar em reenviar", async () => {
+    const { resendTokenMock } = setupValidateTokenMock();
+    const user = userEvent.setup();
+
+    render(<ValidateRegisterTokenForm />);
+
+    await user.click(screen.getByRole("button", { name: /reenviar token/i }));
+
+    expect(resendTokenMock).toHaveBeenCalledWith({
+      email: "clinica@example.com",
+    });
+  });
+
+  it("bloqueia reenvio por 60 segundos após clicar", async () => {
+    const { resendTokenMock } = setupValidateTokenMock();
+    const user = userEvent.setup();
+
+    render(<ValidateRegisterTokenForm />);
+
+    await user.click(screen.getByRole("button", { name: /reenviar token/i }));
+
+    expect(resendTokenMock).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole("button", { name: /reenviar token \(60s\)/i }),
+    ).toHaveProperty("disabled", true);
+  });
+
+  it("exibe mensagem de sucesso após reenvio", () => {
+    setupValidateTokenMock({ isResendSuccess: true });
+
+    render(<ValidateRegisterTokenForm />);
+
+    expect(
+      screen.getByText(/token reenviado para o email informado/i),
+    ).toBeTruthy();
+  });
+
+  it("exibe modal de erro em falha do reenvio", () => {
+    setupValidateTokenMock({
+      resendErrorMessage: "Não foi possível reenviar o token.",
+    });
+
+    render(<ValidateRegisterTokenForm />);
+
+    expect(
+      screen.getByText("Não foi possível reenviar o token."),
+    ).toBeTruthy();
   });
 });

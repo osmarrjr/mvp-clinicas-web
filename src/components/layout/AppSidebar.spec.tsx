@@ -3,8 +3,7 @@ import { render, screen } from "@testing-library/react";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { APP_NAV_ITEMS } from "@/config/navigation";
-import { AppSidebar } from "./AppSidebar";
+import { APP_NAV_ITEMS, AppSidebar } from "./AppSidebar";
 
 vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: () => false,
@@ -34,7 +33,9 @@ vi.mock("next/link", () => ({
 function renderAppSidebar() {
   return render(
     <TooltipProvider>
-      <SidebarProvider>
+      <SidebarProvider
+        style={{ "--sidebar-width-icon": "6rem" } as React.CSSProperties}
+      >
         <AppSidebar />
       </SidebarProvider>
     </TooltipProvider>,
@@ -43,7 +44,7 @@ function renderAppSidebar() {
 
 describe("AppSidebar", () => {
   beforeEach(() => {
-    usePathnameMock.mockReturnValue("/dashboard");
+    usePathnameMock.mockReturnValue("/agenda/lista");
   });
 
   it("renders navigation items with correct labels and links", () => {
@@ -56,14 +57,14 @@ describe("AppSidebar", () => {
   });
 
   it("highlights the active item based on pathname", () => {
-    usePathnameMock.mockReturnValue("/appointments");
+    usePathnameMock.mockReturnValue("/agenda/agendamentos");
 
     renderAppSidebar();
 
     expect(screen.getByRole("link", { name: "Agenda" }).getAttribute("data-active")).toBe(
       "true",
     );
-    expect(screen.getByRole("link", { name: "Dashboard" }).getAttribute("data-active")).toBe(
+    expect(screen.getByRole("link", { name: "Convênios" }).getAttribute("data-active")).toBe(
       "false",
     );
   });

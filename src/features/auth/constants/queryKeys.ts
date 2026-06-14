@@ -7,4 +7,5 @@ export const ibgeQueryKeys = {
 export const authMutationKeys = {
   register: ["auth", "register"] as const,
   validateRegisterToken: ["auth", "validate-register-token"] as const,
+  resendRegisterToken: ["auth", "resend-register-token"] as const,
 };

@@ -1,78 +1,41 @@
 "use client";
 
-import Link from "next/link";
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { Calendar, LayoutDashboard, Users } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
-import { APP_NAV_ITEMS } from "@/config/navigation";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarProvider, SidebarRail } from "@/components/ui/sidebar";
 
-const NAV_ICONS: Record<string, LucideIcon> = {
-  "/dashboard": LayoutDashboard,
-  "/appointments": Calendar,
-  "/staff": Users,
-};
+import { AppSidebarHeader } from "./sidebar/AppSidebarHeader";
+import { SIDEBAR_ICON_WIDTH, SIDEBAR_MOBILE_WIDTH } from "./sidebar/config";
+import { MainNavigation } from "./sidebar/MainNavigation";
+import { useCompactNav } from "./sidebar/utils";
 
-function isNavItemActive(pathname: string, itemPath: string): boolean {
-  return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
-}
+export { APP_NAV_ITEMS } from "./sidebar/config";
+export type { AppNavItem } from "./sidebar/types";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { isMobile } = useCompactNav();
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-          <span className="truncate">MVP Clínicas</span>
-        </Link>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {APP_NAV_ITEMS.map((item) => {
-                const Icon = NAV_ICONS[item.path];
-                const isActive = isNavItemActive(pathname, item.path);
-
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-                      <Link
-                        href={item.path}
-                        aria-label={item.label}
-                        data-active={isActive ? "true" : "false"}
-                      >
-                        {Icon ? <Icon aria-hidden="true" /> : null}
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+    <Sidebar collapsible="icon" mobileWidth={SIDEBAR_MOBILE_WIDTH}>
+      <AppSidebarHeader isMobile={isMobile} />
+      <MainNavigation pathname={pathname} />
       <SidebarRail />
     </Sidebar>
   );
 }
 
-export function AppSidebarProvider({ children }: { children: React.ReactNode }) {
-  return <SidebarProvider>{children}</SidebarProvider>;
+export function AppSidebarProvider({ children }: { children: ReactNode }) {
+  return (
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width-icon": SIDEBAR_ICON_WIDTH,
+        } as React.CSSProperties
+      }
+    >
+      {children}
+    </SidebarProvider>
+  );
 }

@@ -61,8 +61,9 @@ export function PlanSelectionStep({ onSelectPlan }: PlanSelectionStepProps) {
 
               <Button
                 type="button"
-                className="h-11 w-full rounded-2xl bg-[linear-gradient(90deg,#1e3a8a_0%,#2563eb_45%,#38bdf8_100%)] font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:scale-[1.01]"
                 onClick={() => onSelectPlan(plan.id)}
+                variant="default"
+                className="w-full"
               >
                 Selecionar {plan.name}
               </Button>
