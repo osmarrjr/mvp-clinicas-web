@@ -1,7 +1,9 @@
 import { execSync } from "node:child_process";
-import { join } from "node:path";
+import { rmSync } from "node:fs";
+import { join, resolve } from "node:path";
 
 const PORTS = [3000, 3001, 3005];
+const PROJECT_DIR = resolve(import.meta.dirname, "..");
 
 function collectListeningPids(port) {
   const output = execSync("netstat -ano", { encoding: "utf8" });
@@ -32,7 +34,7 @@ function killPid(pid) {
   execSync(`kill -9 ${pid}`, { stdio: "ignore" });
 }
 
-function killOrphanProjectNodeProcesses() {
+function killOrphanNextProcesses() {
   if (process.platform !== "win32") {
     return 0;
   }
@@ -65,13 +67,20 @@ for (const port of PORTS) {
   }
 }
 
-const orphanKilled = killOrphanProjectNodeProcesses();
+const orphanKilled = killOrphanNextProcesses();
 if (orphanKilled > 0) {
   console.log(
     `Encerrados ${orphanKilled} processo(s) Node órfãos do Next.js/projeto.`,
   );
 }
 
+try {
+  rmSync(resolve(PROJECT_DIR, ".next"), { recursive: true, force: true });
+  console.log("Cache .next removido.");
+} catch {
+  console.warn("Não foi possível remover .next.");
+}
+
 if (killed === 0 && orphanKilled === 0) {
-  console.log("Nenhum servidor dev encontrado nas portas 3000, 3001 ou 3005.");
+  console.log("Nenhum servidor dev encontrado. Cache .next limpo.");
 }
