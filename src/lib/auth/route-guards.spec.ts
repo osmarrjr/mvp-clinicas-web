@@ -27,6 +27,8 @@ describe("isProtectedRoute", () => {
     expect(isProtectedRoute("/appointments")).toBe(true);
     expect(isProtectedRoute("/staff")).toBe(true);
     expect(isProtectedRoute("/staff/1")).toBe(true);
+    expect(isProtectedRoute("/usuarios")).toBe(true);
+    expect(isProtectedRoute("/usuarios/listar")).toBe(true);
     expect(isProtectedRoute("/login")).toBe(false);
   });
 });

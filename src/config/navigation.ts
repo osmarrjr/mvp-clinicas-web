@@ -6,13 +6,14 @@ export type AppNavItem = {
 export const APP_NAV_ITEMS: AppNavItem[] = [
   { label: "Dashboard", path: "/dashboard" },
   { label: "Agenda", path: "/appointments" },
-  { label: "Usuários", path: "/staff" },
+  { label: "Usuários", path: "/usuarios/listar" },
 ];
 
 export const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
   "/appointments",
   "/staff",
+  "/usuarios",
   "/convenios",
 ] as const;
 
