@@ -65,7 +65,7 @@ export function ConvenioRegisterForm() {
 
   return (
     <>
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold text-primary">
             Cadastrar convênio
