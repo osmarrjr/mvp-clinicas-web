@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 
+import { AUTH_SHELL_BORDER, AUTH_SHELL_FOREGROUND } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
 import { SIDEBAR_MOBILE_WIDTH } from "./config";
@@ -58,7 +59,9 @@ export function MobileSidebarOverlay({ children }: MobileSidebarOverlayProps) {
         aria-hidden={!openMobile}
         data-slot="sidebar-mobile"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-sidebar text-sidebar-foreground transition-transform duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r transition-transform duration-200 ease-out",
+          AUTH_SHELL_BORDER,
+          AUTH_SHELL_FOREGROUND,
           openMobile
             ? "pointer-events-auto translate-x-0"
             : "pointer-events-none -translate-x-full",

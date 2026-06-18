@@ -2,35 +2,37 @@ import { ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-import { getNavIconClass, getNavLabelClass } from "./styles";
+import { getNavIconClass, getNavLabelClass, type MenuSurface } from "./styles";
 import type { AppNavItem } from "./types";
 
 type NavLinkContentProps = {
   item: AppNavItem;
-  isActive: boolean;
+  isActive?: boolean;
   compact?: boolean;
   showChevron?: boolean;
+  surface?: MenuSurface;
 };
 
 export function NavLinkContent({
   item,
-  isActive,
+  isActive = false,
   compact = false,
   showChevron = false,
+  surface = "flyout",
 }: NavLinkContentProps) {
   const Icon = item.icon;
 
   return (
     <>
-      <Icon aria-hidden="true" className={getNavIconClass(isActive, compact)} />
+      <Icon aria-hidden="true" className={getNavIconClass(isActive, compact, surface)} />
 
-      <span className={getNavLabelClass(isActive, compact)}>{item.label}</span>
+      <span className={getNavLabelClass(isActive, compact, surface)}>{item.label}</span>
 
       {showChevron ? (
         <ChevronRight
           aria-hidden="true"
           className={cn(
-            getNavIconClass(isActive),
+            getNavIconClass(isActive, false, surface),
             "group-data-[collapsed=true]:hidden",
           )}
         />

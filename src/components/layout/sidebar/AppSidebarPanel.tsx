@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { AUTH_SHELL_BORDER } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
 import { SIDEBAR_EXPANDED_WIDTH, SIDEBAR_ICON_WIDTH } from "./config";
@@ -23,7 +24,7 @@ export function AppSidebarPanel({ children }: AppSidebarPanelProps) {
 
   return (
     <div
-      className="group peer hidden text-sidebar-foreground md:block"
+      className="group peer hidden md:block"
       data-state={state}
       data-slot="sidebar"
     >
@@ -37,6 +38,7 @@ export function AppSidebarPanel({ children }: AppSidebarPanelProps) {
         data-side="left"
         className={cn(
           "fixed inset-y-0 left-0 z-30 hidden h-svh overflow-visible border-r transition-[width] duration-200 ease-linear md:flex",
+          AUTH_SHELL_BORDER,
         )}
         style={
           {

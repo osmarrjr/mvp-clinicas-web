@@ -1,11 +1,27 @@
+import {
+  AUTH_SHELL_BASE_BG,
+  AUTH_SHELL_OVERLAY_BG,
+} from "@/lib/theme/auth-shell-gradient";
+import { cn } from "@/lib/utils";
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <main className="relative isolate min-h-dvh w-full overflow-y-auto overflow-x-hidden bg-[#0b1748]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,#1e3a8a_0%,#172554_42%,#0b1748_100%)]" />
+    <main
+      className={cn(
+        "relative isolate min-h-dvh w-full overflow-y-auto overflow-x-hidden",
+        AUTH_SHELL_BASE_BG,
+      )}
+    >
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0",
+          AUTH_SHELL_OVERLAY_BG,
+        )}
+      />
 
       <div className="pointer-events-none absolute left-1/2 top-[-140px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-sky-300/10 blur-3xl" />
 

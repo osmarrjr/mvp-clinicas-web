@@ -10,7 +10,6 @@ import {
 } from "./styles";
 import type { AppNavItem } from "./types";
 import {
-  isNavItemActive,
   useCloseMobileSidebarOnNavigate,
   useCompactNav,
 } from "./utils";
@@ -24,7 +23,6 @@ type NavMenuItemProps = {
 
 function NavMobileClickFlyout({
   item,
-  pathname,
   isActive,
   compact,
 }: NavMenuItemProps) {
@@ -50,11 +48,16 @@ function NavMobileClickFlyout({
     <li ref={rootRef} className="relative overflow-visible">
       <button
         type="button"
-        className={getMenuItemClass(isActive, compact)}
+        className={getMenuItemClass(isActive, compact, { surface: "sidebar" })}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
-        <NavLinkContent item={item} isActive={isActive} compact={compact} />
+        <NavLinkContent
+          item={item}
+          isActive={isActive}
+          compact={compact}
+          surface="sidebar"
+        />
       </button>
 
       {open ? (
@@ -62,11 +65,7 @@ function NavMobileClickFlyout({
           <div className={FLYOUT_PANEL_CLASS}>
             <div className="space-y-1">
               {item.children?.map((child) => (
-                <NavChildLink
-                  key={child.path}
-                  item={child}
-                  isActive={isNavItemActive(pathname, child.path)}
-                />
+                <NavChildLink key={child.path} item={child} />
               ))}
             </div>
           </div>
@@ -78,7 +77,6 @@ function NavMobileClickFlyout({
 
 function NavHoverFlyout({
   item,
-  pathname,
   isActive,
   compact,
 }: NavMenuItemProps) {
@@ -90,7 +88,7 @@ function NavHoverFlyout({
         href={item.path}
         aria-label={item.label}
         data-active={isActive ? "true" : "false"}
-        className={getMenuItemClass(isActive, compact)}
+        className={getMenuItemClass(isActive, compact, { surface: "sidebar" })}
         onClick={closeMobileSidebar}
       >
         <NavLinkContent
@@ -98,6 +96,7 @@ function NavHoverFlyout({
           isActive={isActive}
           compact={compact}
           showChevron={!compact}
+          surface="sidebar"
         />
       </Link>
 
@@ -105,11 +104,7 @@ function NavHoverFlyout({
         <div className={FLYOUT_PANEL_CLASS}>
           <div className="space-y-1">
             {item.children?.map((child) => (
-              <NavChildLink
-                key={child.path}
-                item={child}
-                isActive={isNavItemActive(pathname, child.path)}
-              />
+              <NavChildLink key={child.path} item={child} />
             ))}
           </div>
         </div>
@@ -127,10 +122,15 @@ function NavSimpleItem({ item, isActive, compact }: NavMenuItemProps) {
         href={item.path}
         aria-label={item.label}
         data-active={isActive ? "true" : "false"}
-        className={getMenuItemClass(isActive, compact)}
+        className={getMenuItemClass(isActive, compact, { surface: "sidebar" })}
         onClick={closeMobileSidebar}
       >
-        <NavLinkContent item={item} isActive={isActive} compact={compact} />
+        <NavLinkContent
+          item={item}
+          isActive={isActive}
+          compact={compact}
+          surface="sidebar"
+        />
       </Link>
     </li>
   );
