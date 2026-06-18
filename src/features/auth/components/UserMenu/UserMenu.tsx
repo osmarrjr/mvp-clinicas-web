@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Bell,
   HelpCircle,
+  LogOut,
   Settings,
   UserRound,
   type LucideIcon,
@@ -28,13 +29,16 @@ import { cn } from "@/lib/utils";
 import { getUserDisplayName } from "@/lib/auth/user-storage";
 
 import { AUTH_ROUTES } from "../../constants";
+import { useLogout } from "../../hooks/auth/useLogout";
 import { useStoredUser } from "../../hooks/auth/useStoredUser";
 import type { LoginUser } from "../../types";
-import { LogoutButton } from "../LogoutButton/LogoutButton";
 import {
   USER_MENU_ICON_CLASS,
   USER_MENU_ITEM_CLASS,
   USER_MENU_LABEL_CLASS,
+  USER_MENU_LOGOUT_ICON_CLASS,
+  USER_MENU_LOGOUT_ITEM_CLASS,
+  USER_MENU_LOGOUT_LABEL_CLASS,
 } from "./userMenuStyles";
 
 const GRADIENT_BACKGROUND = AUTH_SHELL_ACCENT_GRADIENT;
@@ -81,6 +85,7 @@ function getUserInitials(user: LoginUser): string {
 
 export function UserMenu() {
   const user = useStoredUser();
+  const { logout, isPending: isLoggingOut } = useLogout();
   const displayName = user ? getUserDisplayName(user) : "Usuário";
 
   return (
@@ -191,7 +196,20 @@ export function UserMenu() {
 
           <DropdownMenuSeparator className="mt-3 mx-2 bg-slate-200" />
 
-          <LogoutButton />
+          <DropdownMenuItem
+            disabled={isLoggingOut}
+            className={USER_MENU_LOGOUT_ITEM_CLASS}
+            aria-label="Sair"
+            onSelect={(event) => {
+              event.preventDefault();
+              void logout();
+            }}
+          >
+            <LogOut aria-hidden="true" className={USER_MENU_LOGOUT_ICON_CLASS} />
+            <span className={USER_MENU_LOGOUT_LABEL_CLASS}>
+              {isLoggingOut ? "Saindo..." : "Sair"}
+            </span>
+          </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

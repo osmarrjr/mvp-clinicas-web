@@ -5,22 +5,29 @@ import { LogOut } from "lucide-react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useLogout } from "../../hooks/auth/useLogout";
+import {
+  USER_MENU_LOGOUT_ICON_CLASS,
+  USER_MENU_LOGOUT_ITEM_CLASS,
+  USER_MENU_LOGOUT_LABEL_CLASS,
+} from "../UserMenu/userMenuStyles";
 
 export function LogoutButton() {
   const { logout, isPending } = useLogout();
 
   return (
     <DropdownMenuItem
-      variant="destructive"
       disabled={isPending}
-      className="px-4 py-4 hover:bg-none"
+      className={USER_MENU_LOGOUT_ITEM_CLASS}
+      aria-label="Sair"
       onSelect={(event) => {
         event.preventDefault();
         void logout();
       }}
     >
-      <LogOut />
-      {isPending ? "Saindo..." : "Sair"}
+      <LogOut aria-hidden="true" className={USER_MENU_LOGOUT_ICON_CLASS} />
+      <span className={USER_MENU_LOGOUT_LABEL_CLASS}>
+        {isPending ? "Saindo..." : "Sair"}
+      </span>
     </DropdownMenuItem>
   );
 }

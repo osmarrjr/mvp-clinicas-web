@@ -39,8 +39,13 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("../LogoutButton/LogoutButton", () => ({
-  LogoutButton: () => <button type="button">Sair</button>,
+const logoutMock = vi.fn();
+
+vi.mock("../../hooks/auth/useLogout", () => ({
+  useLogout: () => ({
+    logout: logoutMock,
+    isPending: false,
+  }),
 }));
 
 describe("UserMenu", () => {
@@ -72,6 +77,19 @@ describe("UserMenu", () => {
     expect(
       screen.getByRole("menuitem", { name: /perfil/i }).getAttribute("href"),
     ).toBe("/profile");
-    expect(screen.getByRole("button", { name: /sair/i })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeTruthy();
+  });
+
+  it("chama logout ao clicar em Sair", async () => {
+    const user = userEvent.setup();
+
+    render(<UserMenu />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Abrir menu do usuário" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: /sair/i }));
+
+    expect(logoutMock).toHaveBeenCalledTimes(1);
   });
 });

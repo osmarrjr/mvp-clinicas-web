@@ -20,7 +20,8 @@ export function useLogout() {
     } finally {
       clearStoredUser();
       setIsPending(false);
-      router.push(AUTH_ROUTES.login);
+      router.replace(AUTH_ROUTES.login);
+      router.refresh();
     }
   }
 

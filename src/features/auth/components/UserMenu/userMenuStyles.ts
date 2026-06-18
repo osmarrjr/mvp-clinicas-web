@@ -21,3 +21,17 @@ export const USER_MENU_ITEM_CLASS = cn(
 export const USER_MENU_ICON_CLASS = cn("size-4 shrink-0", USER_MENU_ICON);
 
 export const USER_MENU_LABEL_CLASS = USER_MENU_TEXT;
+
+export const USER_MENU_LOGOUT_ITEM_CLASS = cn(
+  USER_MENU_ITEM_CLASS,
+  "text-red-600 hover:bg-red-50 hover:text-red-700",
+  "focus:bg-red-50 focus:text-red-700",
+  "data-[highlighted]:bg-red-50 data-[highlighted]:text-red-700",
+  "[&_svg]:text-red-600",
+  "focus:[&_svg]:!text-red-600",
+  "data-[highlighted]:[&_svg]:!text-red-600",
+);
+
+export const USER_MENU_LOGOUT_ICON_CLASS = cn("size-4 shrink-0", "text-red-600");
+
+export const USER_MENU_LOGOUT_LABEL_CLASS = "text-red-600";
