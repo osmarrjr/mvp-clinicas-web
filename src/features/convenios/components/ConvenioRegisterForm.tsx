@@ -77,14 +77,14 @@ export function ConvenioRegisterForm() {
           </p>
         </header>
 
-        <Card className="mt-6 w-full shadow-none border">
+        <Card className="mt-6 w-full border border-blue-200/50 shadow-[0_8px_32px_rgba(37,99,235,0.18)] ring-1 ring-blue-500/10">
           <CardContent className="pt-6">
             <form
               className="space-y-6"
               onSubmit={form.handleSubmit(onSubmit)}
               noValidate
             >
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome do convênio</Label>
                   <Input
@@ -101,7 +101,7 @@ export function ConvenioRegisterForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="acronym">Sigla do nome do convênio</Label>
+                  <Label htmlFor="acronym">Sigla do convênio</Label>
                   <Input
                     id="acronym"
                     placeholder="Digite a sigla do convênio"
@@ -161,7 +161,7 @@ export function ConvenioRegisterForm() {
 
                 <div className="space-y-2">
                   <OptionalFieldLabel htmlFor="cardNumberMask">
-                    Máscara do número da carteira
+                    Formato da carteirinha
                   </OptionalFieldLabel>
                   <Input
                     id="cardNumberMask"

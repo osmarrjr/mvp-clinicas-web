@@ -1,6 +1,7 @@
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { AUTH_SHELL_GHOST_BUTTON } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
 import { useSidebar } from "./SidebarContext";
@@ -42,7 +43,7 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
               <img
                 src="/logo.png"
                 alt="Logo"
-                className="h-auto w-[160px] max-w-full cursor-default object-contain"
+                className="h-auto w-[160px] max-w-full cursor-default object-contain brightness-0 invert"
               />
             </div>
           </>
@@ -56,11 +57,12 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
           onClick={toggleSidebar}
           className={cn(
             "h-8 w-8 shrink-0 justify-self-end",
+            AUTH_SHELL_GHOST_BUTTON,
             isMobile && "self-center",
             "group-data-[collapsed=true]:self-center group-data-[collapsed=true]:justify-self-center",
           )}
         >
-          <ToggleIcon className="h-4 w-4" />
+          <ToggleIcon className="size-5 text-white" strokeWidth={2.25} />
           <span className="sr-only">Alternar menu lateral</span>
         </Button>
       </div>

@@ -3,8 +3,10 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
+import { AUTH_SHELL_FOREGROUND } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
+import { ShellGradientSurface } from "./ShellGradientSurface";
 import { AppSidebarHeader } from "./sidebar/AppSidebarHeader";
 import { AppSidebarPanel } from "./sidebar/AppSidebarPanel";
 import { MainNavigation } from "./sidebar/MainNavigation";
@@ -31,11 +33,17 @@ function SidebarInner({ pathname, isMobile }: SidebarInnerProps) {
       data-state={isMobile ? "expanded" : state}
       data-collapsed={isCollapsed ? "true" : "false"}
       className={cn(
-        "group/sidebar group flex size-full flex-col overflow-visible bg-sidebar text-sidebar-foreground",
+        "group/sidebar group flex size-full flex-col overflow-visible",
+        AUTH_SHELL_FOREGROUND,
       )}
     >
-      <AppSidebarHeader isMobile={isMobile} />
-      <MainNavigation pathname={pathname} />
+      <ShellGradientSurface
+        className="h-full min-h-0"
+        contentClassName="flex h-full min-h-0 flex-col"
+      >
+        <AppSidebarHeader isMobile={isMobile} />
+        <MainNavigation pathname={pathname} />
+      </ShellGradientSurface>
     </div>
   );
 }

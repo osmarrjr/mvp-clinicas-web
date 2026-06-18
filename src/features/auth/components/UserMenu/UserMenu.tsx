@@ -4,16 +4,12 @@ import Link from "next/link";
 import {
   Bell,
   HelpCircle,
+  LogOut,
   Settings,
   UserRound,
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  getMenuItemClass,
-  getNavIconClass,
-  getNavLabelClass,
-} from "@/components/layout/sidebar/styles";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,35 +20,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AUTH_SHELL_ACCENT_GRADIENT,
+  AUTH_SHELL_FOCUS_RING,
+  AUTH_SHELL_HOVER,
+} from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 import { getUserDisplayName } from "@/lib/auth/user-storage";
 
 import { AUTH_ROUTES } from "../../constants";
+import { useLogout } from "../../hooks/auth/useLogout";
 import { useStoredUser } from "../../hooks/auth/useStoredUser";
 import type { LoginUser } from "../../types";
-import { LogoutButton } from "../LogoutButton/LogoutButton";
+import {
+  USER_MENU_ICON_CLASS,
+  USER_MENU_ITEM_CLASS,
+  USER_MENU_LABEL_CLASS,
+  USER_MENU_LOGOUT_ICON_CLASS,
+  USER_MENU_LOGOUT_ITEM_CLASS,
+  USER_MENU_LOGOUT_LABEL_CLASS,
+} from "./userMenuStyles";
 
-const GRADIENT_BACKGROUND =
-  "bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_45%,#0ea5e9_100%)]";
-
-const USER_MENU_ICON_COLOR = "#2563eb";
-
-const USER_MENU_ITEM_CLASS = cn(
-  getMenuItemClass(false, false, { keepTextColorOnHover: true }),
-  "focus:!text-inherit data-[highlighted]:!text-inherit",
-);
-
-const USER_MENU_ICON_CLASS = cn(
-  getNavIconClass(false),
-  "[stroke:#2563eb!important]",
-);
-
-const USER_MENU_LABEL_CLASS = cn(
-  getNavLabelClass(false),
-  "group-focus/dropdown-menu-item:!bg-clip-text group-focus/dropdown-menu-item:!text-transparent",
-  "group-data-[highlighted]/dropdown-menu-item:!bg-clip-text",
-  "group-data-[highlighted]/dropdown-menu-item:!text-transparent",
-);
+const GRADIENT_BACKGROUND = AUTH_SHELL_ACCENT_GRADIENT;
 
 type UserMenuItem = {
   label: string;
@@ -96,6 +85,7 @@ function getUserInitials(user: LoginUser): string {
 
 export function UserMenu() {
   const user = useStoredUser();
+  const { logout, isPending: isLoggingOut } = useLogout();
   const displayName = user ? getUserDisplayName(user) : "Usuário";
 
   return (
@@ -104,7 +94,11 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-10 rounded-full p-0 hover:bg-transparent"
+          className={cn(
+            "size-10 rounded-full p-0 text-white",
+            AUTH_SHELL_HOVER,
+            AUTH_SHELL_FOCUS_RING,
+          )}
           aria-label="Abrir menu do usuário"
         >
           <div
@@ -193,7 +187,6 @@ export function UserMenu() {
                   <Icon
                     aria-hidden="true"
                     className={USER_MENU_ICON_CLASS}
-                    color={USER_MENU_ICON_COLOR}
                   />
                   <span className={USER_MENU_LABEL_CLASS}>{item.label}</span>
                 </Link>
@@ -203,7 +196,20 @@ export function UserMenu() {
 
           <DropdownMenuSeparator className="mt-3 mx-2 bg-slate-200" />
 
-          <LogoutButton />
+          <DropdownMenuItem
+            disabled={isLoggingOut}
+            className={USER_MENU_LOGOUT_ITEM_CLASS}
+            aria-label="Sair"
+            onSelect={(event) => {
+              event.preventDefault();
+              void logout();
+            }}
+          >
+            <LogOut aria-hidden="true" className={USER_MENU_LOGOUT_ICON_CLASS} />
+            <span className={USER_MENU_LOGOUT_LABEL_CLASS}>
+              {isLoggingOut ? "Saindo..." : "Sair"}
+            </span>
+          </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
