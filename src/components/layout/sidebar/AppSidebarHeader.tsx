@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+
+import { useSidebar } from "./SidebarContext";
 
 type AppSidebarHeaderProps = {
   isMobile: boolean;
@@ -16,11 +16,13 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
   const ToggleIcon = isSidebarOpen ? ChevronsLeft : ChevronsRight;
 
   return (
-    <SidebarHeader
+    <div
+      data-slot="sidebar-header"
+      data-sidebar="header"
       className={cn(
-        "px-3 py-4 mt-6",
+        "flex flex-col gap-2 px-3 py-4 mt-6",
         isMobile && "mt-0 px-0.5 py-2",
-        "group-data-[collapsible=icon]:mt-2 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-2",
+        "group-data-[collapsed=true]:mt-2 group-data-[collapsed=true]:px-1 group-data-[collapsed=true]:py-2",
       )}
     >
       <div
@@ -29,14 +31,14 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
           isMobile
             ? "flex flex-col gap-2"
             : "grid grid-cols-[32px_1fr_32px] gap-3",
-          "group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0",
+          "group-data-[collapsed=true]:flex group-data-[collapsed=true]:justify-center group-data-[collapsed=true]:gap-0",
         )}
       >
         {!isMobile ? (
           <>
             <div />
 
-            <div className="flex items-center justify-center group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center justify-center group-data-[collapsed=true]:hidden">
               <img
                 src="/logo.png"
                 alt="Logo"
@@ -55,13 +57,13 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
           className={cn(
             "h-8 w-8 shrink-0 justify-self-end",
             isMobile && "self-center",
-            "group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:justify-self-center",
+            "group-data-[collapsed=true]:self-center group-data-[collapsed=true]:justify-self-center",
           )}
         >
           <ToggleIcon className="h-4 w-4" />
           <span className="sr-only">Alternar menu lateral</span>
         </Button>
       </div>
-    </SidebarHeader>
+    </div>
   );
 }

@@ -1,12 +1,5 @@
 import Link from "next/link";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { useEffect, useRef, useState } from "react";
 
 import { NavChildLink } from "./NavChildLink";
 import { NavLinkContent } from "./NavLinkContent";
@@ -16,7 +9,11 @@ import {
   HOVER_FLYOUT_WRAPPER_CLASS,
 } from "./styles";
 import type { AppNavItem } from "./types";
-import { isNavItemActive } from "./utils";
+import {
+  isNavItemActive,
+  useCloseMobileSidebarOnNavigate,
+  useCompactNav,
+} from "./utils";
 
 type NavMenuItemProps = {
   item: AppNavItem;
@@ -25,61 +22,84 @@ type NavMenuItemProps = {
   compact: boolean;
 };
 
-function NavClickFlyout({
+function NavMobileClickFlyout({
   item,
   pathname,
   isActive,
   compact,
 }: NavMenuItemProps) {
-  return (
-    <SidebarMenuItem>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <SidebarMenuButton
-            isActive={isActive}
-            className={getMenuItemClass(isActive, compact)}
-          >
-            <NavLinkContent item={item} isActive={isActive} compact={compact} />
-          </SidebarMenuButton>
-        </DropdownMenuTrigger>
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLLIElement>(null);
 
-        <DropdownMenuContent
-          side="right"
-          align="start"
-          sideOffset={12}
-          className={FLYOUT_PANEL_CLASS}
-        >
-          {item.children?.map((child) => (
-            <DropdownMenuItem
-              key={child.path}
-              asChild
-              className="rounded-2xl p-0 focus:bg-transparent"
-            >
-              <NavChildLink
-                item={child}
-                isActive={isNavItemActive(pathname, child.path)}
-              />
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </SidebarMenuItem>
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
+  return (
+    <li ref={rootRef} className="relative overflow-visible">
+      <button
+        type="button"
+        className={getMenuItemClass(isActive, compact)}
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <NavLinkContent item={item} isActive={isActive} compact={compact} />
+      </button>
+
+      {open ? (
+        <div className="absolute left-full top-0 z-50 w-63 pl-3">
+          <div className={FLYOUT_PANEL_CLASS}>
+            <div className="space-y-1">
+              {item.children?.map((child) => (
+                <NavChildLink
+                  key={child.path}
+                  item={child}
+                  isActive={isNavItemActive(pathname, child.path)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </li>
   );
 }
 
-function NavHoverFlyout({ item, pathname, isActive }: NavMenuItemProps) {
+function NavHoverFlyout({
+  item,
+  pathname,
+  isActive,
+  compact,
+}: NavMenuItemProps) {
+  const closeMobileSidebar = useCloseMobileSidebarOnNavigate();
+
   return (
-    <SidebarMenuItem className="group/flyout relative overflow-visible">
-      <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
-        <Link
-          href={item.path}
-          aria-label={item.label}
-          data-active={isActive ? "true" : "false"}
-          className={getMenuItemClass(isActive)}
-        >
-          <NavLinkContent item={item} isActive={isActive} showChevron />
-        </Link>
-      </SidebarMenuButton>
+    <li className="group/flyout relative overflow-visible">
+      <Link
+        href={item.path}
+        aria-label={item.label}
+        data-active={isActive ? "true" : "false"}
+        className={getMenuItemClass(isActive, compact)}
+        onClick={closeMobileSidebar}
+      >
+        <NavLinkContent
+          item={item}
+          isActive={isActive}
+          compact={compact}
+          showChevron={!compact}
+        />
+      </Link>
 
       <div className={HOVER_FLYOUT_WRAPPER_CLASS}>
         <div className={FLYOUT_PANEL_CLASS}>
@@ -94,28 +114,25 @@ function NavHoverFlyout({ item, pathname, isActive }: NavMenuItemProps) {
           </div>
         </div>
       </div>
-    </SidebarMenuItem>
+    </li>
   );
 }
 
 function NavSimpleItem({ item, isActive, compact }: NavMenuItemProps) {
+  const closeMobileSidebar = useCloseMobileSidebarOnNavigate();
+
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive}
-        tooltip={compact ? undefined : item.label}
+    <li>
+      <Link
+        href={item.path}
+        aria-label={item.label}
+        data-active={isActive ? "true" : "false"}
+        className={getMenuItemClass(isActive, compact)}
+        onClick={closeMobileSidebar}
       >
-        <Link
-          href={item.path}
-          aria-label={item.label}
-          data-active={isActive ? "true" : "false"}
-          className={getMenuItemClass(isActive, compact)}
-        >
-          <NavLinkContent item={item} isActive={isActive} compact={compact} />
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+        <NavLinkContent item={item} isActive={isActive} compact={compact} />
+      </Link>
+    </li>
   );
 }
 
@@ -125,15 +142,21 @@ export function NavMenuItem({
   isActive,
   compact,
 }: NavMenuItemProps) {
+  const { isMobile } = useCompactNav();
+
   if (item.children?.length) {
-    return compact ? (
-      <NavClickFlyout
-        item={item}
-        pathname={pathname}
-        isActive={isActive}
-        compact={compact}
-      />
-    ) : (
+    if (isMobile) {
+      return (
+        <NavMobileClickFlyout
+          item={item}
+          pathname={pathname}
+          isActive={isActive}
+          compact={compact}
+        />
+      );
+    }
+
+    return (
       <NavHoverFlyout
         item={item}
         pathname={pathname}

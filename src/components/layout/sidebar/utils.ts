@@ -1,4 +1,6 @@
-import { useSidebar } from "@/components/ui/sidebar";
+import { useCallback } from "react";
+
+import { useSidebar } from "./SidebarContext";
 
 import type { AppNavItem } from "./types";
 
@@ -16,10 +18,6 @@ export function isItemOrChildrenActive(pathname: string, item: AppNavItem): bool
   );
 }
 
-export function hasChildren(item: AppNavItem): boolean {
-  return Boolean(item.children?.length);
-}
-
 export function useCompactNav() {
   const { state, isMobile } = useSidebar();
 
@@ -27,4 +25,14 @@ export function useCompactNav() {
     compact: isMobile || state === "collapsed",
     isMobile,
   };
+}
+
+export function useCloseMobileSidebarOnNavigate() {
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  return useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
 }
