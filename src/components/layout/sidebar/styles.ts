@@ -29,7 +29,15 @@ function getIconClass(isActive: boolean, compact = false) {
   );
 }
 
-export function getMenuItemClass(isActive: boolean, compact = false) {
+type MenuItemClassOptions = {
+  keepTextColorOnHover?: boolean;
+};
+
+export function getMenuItemClass(
+  isActive: boolean,
+  compact = false,
+  options?: MenuItemClassOptions,
+) {
   return cn(
     "flex h-auto w-full items-center gap-2 rounded-md text-sm font-medium leading-5 transition-colors cursor-pointer",
     compact
@@ -37,7 +45,10 @@ export function getMenuItemClass(isActive: boolean, compact = false) {
       : "px-2 py-3",
     isActive
       ? cn(GRADIENT_BACKGROUND_ACTIVE_ITEM, "!text-white hover:!text-white")
-      : "!bg-transparent hover:!bg-slate-200/90 hover:!text-blue-700",
+      : cn(
+          "!bg-transparent hover:!bg-slate-200/90",
+          !options?.keepTextColorOnHover && "hover:!text-blue-700",
+        ),
   );
 }
 
