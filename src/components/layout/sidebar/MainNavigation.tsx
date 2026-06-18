@@ -1,10 +1,3 @@
-import {
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 import { APP_NAV_ITEMS } from "./config";
@@ -20,15 +13,17 @@ export function MainNavigation({ pathname }: MainNavigationProps) {
 
   return (
     <>
-      <SidebarContent className="group-data-[state=expanded]:overflow-visible">
-        <SidebarGroup className="group-data-[collapsible=icon]:p-1">
-          <SidebarGroupContent>
-            <SidebarMenu
+      <nav
+        aria-label="Principal"
+        className="flex min-h-0 flex-1 flex-col overflow-visible"
+      >
+        <div className="overflow-visible group-data-[collapsed=true]:p-1">
+          <div className="overflow-visible">
+            <ul
               className={cn(
-                "space-y-1 px-2",
+                "space-y-1 overflow-visible px-2",
                 isMobile && "px-0.5",
-                "group-data-[collapsible=icon]:px-0.5",
-                "group-data-[state=expanded]:overflow-visible",
+                "group-data-[collapsed=true]:px-0.5",
               )}
             >
               {APP_NAV_ITEMS.map((item) => (
@@ -40,21 +35,21 @@ export function MainNavigation({ pathname }: MainNavigationProps) {
                   compact={compact}
                 />
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+            </ul>
+          </div>
+        </div>
+      </nav>
 
-      <SidebarFooter>
+      <div data-slot="sidebar-footer" data-sidebar="footer">
         <div
           className={cn(
-            "flex justify-center px-2 py-4 text-xs font-medium text-[#1B1C1E] group-data-[collapsible=icon]:hidden",
+            "flex justify-center px-2 py-4 text-xs font-medium text-[#1B1C1E] group-data-[collapsed=true]:hidden",
             isMobile && "hidden",
           )}
         >
           Versão 1.0
         </div>
-      </SidebarFooter>
+      </div>
     </>
   );
 }

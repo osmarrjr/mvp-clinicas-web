@@ -1,230 +1,314 @@
-# Plano: Listagem de usuários da clínica (GET /staff)
+# Plano: Refatoração da sidebar customizada (sem shadcn/radix sidebar)
 
 ## Contexto
 
-A sidebar já aponta **Usuários → Listar** para `/usuarios/listar`, mas a rota ainda não existe. Existe apenas um stub em `/staff` com mensagem "em breve". A tarefa implementa a tela de listagem dos membros da equipe cadastrados na clínica, consumindo `GET /staff` com autenticação e role `clinic_admin`, exibindo os dados em tabela com feedback de loading e erro conforme padrões do projeto.
+A sidebar atual depende de `src/components/ui/sidebar.tsx` (~716 linhas), que encapsula Radix Slot, Sheet (mobile), Tooltip, cookies, contexto complexo e múltiplos subcomponentes. Isso gera re-renders excessivos, dificulta manutenção e torna o layout lento. A tarefa substitui essa implementação por uma sidebar customizada leve, preservando comportamento visual, navegação (`APP_NAV_ITEMS`), estados ativos, flyouts (hover desktop / click mobile), tokens semânticos (`bg-sidebar`, `text-sidebar-foreground`) e integração com `AppShell`, usando apenas React, Next.js, Tailwind, lucide-react, `Button` shadcn e `cn`.
 
 ## Validação arquitetural
 
-- Feature: nova (`src/features/staff/`)
-- Reutiliza componente existente: sim (`DataTable`, `PageContainer`, `GlobalModal`, `Loading`)
-- Reutiliza GlobalModal / Loading / DataTable: sim
-- Reutiliza hook existente: não (novo `useStaffList`)
-- Reutiliza service existente: não (novos client/server services)
-- Reutiliza schema existente: não aplicável (GET sem body)
-- Reutiliza tipos existentes: sim (`AppRole` de `src/lib/auth/types.ts`; `StaffMember` conforme `docs/api-contracts.md`)
-- Usa shadcn/ui ou componente existente: sim (`DataTable` + `ui/table`)
+- Feature: existente (layout em `src/components/layout/`)
+- Reutiliza componente existente: sim (`AppSidebarHeader`, `MainNavigation`, `NavMenuItem`, `NavChildLink`, `NavLinkContent`, `config.ts`, `styles.ts`, `utils.ts`, `types.ts`)
+- Reutiliza GlobalModal / Loading / DataTable: não aplicável
+- Reutiliza hook existente: sim (`useIsMobile` em `src/hooks/use-mobile.ts`)
+- Reutiliza service existente: não aplicável
+- Reutiliza schema existente: não aplicável
+- Reutiliza tipos existentes: sim (`AppNavItem` em `sidebar/types.ts`)
+- Usa shadcn/ui ou componente existente: sim (`Button`); **não** usa `sidebar.tsx`
 - Exige novo componente shadcn/ui: não
-- Há impacto em autenticação: sim (Route Handler lê cookie HTTP-only; sem token → 401)
-- Há impacto em permissões/RBAC: sim (API exige `clinic_admin`; tratar `STAFF_FORBIDDEN` na UI)
-- Há impacto em contrato de API: não (consumo de contrato existente)
-- Há impacto em Route Handler: sim (novo `GET /api/staff`)
-- Exige teste unitário/componente: sim (SDD + cobertura de estados loading/erro/vazio/tabela)
+- Há impacto em autenticação: não
+- Há impacto em permissões/RBAC: não
+- Há impacto em contrato de API: não
+- Há impacto em Route Handler: não
+- Exige teste unitário/componente: sim (atualizar `AppSidebar.spec.tsx`; spec para novos módulos de contexto/overlay)
 
 ## Decisões de design
 
-### 1. Rota final: `/usuarios/listar`
+### 1. Context próprio leve (`SidebarContext.tsx`)
 
-- **Página principal:** `src/app/(app)/usuarios/listar/page.tsx` (alinha com sidebar em `src/components/layout/sidebar/config.ts`).
-- **Compatibilidade:** substituir stub `src/app/(app)/staff/page.tsx` por `redirect("/usuarios/listar")` para não quebrar links antigos.
-- **Proteção de rota:** adicionar prefixo `/usuarios` em `PROTECTED_ROUTE_PREFIXES` (`src/config/navigation.ts`).
-- **Nav legado:** atualizar item "Usuários" em `src/config/navigation.ts` de `/staff` para `/usuarios/listar`.
+Substituir `SidebarProvider` / `useSidebar` de shadcn por provider interno em `src/components/layout/sidebar/SidebarContext.tsx`:
 
-### 2. Feature folder: `src/features/staff/`
+| Estado | Tipo | Uso |
+|--------|------|-----|
+| `state` | `"expanded" \| "collapsed"` | Desktop: largura e layout compacto |
+| `open` | `boolean` | Desktop expandido vs colapsado (icon mode) |
+| `openMobile` | `boolean` | Drawer mobile visível |
+| `isMobile` | `boolean` | Derivado de `useIsMobile()` |
+| `toggleSidebar` | `() => void` | Alterna `open` (desktop) ou `openMobile` (mobile) |
+| `setOpenMobile` | `(open: boolean) => void` | Fechar overlay ao navegar ou clicar backdrop |
 
-- Domínio da API e da arquitetura (`docs/architecture.md` — bounded context **Staff**).
-- Rotas de UI permanecem em português (`/usuarios/...`); código de domínio segue nomenclatura da API (`staff`).
-- Mesmo padrão de `convenios`: feature em inglês/API, rotas de UI em PT.
+- **Sem cookies** na primeira entrega (shadcn persistia em cookie); estado inicial desktop `expanded`. Cookie pode ser adicionado depois se necessário — evita side effects no client na montagem.
+- **Sem atalho Ctrl/Cmd+B** (removido junto com shadcn); toggle apenas via botões existentes.
+- Context value memoizado com `useMemo`; callbacks com `useCallback`.
+- Exportar `SidebarProvider`, `useSidebar` e reutilizar em `utils.ts` (`useCompactNav`).
 
-### 3. Query param `role` (OpenAPI obrigatório)
+### 2. Layout desktop (`AppSidebarPanel.tsx`)
 
-- OpenAPI marca `role` como obrigatório (`doctor | receptionist | clinic_admin`).
-- **MVP sem filtro na UI:** o server service fará **3 chamadas paralelas** (`Promise.all`) — uma por role — e consolidará o resultado:
-  - deduplicar por `id`;
-  - ordenar alfabeticamente por `name`.
-- Função interna reutilizável: `listStaffByRoleServerService(accessToken, role)` + `listAllStaffServerService(accessToken)` que orquestra as três.
-- **Fallback documentado:** se a API passar a aceitar `GET /staff` sem `role`, simplificar para chamada única no server service (sem alterar contrato do client).
-- Filtro por role na UI fica **fora do escopo** desta entrega; pode ser adicionado depois reutilizando `listStaffByRoleServerService`.
+- Container fixo `fixed inset-y-0 left-0 z-10 hidden md:flex` com largura via CSS variable `--sidebar-width`.
+- **Expandido:** `--sidebar-width: 16rem` (equivalente ao `SIDEBAR_WIDTH` do shadcn).
+- **Colapsado (icon mode):** `--sidebar-width: 6rem` (`SIDEBAR_ICON_WIDTH` de `config.ts`).
+- Transição `transition-[width] duration-200 ease-linear` na largura.
+- Elemento **gap** sibling (ou `margin-left` no main) para empurrar conteúdo — espelhar comportamento do `sidebar-gap` atual.
+- Atributos para Tailwind: `data-state="expanded|collapsed"` e `data-collapsed="true|false"` no wrapper interno; classe `group/sidebar` para substituir `group-data-[collapsible=icon]`.
+- `bg-sidebar text-sidebar-foreground border-r`.
+- **Rail opcional:** botão fino na borda (`SidebarRail` simplificado) com `toggleSidebar` e `aria-label` — preservar affordance de expandir/colapsar sem depender de shadcn.
 
-### 4. Colunas da tabela
+### 3. Layout mobile (`MobileSidebarOverlay.tsx`)
 
-| Coluna (header PT-BR) | Campo API | Observação |
-| --------------------- | --------- | ---------- |
-| Nome | `name` | — |
-| E-mail | `email` | — |
-| Telefone | `phone` | exibir "—" quando `null` (`showDashWhenEmpty` no `DataTable`) |
-| Perfil | `role` | label PT-BR via mapa: `clinic_admin` → Administrador, `doctor` → Médico, `receptionist` → Recepcionista |
+- **Sem Radix Sheet:** overlay `fixed inset-0 z-40` (backdrop `bg-black/20`) + panel `fixed inset-y-0 left-0 z-50` com largura `SIDEBAR_MOBILE_WIDTH` (5.5rem).
+- Entrada/saída com `transition-transform` + `translate-x` (ou `opacity` no backdrop); condicional `openMobile`.
+- `pointer-events-none` quando fechado; `aria-hidden` no panel quando fechado.
+- Fechar: clique no backdrop, `setOpenMobile(false)`; opcional `Escape` via `useEffect`.
+- `body overflow-hidden` enquanto aberto (lock scroll leve).
+- Conteúdo da sidebar (header + nav) renderizado **dentro** do panel mobile; desktop usa `AppSidebarPanel` sem overlay.
+- Alternativa validada: um único `AppSidebar` que delega mobile vs desktop a subcomponentes — evita duplicar nav.
 
-Colunas **não** exibidas nesta entrega: `id`, `clinic_id`, `created_at`, `updated_at`.
+### 4. Primitivos de menu (substituir shadcn)
 
-### 5. Feedback de endpoint (GET)
+Remover `SidebarMenuItem`, `SidebarMenuButton`, `SidebarContent`, `SidebarFooter`, `SidebarHeader`, `SidebarGroup`, etc.
 
-- **Loading:** `Loading` enquanto `isPending` / `isLoading`.
-- **Erro:** `GlobalModal type="error"` sempre que `ok: false` ou exceção (`CLINIC_NOT_FOUND`, `STAFF_FORBIDDEN`, etc.) via `getErrorMessage`.
-- **Sucesso:** sem modal (regra `api-feedback-modals.mdc` — GET atualiza UI silenciosamente).
-- **Vazio:** mensagem inline na tabela (`noResults`), ex.: "Nenhum usuário cadastrado."
+| Antes (shadcn) | Depois (custom) |
+|----------------|-----------------|
+| `SidebarMenuItem` | `<li className="relative overflow-visible">` |
+| `SidebarMenuButton` | `<button>` ou `Link` com `getMenuItemClass` |
+| `SidebarHeader` | `<div data-slot="sidebar-header">` |
+| `SidebarContent` | `<nav aria-label="Principal">` + `<ul>` |
+| `SidebarFooter` | `<div data-slot="sidebar-footer">` |
+
+- **Sem Tooltip** em icon mode: labels compactos já visíveis (`NavLinkContent`); remover dependência de `TooltipProvider` nos testes.
+- Flyouts (`NavMenuItem`): manter lógica atual (hover desktop / click mobile); apenas trocar wrappers.
+
+### 5. Migração de classes Tailwind (`styles.ts`, `NavLinkContent.tsx`, `MainNavigation.tsx`, `AppSidebarHeader.tsx`)
+
+Substituir seletores `group-data-[collapsible=icon]:*` por equivalentes no novo grupo:
+
+- `group/sidebar` no panel + `data-collapsed="true"` quando `state === "collapsed"` **ou** `isMobile`.
+- Exemplo: `group-data-[collapsed=true]:hidden` em vez de `group-data-[collapsible=icon]:hidden`.
+- Atualizar `getMenuItemClass`, `getNavLabelClass`, `NavLinkContent` (chevron), `MainNavigation` (padding footer), `AppSidebarHeader` (grid logo).
+
+### 6. `AppShell.tsx`
+
+- Remover `SidebarInset`; layout flex simples:
+  - `SidebarProvider` (wrapper `flex min-h-svh w-full`)
+  - `AppSidebar`
+  - `<div className="flex flex-1 flex-col min-w-0">` com header + main
+- Margin/width do main acompanha sidebar via gap sibling ou `pl-[var(--sidebar-width)]` no desktop (alinhar com gap do panel).
+- Header mobile toggle continua usando `useSidebar().openMobile` e `toggleSidebar`.
+
+### 7. `config.ts`
+
+Adicionar constante explícita:
+
+```ts
+export const SIDEBAR_EXPANDED_WIDTH = "16rem";
+```
+
+Manter `SIDEBAR_ICON_WIDTH` e `SIDEBAR_MOBILE_WIDTH`.
+
+### 8. Remoção de `src/components/ui/sidebar.tsx`
+
+- Verificar que nenhum import restante no projeto (grep `ui/sidebar`).
+- Deletar arquivo após migração.
+- **Manter** `src/components/ui/sheet.tsx` (usado em `LandingHeader.tsx`).
 
 ## Páginas/componentes afetados
 
-- `src/app/(app)/usuarios/listar/page.tsx` (novo)
-- `src/app/(app)/staff/page.tsx` (redirect)
-- `src/app/api/staff/route.ts` (novo)
-- `src/config/navigation.ts`
-- `src/features/staff/types.ts` (novo)
-- `src/features/staff/constants/queryKeys.ts` (novo)
-- `src/features/staff/constants/roleLabels.ts` (novo)
-- `src/features/staff/services/staffServerService.ts` (novo)
-- `src/features/staff/services/staffClientService.ts` (novo)
-- `src/features/staff/hooks/useStaffList.ts` (novo)
-- `src/features/staff/components/StaffListTable.tsx` (novo)
-- `src/features/staff/components/StaffListOverlays.tsx` (novo)
-- `src/features/staff/components/StaffListPageContent.tsx` (novo)
+- `src/components/layout/AppSidebar.tsx`
+- `src/components/layout/AppShell.tsx`
+- `src/components/layout/AppSidebar.spec.tsx`
+- `src/components/layout/sidebar/SidebarContext.tsx` (novo)
+- `src/components/layout/sidebar/SidebarContext.spec.tsx` (novo)
+- `src/components/layout/sidebar/AppSidebarPanel.tsx` (novo)
+- `src/components/layout/sidebar/MobileSidebarOverlay.tsx` (novo)
+- `src/components/layout/sidebar/MainNavigation.tsx`
+- `src/components/layout/sidebar/NavMenuItem.tsx`
+- `src/components/layout/sidebar/AppSidebarHeader.tsx`
+- `src/components/layout/sidebar/NavLinkContent.tsx`
+- `src/components/layout/sidebar/styles.ts`
+- `src/components/layout/sidebar/utils.ts`
+- `src/components/ui/sidebar.tsx` (remover)
+
+Nenhuma página em `src/app/` alterada (layout `(app)` já usa `AppShell`).
 
 ## Contrato de API utilizado
 
-- `GET /staff?role=doctor` — lista médicos
-- `GET /staff?role=receptionist` — lista recepcionistas
-- `GET /staff?role=clinic_admin` — lista administradores
-- Auth: `Authorization: Bearer <accessToken>`
-- Role exigida na API: `clinic_admin`
-- Response sucesso: `{ ok: true, data: StaffMember[] }`
-- Erros relevantes: `CLINIC_NOT_FOUND`, `STAFF_FORBIDDEN`, `STAFF_LIST_FAILED`, `AUTH_MISSING`, `AUTH_INVALID`
+Nenhum.
 
 ## Dependências/configurações necessárias
 
-- Nenhuma nova dependência npm.
-- Reutilizar `AppRole` de `src/lib/auth/types.ts`.
-- Reutilizar `getErrorMessage` de `src/lib/api/error-messages.ts`.
-- Reutilizar `renderWithQueryClient` (`src/test-utils/renderWithQueryClient.tsx`) nos testes do hook/componente.
-- Variável de ambiente já existente: `API_URL` (server service, padrão `createConvenioServerService`).
+Nenhuma nova dependência npm.
+
+Branch de feature a partir de `main` antes da implementação (fluxo git do projeto).
+
+## Estratégia de performance
+
+- **Context estável:** `useMemo` no value do provider; `useCallback` em `toggleSidebar` e `setOpenMobile`.
+- **Evitar pathname no context:** `usePathname` permanece em `AppSidebar` / `MainNavigation` — toggle da sidebar não re-renderiza por mudança de rota além do necessário na nav.
+- **Memoização seletiva:** `React.memo` em `NavMenuItem` se profiling indicar; prioridade baixa na primeira entrega.
+- **Mobile overlay:** montar backdrop/panel apenas quando `isMobile`; evitar listeners globais duplicados (um `pointerdown` por flyout aberto já existente em `NavMenuItem`).
+- **CSS over JS:** largura e transições via Tailwind/CSS variables; sem `requestAnimationFrame` para cookies.
+- **Sem Radix portals** na sidebar (exceto se portal manual no overlay mobile for necessário para z-index — preferir `fixed` no mesmo tree).
+- **useIsMobile:** manter `useSyncExternalStore` (já evita hydration mismatch).
 
 ## Estratégia de testes
 
-- Unitário/componente:
-  - `src/features/staff/constants/roleLabels.spec.ts`
-  - `src/features/staff/services/staffServerService.spec.ts`
-  - `src/features/staff/hooks/useStaffList.spec.ts`
-  - `src/features/staff/components/StaffListPageContent.spec.tsx`
-- Cenários principais:
-  - Mapa de roles retorna labels PT-BR corretos para todos os valores de `AppRole`.
-  - Server service consolida 3 respostas, deduplica por `id` e ordena por `name`.
-  - Server service propaga erro quando qualquer chamada retorna `ok: false`.
-  - Hook expõe `isLoading`, `errorMessage`, `staff`, `clearError`; dispara fetch ao montar.
-  - Componente renderiza `Loading` durante carregamento.
-  - Componente exibe `GlobalModal` de erro e permite dismiss via `clearError`.
-  - Componente exibe tabela com colunas Nome, E-mail, Telefone, Perfil quando há dados.
-  - Componente exibe estado vazio quando `data` é array vazio.
-  - Componente **não** exibe modal de sucesso após carregar dados.
+### Unitário/componente
+
+| Arquivo | Foco |
+|---------|------|
+| `src/components/layout/sidebar/SidebarContext.spec.tsx` | Provider: `toggleSidebar` desktop/mobile, `state`, `openMobile` |
+| `src/components/layout/AppSidebar.spec.tsx` | Labels/links, `data-active`, sem `TooltipProvider`/`SidebarProvider` shadcn |
+
+### Cenários principais
+
+- Desktop (`useIsMobile` → false): renderiza links de `APP_NAV_ITEMS` com `href` correto.
+- Pathname ativo: `data-active="true"` no item Agenda quando rota filha ativa.
+- Desktop colapsado: footer "Versão 1.0" oculto; labels compactos visíveis (smoke via classes ou presença de texto).
+- Mobile (`useIsMobile` → true): sidebar não visível até `toggleSidebar`; após toggle, overlay/panel visível; backdrop fecha menu.
+- `useCompactNav`: `compact === true` quando mobile ou `state === "collapsed"`.
+- Acessibilidade: botões toggle com `aria-label`; flyout mobile com `aria-expanded`.
 
 ## Passos de implementação
 
-### 1. Tipos e constantes da feature
+### 0. Branch e baseline
 
-- Arquivo: `src/features/staff/types.ts`
-- O que fazer: definir `StaffMember` (snake_case, espelhando `docs/api-contracts.md`), `ListStaffResponse` (`{ ok: true; data: StaffMember[] } | { ok: false; error: { code: string; message: string } }`).
+- Arquivo: repositório
+- O que fazer: `git checkout main && git pull && git checkout -b feature/custom-sidebar`
 - Spec primeiro: Não aplicável
 - Depende de: Nenhum
 
-- Arquivo: `src/features/staff/constants/roleLabels.ts`
-- O que fazer: exportar `STAFF_ROLE_LABELS: Record<AppRole, string>` com labels PT-BR e helper `getStaffRoleLabel(role: AppRole): string`.
-- Spec primeiro: `src/features/staff/constants/roleLabels.spec.ts`
-- Depende de: Passo 1 (tipos)
+### 1. Spec do contexto da sidebar
 
-- Arquivo: `src/features/staff/constants/queryKeys.ts`
-- O que fazer: exportar `staffQueryKeys = { list: ["staff", "list"] as const }`.
-- Spec primeiro: Não aplicável
-- Depende de: Nenhum
+- Arquivo: `src/components/layout/sidebar/SidebarContext.spec.tsx`
+- O que fazer: Testar `SidebarProvider` + `useSidebar` com wrapper de teste — toggle desktop altera `state`; com mock mobile, toggle altera `openMobile`.
+- Spec primeiro: este arquivo (SDD)
+- Depende de: Passo 0
 
-### 2. Server service
+### 2. Implementar `SidebarContext.tsx`
 
-- Arquivo: `src/features/staff/services/staffServerService.ts`
-- O que fazer: implementar `listStaffByRoleServerService(accessToken, role)` (fetch `GET ${API_URL}/staff?role=${role}` com Bearer) e `listAllStaffServerService(accessToken)` (3 chamadas paralelas, merge deduplicado e ordenado). Tratar envelope `{ ok, data?, error? }`, erros de rede e `ENV_ERROR` quando `API_URL` ausente. Marcar com `"server-only"`.
-- Spec primeiro: `src/features/staff/services/staffServerService.spec.ts`
+- Arquivo: `src/components/layout/sidebar/SidebarContext.tsx`
+- O que fazer: Provider leve com estados descritos em Decisões de design; export `useSidebar`, `SidebarProvider`; integrar `useIsMobile`.
+- Spec primeiro: `SidebarContext.spec.tsx` (passo 1)
 - Depende de: Passo 1
 
-### 3. Route Handler
+### 3. Spec do overlay mobile (opcional consolidado com passo 7)
 
-- Arquivo: `src/app/api/staff/route.ts`
-- O que fazer: implementar `GET` — ler cookie `accessToken`; se ausente, retornar 401 `{ ok: false, error: { code: "AUTH_MISSING", ... } }`; chamar `listAllStaffServerService`; repassar envelope com status HTTP adequado (401 para `AUTH_INVALID`, 400 para demais erros de negócio). Seguir padrão de `src/app/api/auth/change-password/route.ts` (`errorResponse` helper + `getErrorMessage`).
-- Spec primeiro: Não aplicável (opcional futuro: `route.spec.ts` se houver precedente na feature)
+- Arquivo: `src/components/layout/sidebar/MobileSidebarOverlay.spec.tsx` ou cenários em `AppSidebar.spec.tsx`
+- O que fazer: Com `useIsMobile` mock true, assert visibilidade do overlay ao abrir/fechar.
+- Spec primeiro: preferir cenários em `AppSidebar.spec.tsx` para evitar arquivo extra
 - Depende de: Passo 2
 
-### 4. Client service
+### 4. Implementar `MobileSidebarOverlay.tsx`
 
-- Arquivo: `src/features/staff/services/staffClientService.ts`
-- O que fazer: implementar `listStaffClientService()` — `fetch("/api/staff")`, parse JSON como `ListStaffResponse`, retornar body tipado (sem throw; caller decide pelo `ok`).
+- Arquivo: `src/components/layout/sidebar/MobileSidebarOverlay.tsx`
+- O que fazer: Backdrop + panel fixed, transições CSS, `role="dialog"` + `aria-modal="true"` no container mobile, children slot para conteúdo da sidebar.
+- Spec primeiro: Não aplicável (coberto em AppSidebar.spec)
+- Depende de: Passo 2
+
+### 5. Implementar `AppSidebarPanel.tsx`
+
+- Arquivo: `src/components/layout/sidebar/AppSidebarPanel.tsx`
+- O que fazer: Container desktop fixo, gap sibling, CSS vars `--sidebar-width`, `data-state`/`data-collapsed`, rail opcional, `group/sidebar`.
 - Spec primeiro: Não aplicável
-- Depende de: Passo 3
+- Depende de: Passo 2
 
-### 5. Hook de listagem
+### 6. Atualizar `config.ts`
 
-- Arquivo: `src/features/staff/hooks/useStaffList.ts`
-- O que fazer: Client hook com `useQuery` (`queryKey: staffQueryKeys.list`, `queryFn` via `listStaffClientService`). Expor `{ staff, isLoading, isError, errorMessage, refetch, clearError }`. `errorMessage` via `getErrorMessage`. `clearError` reseta query error state. Sem modal de sucesso.
-- Spec primeiro: `src/features/staff/hooks/useStaffList.spec.ts`
-- Depende de: Passo 4
-
-### 6. Componentes de UI
-
-- Arquivo: `src/features/staff/components/StaffListTable.tsx`
-- O que fazer: definir colunas `ColumnDef<StaffMember>[]` (Nome, E-mail, Telefone, Perfil) e renderizar `DataTable` com `isLoading`, `noResults` e `showDashWhenEmpty` na coluna telefone. Perfil usa `getStaffRoleLabel`.
-- Spec primeiro: Não aplicável (coberto pelo spec do page content)
-- Depende de: Passo 1
-
-- Arquivo: `src/features/staff/components/StaffListOverlays.tsx`
-- O que fazer: renderizar `Loading` (`isOpen={isLoading}`) e `GlobalModal type="error"` quando `errorModalOpen`/`errorMessage`; sem modal de sucesso.
+- Arquivo: `src/components/layout/sidebar/config.ts`
+- O que fazer: Adicionar `SIDEBAR_EXPANDED_WIDTH = "16rem"`.
 - Spec primeiro: Não aplicável
 - Depende de: Nenhum
 
-- Arquivo: `src/features/staff/components/StaffListPageContent.tsx`
-- O que fazer: Client Component orquestrador — título "Usuários", subtítulo descritivo, consome `useStaffList`, renderiza `StaffListTable` + `StaffListOverlays`. Controla abertura do modal de erro a partir de `errorMessage`.
-- Spec primeiro: `src/features/staff/components/StaffListPageContent.spec.tsx`
-- Depende de: Passos 5 e 6 (tabela/overlays)
+### 7. Migrar `styles.ts` e `NavLinkContent.tsx`
 
-### 7. Página e rotas
-
-- Arquivo: `src/app/(app)/usuarios/listar/page.tsx`
-- O que fazer: página fina (Server Component) com `PageContainer` renderizando `<StaffListPageContent />`.
+- Arquivo: `src/components/layout/sidebar/styles.ts`, `src/components/layout/sidebar/NavLinkContent.tsx`
+- O que fazer: Trocar `group-data-[collapsible=icon]` por `group-data-[collapsed=true]` (ou equivalente acordado no panel).
 - Spec primeiro: Não aplicável
-- Depende de: Passo 6
+- Depende de: Passo 5
 
-- Arquivo: `src/app/(app)/staff/page.tsx`
-- O que fazer: substituir stub por `redirect("/usuarios/listar")` de `next/navigation`.
+### 8. Refatorar `utils.ts`
+
+- Arquivo: `src/components/layout/sidebar/utils.ts`
+- O que fazer: Import `useSidebar` de `./SidebarContext` em vez de `@/components/ui/sidebar`.
 - Spec primeiro: Não aplicável
-- Depende de: Passo 7 (página principal)
+- Depende de: Passo 2
 
-- Arquivo: `src/config/navigation.ts`
-- O que fazer: adicionar `"/usuarios"` em `PROTECTED_ROUTE_PREFIXES`; atualizar nav item Usuários para `path: "/usuarios/listar"`.
+### 9. Refatorar `NavMenuItem.tsx`
+
+- Arquivo: `src/components/layout/sidebar/NavMenuItem.tsx`
+- O que fazer: Substituir `SidebarMenuItem`/`SidebarMenuButton` por `<li>` + `button`/`Link`; remover `tooltip` prop; manter flyouts e acessibilidade.
 - Spec primeiro: Não aplicável
-- Depende de: Passo 7
+- Depende de: Passos 7, 8
 
-- Arquivo: `src/lib/auth/route-guards.spec.ts`
-- O que fazer: adicionar expectativa de rota protegida para `/usuarios/listar` (e opcionalmente `/usuarios`).
-- Spec primeiro: Não aplicável (ajuste de teste existente)
-- Depende de: Passo 7
+### 10. Refatorar `MainNavigation.tsx` e `AppSidebarHeader.tsx`
+
+- Arquivo: `src/components/layout/sidebar/MainNavigation.tsx`, `src/components/layout/sidebar/AppSidebarHeader.tsx`
+- O que fazer: Remover primitivos shadcn; usar elementos semânticos; `useSidebar` do novo context; classes `group-data-[collapsed=true]`.
+- Spec primeiro: Não aplicável
+- Depende de: Passos 7, 8
+
+### 11. Refatorar `AppSidebar.tsx`
+
+- Arquivo: `src/components/layout/AppSidebar.tsx`
+- O que fazer: Compor `AppSidebarPanel` (desktop) + `MobileSidebarOverlay` (mobile) com header + `MainNavigation`; export `AppSidebarProvider` reexportando `SidebarProvider` com style `--sidebar-width-icon`; remover `Sidebar`, `SidebarRail` shadcn.
+- Spec primeiro: Não aplicável
+- Depende de: Passos 4, 5, 9, 10
+
+### 12. Refatorar `AppShell.tsx`
+
+- Arquivo: `src/components/layout/AppShell.tsx`
+- O que fazer: Layout flex sem `SidebarInset`; `useSidebar` do novo context; main content ao lado da sidebar.
+- Spec primeiro: Não aplicável
+- Depende de: Passo 11
+
+### 13. Atualizar `AppSidebar.spec.tsx`
+
+- Arquivo: `src/components/layout/AppSidebar.spec.tsx`
+- O que fazer: Remover `SidebarProvider`/`TooltipProvider` shadcn; usar `SidebarProvider` custom; manter/estender testes de links e active state; adicionar teste mobile se viável.
+- Spec primeiro: este arquivo
+- Depende de: Passos 11, 12
+
+### 14. Remover `src/components/ui/sidebar.tsx`
+
+- Arquivo: `src/components/ui/sidebar.tsx`
+- O que fazer: Deletar após grep confirmar zero imports; não remover `sheet.tsx`.
+- Spec primeiro: Não aplicável
+- Depende de: Passos 11–13
+
+### 15. Verificação final
+
+- Arquivo: projeto
+- O que fazer: `npm run test`, `npm run lint`, `npm run build`; smoke manual desktop (expand/collapse, flyout hover), mobile (drawer, flyout click), navegação e active states.
+- Spec primeiro: Não aplicável
+- Depende de: Passo 14
 
 ## Riscos / atenções
 
-- **Query param `role` obrigatório:** três chamadas paralelas aumentam latência e carga; monitorar se API passa a suportar listagem sem filtro.
-- **Permissão `clinic_admin`:** usuários sem permissão receberão `STAFF_FORBIDDEN` da API — exibir mensagem amigável; guard de role no frontend não existe ainda (fora do escopo).
-- **Duplicidade de rotas:** manter redirect `/staff` até remover referências legadas; sidebar já usa `/usuarios/listar`.
-- **Telefone E.164:** valor pode vir como `+5511...`; avaliar se `formatPhone` existente cobre o formato ou exibir valor bruto com fallback "—".
-- **Consistência de Route Handler:** usar `/api/staff` (padrão data-fetching skill) em vez do padrão legado top-level de convênios (`/clinic-convenio-register`).
-- **TanStack Query:** garantir que componente de teste use `renderWithQueryClient` para evitar falhas por provider ausente.
+- **Regressão visual:** migração de `group-data-[collapsible=icon]` exige auditoria em todos os arquivos de `sidebar/`; um seletor esquecido quebra layout colapsado ou footer.
+- **Largura do conteúdo:** gap sibling vs `margin-left` no main deve espelhar largura real (16rem / 6rem); testar resize e transição.
+- **Z-index:** flyouts (`z-50`) devem ficar acima do panel mas abaixo de modais globais (`GlobalModal`); validar empilhamento.
+- **Hydration:** `useIsMobile` retorna `false` no server; overlay mobile não deve flash no SSR.
+- **Acessibilidade mobile:** dialog sem focus trap completo (sem Radix) — mínimo: `aria-modal`, foco no primeiro elemento ao abrir (nice-to-have), `Escape` para fechar.
+- **Persistência:** sem cookie, sidebar volta expandida em cada sessão — aceitar ou documentar.
+- **Testes:** remover `TooltipProvider` pode expor dependências ocultas em outros testes que importavam sidebar shadcn — rodar suite completa.
+- **Não remover `sheet.tsx`** — usado em landing.
 
 ## Checklist final
 
 - [x] Specs unitárias/componentes escritas e passando quando aplicável
-- [x] Componente sem lógica de negócio: delega a hooks/services
-- [x] Tipos derivados dos contratos em `docs/api-contracts.md` (`StaffMember`, snake_case)
-- [x] Estados de loading, erro e vazio tratados na UI
-- [x] Client Components não acessam token
-- [x] Route Handler usado para chamadas autenticadas do client (`GET /api/staff`)
-- [x] shadcn/ui ou componente existente priorizado quando houver UI (`DataTable`)
-- [x] GlobalModal, Loading ou DataTable reutilizados quando aplicável
+- [ ] Componente sem lógica de negócio: delega a hooks/services
+- [ ] Tipos derivados dos contratos em `src/lib/api/types.ts`
+- [ ] Estados de loading, erro e vazio tratados na UI
+- [ ] Client Components não acessam token
+- [ ] Route Handler usado para chamadas autenticadas do client
+- [x] shadcn/ui ou componente existente priorizado quando houver UI
+- [ ] GlobalModal, Loading ou DataTable reutilizados quando aplicável
 - [x] Acessibilidade considerada em formulários, botões, mensagens e navegação
-- [x] Imports seguem regra híbrida: relativo perto, alias longe
+- [x] Imports seguem regra híbrida: relativo perto, alias longo
 - [x] Sem `any` nos tipos, exceto justificativa explícita
 - [x] Sem duplicação de DTO, schema, hook, service ou componente
 - [x] `npm run test` sem erros quando aplicável
 - [x] `npm run lint` sem erros
 - [x] `npm run build` sem erros
+- [x] Zero imports de `@/components/ui/sidebar`
+- [x] `src/components/ui/sidebar.tsx` removido
+- [x] Comportamentos preservados: desktop expandido/colapsado, mobile drawer, flyouts, active state, footer versão, tokens semânticos

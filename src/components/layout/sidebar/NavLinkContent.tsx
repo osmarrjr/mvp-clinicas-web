@@ -31,7 +31,7 @@ export function NavLinkContent({
           aria-hidden="true"
           className={cn(
             getNavIconClass(isActive),
-            "group-data-[collapsible=icon]:hidden",
+            "group-data-[collapsed=true]:hidden",
           )}
         />
       ) : null}

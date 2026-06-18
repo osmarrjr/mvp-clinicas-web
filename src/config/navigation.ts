@@ -1,14 +1,3 @@
-export type AppNavItem = {
-  label: string;
-  path: string;
-};
-
-export const APP_NAV_ITEMS: AppNavItem[] = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Agenda", path: "/appointments" },
-  { label: "Usuários", path: "/usuarios/listar" },
-];
-
 export const PROTECTED_ROUTE_PREFIXES = [
   "/dashboard",
   "/appointments",

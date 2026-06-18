@@ -33,7 +33,7 @@ export function getMenuItemClass(isActive: boolean, compact = false) {
   return cn(
     "flex h-auto w-full items-center gap-2 rounded-md text-sm font-medium leading-5 transition-colors cursor-pointer",
     compact
-      ? "flex-col items-center justify-center gap-1 px-0.5 py-1.5 group-data-[collapsible=icon]:!h-auto group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!max-w-full"
+      ? "flex-col items-center justify-center gap-1 px-0.5 py-1.5 group-data-[collapsed=true]:!h-auto group-data-[collapsed=true]:!w-full group-data-[collapsed=true]:!max-w-full"
       : "px-2 py-3",
     isActive
       ? cn(GRADIENT_BACKGROUND_ACTIVE_ITEM, "!text-white hover:!text-white")
@@ -45,7 +45,7 @@ export function getNavLabelClass(isActive: boolean, compact = false) {
   return cn(
     compact
       ? "max-w-full text-center text-[11px] font-medium leading-tight"
-      : "flex-1 text-left text-sm leading-5 group-data-[collapsible=icon]:hidden",
+      : "flex-1 text-left text-sm leading-5",
     getTextClass(isActive),
   );
 }

@@ -16,6 +16,7 @@ import {
 
 import type { AppNavItem } from "./types";
 
+export const SIDEBAR_EXPANDED_WIDTH = "16rem";
 export const SIDEBAR_ICON_WIDTH = "6rem";
 export const SIDEBAR_MOBILE_WIDTH = "5.5rem";
 
