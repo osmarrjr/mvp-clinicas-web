@@ -2,9 +2,6 @@
 
 import type { ReactNode } from "react";
 
-import { AUTH_SHELL_BORDER } from "@/lib/theme/auth-shell-gradient";
-import { cn } from "@/lib/utils";
-
 import { SIDEBAR_EXPANDED_WIDTH, SIDEBAR_ICON_WIDTH } from "./config";
 import { useSidebar } from "./SidebarContext";
 
@@ -36,10 +33,7 @@ export function AppSidebarPanel({ children }: AppSidebarPanelProps) {
       <div
         data-slot="sidebar-container"
         data-side="left"
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden h-svh overflow-visible border-r transition-[width] duration-200 ease-linear md:flex",
-          AUTH_SHELL_BORDER,
-        )}
+        className="fixed inset-y-0 left-0 z-30 hidden h-svh overflow-visible transition-[width] duration-200 ease-linear md:flex"
         style={
           {
             width: sidebarWidth,
