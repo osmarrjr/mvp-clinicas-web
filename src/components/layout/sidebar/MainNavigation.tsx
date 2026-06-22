@@ -43,7 +43,7 @@ export function MainNavigation({ pathname }: MainNavigationProps) {
       <div data-slot="sidebar-footer" data-sidebar="footer">
         <div
           className={cn(
-            "flex justify-center px-2 py-4 text-xs font-medium text-[white] group-data-[collapsed=true]:hidden",
+            "flex justify-center px-2 py-4 text-xs font-medium text-white group-data-[collapsed=true]:hidden",
             isMobile && "hidden",
           )}
         >

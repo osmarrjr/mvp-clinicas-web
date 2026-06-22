@@ -43,7 +43,7 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
               <img
                 src="/logo.png"
                 alt="Logo"
-                className="h-auto w-[160px] max-w-full cursor-default object-contain brightness-0 invert"
+                className="h-auto w-[160px] max-w-full "
               />
             </div>
           </>

@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
 
-import {
-  AUTH_SHELL_BASE_BG,
-  AUTH_SHELL_OVERLAY_BG,
-} from "@/lib/theme/auth-shell-gradient";
+import { APP_SHELL_SIDEBAR_BG } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
 type ShellGradientSurfaceProps = {
@@ -18,18 +15,7 @@ export function ShellGradientSurface({
   contentClassName,
 }: ShellGradientSurfaceProps) {
   return (
-    <div className={cn("relative isolate", className)}>
-      <div
-        className={cn("pointer-events-none absolute inset-0", AUTH_SHELL_BASE_BG)}
-        aria-hidden="true"
-      />
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0",
-          AUTH_SHELL_OVERLAY_BG,
-        )}
-        aria-hidden="true"
-      />
+    <div className={cn("relative isolate", APP_SHELL_SIDEBAR_BG, className)}>
       <div
         className={cn(
           "relative z-10 h-full w-full min-h-0 min-w-0",

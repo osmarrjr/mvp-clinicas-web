@@ -3,10 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-import {
-  AUTH_SHELL_BORDER,
-  AUTH_SHELL_FOREGROUND,
-} from "@/lib/theme/auth-shell-gradient";
+import { AUTH_SHELL_FOREGROUND } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 
 import { ShellGradientSurface } from "./ShellGradientSurface";
@@ -45,12 +42,7 @@ function SidebarInner({ pathname, isMobile }: SidebarInnerProps) {
         contentClassName="flex h-full min-h-0 flex-col"
       >
         <AppSidebarHeader isMobile={isMobile} />
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col",
-            !isMobile && cn("border-r", AUTH_SHELL_BORDER),
-          )}
-        >
+        <div className="flex min-h-0 flex-1 flex-col">
           <MainNavigation pathname={pathname} />
         </div>
       </ShellGradientSurface>

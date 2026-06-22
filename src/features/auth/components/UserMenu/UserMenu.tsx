@@ -22,8 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   AUTH_SHELL_ACCENT_GRADIENT,
-  AUTH_SHELL_FOCUS_RING,
-  AUTH_SHELL_HOVER,
 } from "@/lib/theme/auth-shell-gradient";
 import { cn } from "@/lib/utils";
 import { getUserDisplayName } from "@/lib/auth/user-storage";
@@ -94,11 +92,7 @@ export function UserMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className={cn(
-            "size-10 rounded-full p-0 text-white",
-            AUTH_SHELL_HOVER,
-            AUTH_SHELL_FOCUS_RING,
-          )}
+          className="size-10 rounded-full p-0"
           aria-label="Abrir menu do usuário"
         >
           <div

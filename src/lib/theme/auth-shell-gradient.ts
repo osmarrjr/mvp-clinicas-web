@@ -5,6 +5,9 @@ export const AUTH_SHELL_BASE_BG = "bg-[#0b1748]";
 export const AUTH_SHELL_OVERLAY_BG =
   "bg-[radial-gradient(ellipse_at_top,#1e3a8a_0%,#172554_42%,#0b1748_100%)]";
 
+export const APP_SHELL_SIDEBAR_BG =
+  "bg-[linear-gradient(90deg,#172554_0%,#1e3a8a_100%)]";
+
 export const AUTH_SHELL_BORDER = "border-white/10";
 
 export const AUTH_SHELL_FOREGROUND = "text-white";
