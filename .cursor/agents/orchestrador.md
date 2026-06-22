@@ -316,6 +316,50 @@ Ao final, responda ao usuário com:
 
 ---
 
+# Regra de loading em telas com tabela
+
+Toda tela que exibir listagem via `DataTable` (`@/components/Table`) deve usar **apenas o loading interno da tabela** (`isLoading` no `DataTable`).
+
+**Obrigatório:**
+
+- Passar `isLoading` do hook/query para o componente de tabela.
+- Manter título, subtítulo e estrutura da página visíveis durante o carregamento.
+
+**Proibido:**
+
+- Overlay global `Loading` na página ou em `*Overlays` para carregar dados da tabela.
+- Bloquear a tela inteira enquanto a listagem carrega.
+
+O overlay `Loading` permanece válido para operações que não são listagem em tabela (ex.: submit de formulário, exclusão com confirmação).
+
+O `planner`, `developer` e `validator` devem considerar esta regra em telas com listagem tabular.
+
+---
+
+# Estrutura de telas na área autenticada
+
+Toda tela de conteúdo na área `(app)` (formulários, listagens, dashboards) deve seguir o padrão de `ConvenioRegisterForm` / `FeaturePageLayout`:
+
+**Obrigatório:**
+
+- `header` com título (`h1`) e descrição (`p`);
+- `Card` com estilo padrão do design system;
+- `CardContent` envolvendo o conteúdo principal (formulário, tabela, etc.).
+
+**Implementação:**
+
+- Reutilizar `FeaturePageLayout` de `@/components/layout/FeaturePageLayout`.
+- Overlays (`*Overlays`, modais de erro/sucesso) ficam **fora** do layout, como irmãos do `FeaturePageLayout`.
+
+**Exceções:**
+
+- Fluxos de auth (`(auth)`): login, cadastro, validação de token e troca de senha mantêm o layout glass/centered próprio.
+- Landing page e componentes internos de formulário (campos isolados) não usam este layout.
+
+O `planner`, `developer` e `validator` devem aplicar esta estrutura em novas telas da área autenticada.
+
+---
+
 # Restrições
 
 Você não implementa código diretamente.

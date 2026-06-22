@@ -228,9 +228,15 @@ export function ValidateRegisterTokenForm() {
               </Button>
 
               {isResendSuccess ? (
-                <p className="text-center text-sm leading-5 text-blue-100/80">
-                  Token reenviado para o email informado.
-                </p>
+                <div className="space-y-1 text-center text-sm leading-5">
+                  <p className="font-medium text-emerald-300">
+                    Token reenviado para o email informado!
+                  </p>
+                  <p className="text-blue-100/70">
+                    O token pode demorar até 5 minutos para chegar. Verifique
+                    também sua caixa de spam.
+                  </p>
+                </div>
               ) : null}
             </div>
 

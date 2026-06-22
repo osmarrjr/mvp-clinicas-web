@@ -42,6 +42,7 @@ export function StaffListTable({ data, isLoading }: StaffListTableProps) {
       columns={columns}
       isLoading={isLoading}
       noResults="Nenhum usuário cadastrado."
+      tableClassName="mt-0"
     />
   );
 }

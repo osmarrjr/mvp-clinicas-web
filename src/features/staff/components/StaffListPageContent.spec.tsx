@@ -13,25 +13,17 @@ vi.mock("../hooks/useStaffList", () => ({
   useStaffList: vi.fn(),
 }));
 
-vi.mock("@/components/Loader/loaderView", () => ({
-  Loading: ({ isOpen, message }: { isOpen: boolean; message: string }) =>
-    isOpen ? <div>{message}</div> : null,
-}));
-
 vi.mock("./StaffListOverlays", () => ({
   StaffListOverlays: ({
-    isLoading,
     errorModalOpen,
     errorMessage,
     onDismissError,
   }: {
-    isLoading: boolean;
     errorModalOpen: boolean;
     errorMessage: string | null;
     onDismissError: () => void;
   }) => (
     <>
-      {isLoading ? <div>Carregando usuários</div> : null}
       {errorModalOpen ? (
         <div role="alert">
           <span>{errorMessage}</span>
@@ -136,12 +128,13 @@ describe("StaffListPageContent", () => {
     ).toBeTruthy();
   });
 
-  it("renderiza Loading durante carregamento", () => {
+  it("renderiza loading interno da tabela durante carregamento", () => {
     setupUseStaffListMock({ isLoading: true });
 
     render(<StaffListPageContent />);
 
-    expect(screen.getByText("Carregando usuários")).toBeTruthy();
+    expect(screen.getByText("Carregando tabela")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Usuários" })).toBeTruthy();
   });
 
   it("exibe GlobalModal de erro e permite dismiss via clearError", async () => {
