@@ -153,7 +153,7 @@ export function ConvenioRegisterForm() {
               </OptionalFieldLabel>
               <Input
                 id="cardNumberMask"
-                placeholder="Máscara"
+                placeholder="Informe o formato da carteirinha"
                 aria-invalid={Boolean(form.formState.errors.cardNumberMask)}
                 {...form.register("cardNumberMask")}
               />

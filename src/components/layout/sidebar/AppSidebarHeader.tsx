@@ -31,22 +31,18 @@ export function AppSidebarHeader({ isMobile }: AppSidebarHeaderProps) {
           "w-full items-center",
           isMobile
             ? "flex flex-col gap-2"
-            : "grid grid-cols-[32px_1fr_32px] gap-3",
+            : "grid grid-cols-[1fr_32px] gap-2",
           "group-data-[collapsed=true]:flex group-data-[collapsed=true]:justify-center group-data-[collapsed=true]:gap-0",
         )}
       >
         {!isMobile ? (
-          <>
-            <div />
-
-            <div className="flex items-center justify-center group-data-[collapsed=true]:hidden">
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-auto w-[160px] max-w-full "
-              />
-            </div>
-          </>
+          <div className="flex items-center justify-center group-data-[collapsed=true]:hidden">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-auto w-full max-w-[200px]"
+            />
+          </div>
         ) : null}
 
         <Button

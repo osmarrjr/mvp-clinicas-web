@@ -9,11 +9,14 @@ import { cn } from "@/lib/utils";
 export const FLYOUT_PANEL_CLASS =
   "w-60 rounded-md border bg-white p-2 shadow-lg";
 
-export const HOVER_FLYOUT_WRAPPER_CLASS = cn(
-  "invisible pointer-events-none absolute left-full top-0 z-50 w-63 pl-3 opacity-0 transition-all duration-150",
-  "group-hover/flyout:visible group-hover/flyout:pointer-events-auto group-hover/flyout:opacity-100",
-  "group-focus-within/flyout:visible group-focus-within/flyout:pointer-events-auto group-focus-within/flyout:opacity-100",
-);
+export const FLYOUT_WRAPPER_BASE_CLASS =
+  "absolute left-full top-0 z-50 w-63 pl-3 transition-all duration-150";
+
+export const FLYOUT_WRAPPER_VISIBLE_CLASS =
+  "visible pointer-events-auto opacity-100";
+
+export const FLYOUT_WRAPPER_HIDDEN_CLASS =
+  "invisible pointer-events-none opacity-0";
 
 export type MenuSurface = "sidebar" | "flyout";
 

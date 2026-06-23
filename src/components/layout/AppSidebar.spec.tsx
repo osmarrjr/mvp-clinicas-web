@@ -158,6 +158,132 @@ describe("AppSidebar", () => {
     expect(panel?.getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("closes mobile submenu when a child link is clicked", () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    render(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu mobile" }));
+
+    const agendaButton = screen.getByRole("button", { name: "Agenda" });
+    fireEvent.click(agendaButton);
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("true");
+
+    fireEvent.click(screen.getByRole("link", { name: "Lista" }));
+
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes mobile submenu when pathname changes", () => {
+    useIsMobileMock.mockReturnValue(true);
+    usePathnameMock.mockReturnValue("/agenda/lista");
+
+    const { rerender } = render(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu mobile" }));
+
+    const agendaButton = screen.getByRole("button", { name: "Agenda" });
+    fireEvent.click(agendaButton);
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("true");
+
+    usePathnameMock.mockReturnValue("/agenda/agendamentos");
+    rerender(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("closes mobile submenu when pathname changes", () => {
+    useIsMobileMock.mockReturnValue(true);
+    usePathnameMock.mockReturnValue("/agenda/lista");
+
+    const { rerender } = render(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu mobile" }));
+
+    const agendaButton = screen.getByRole("button", { name: "Agenda" });
+    fireEvent.click(agendaButton);
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("true");
+
+    usePathnameMock.mockReturnValue("/agenda/agendamentos");
+    rerender(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("keeps only one mobile submenu open at a time", () => {
+    useIsMobileMock.mockReturnValue(true);
+
+    render(
+      <SidebarProvider>
+        <MobileToggleHarness />
+        <AppSidebar />
+      </SidebarProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir menu mobile" }));
+
+    const agendaButton = screen.getByRole("button", { name: "Agenda" });
+    const conveniosButton = screen.getByRole("button", { name: "Convênios" });
+
+    fireEvent.click(agendaButton);
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("true");
+
+    fireEvent.click(conveniosButton);
+    expect(agendaButton.getAttribute("aria-expanded")).toBe("false");
+    expect(conveniosButton.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("opens desktop submenu on hover and reopens after leaving once navigation dismissed it", () => {
+    useIsMobileMock.mockReturnValue(false);
+    usePathnameMock.mockReturnValue("/agenda/lista");
+
+    renderAppSidebar();
+
+    const agendaLink = screen.getByRole("link", { name: "Agenda" });
+    const listItem = agendaLink.closest("li");
+    expect(listItem).not.toBeNull();
+
+    const flyout = listItem!.querySelector("[class*='absolute left-full']");
+    expect(flyout).not.toBeNull();
+
+    fireEvent.mouseEnter(listItem!);
+    expect(flyout!.className).toContain("visible");
+
+    fireEvent.click(screen.getByRole("link", { name: "Agendamentos" }));
+
+    fireEvent.mouseEnter(listItem!);
+    expect(flyout!.className).toContain("invisible");
+
+    fireEvent.mouseLeave(listItem!);
+    fireEvent.mouseEnter(listItem!);
+    expect(flyout!.className).toContain("visible");
+  });
+
   it("hides footer version when desktop sidebar is collapsed", () => {
     const { container } = renderAppSidebar();
 

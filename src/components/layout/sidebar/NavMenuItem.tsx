@@ -1,33 +1,42 @@
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { cn } from "@/lib/utils";
 
 import { NavChildLink } from "./NavChildLink";
 import { NavLinkContent } from "./NavLinkContent";
 import {
   FLYOUT_PANEL_CLASS,
+  FLYOUT_WRAPPER_BASE_CLASS,
+  FLYOUT_WRAPPER_HIDDEN_CLASS,
+  FLYOUT_WRAPPER_VISIBLE_CLASS,
   getMenuItemClass,
-  HOVER_FLYOUT_WRAPPER_CLASS,
 } from "./styles";
 import type { AppNavItem } from "./types";
-import {
-  useCloseMobileSidebarOnNavigate,
-  useCompactNav,
-} from "./utils";
+import { useCloseMobileSidebarOnNavigate, useCompactNav } from "./utils";
 
 type NavMenuItemProps = {
   item: AppNavItem;
   pathname: string;
   isActive: boolean;
   compact: boolean;
+  openSubmenuPath?: string | null;
+  onSubmenuChange?: (path: string | null) => void;
 };
 
 function NavMobileClickFlyout({
   item,
   isActive,
   compact,
+  openSubmenuPath,
+  onSubmenuChange,
 }: NavMenuItemProps) {
-  const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLLIElement>(null);
+  const open = openSubmenuPath === item.path;
+  const closeFlyout = useCallback(
+    () => onSubmenuChange?.(null),
+    [onSubmenuChange],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -36,13 +45,13 @@ function NavMobileClickFlyout({
 
     function handlePointerDown(event: PointerEvent) {
       if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+        onSubmenuChange?.(null);
       }
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [open]);
+  }, [open, onSubmenuChange]);
 
   return (
     <li ref={rootRef} className="relative overflow-visible">
@@ -50,7 +59,7 @@ function NavMobileClickFlyout({
         type="button"
         className={getMenuItemClass(isActive, compact, { surface: "sidebar" })}
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => onSubmenuChange?.(open ? null : item.path)}
       >
         <NavLinkContent
           item={item}
@@ -65,7 +74,11 @@ function NavMobileClickFlyout({
           <div className={FLYOUT_PANEL_CLASS}>
             <div className="space-y-1">
               {item.children?.map((child) => (
-                <NavChildLink key={child.path} item={child} />
+                <NavChildLink
+                  key={child.path}
+                  item={child}
+                  onNavigate={closeFlyout}
+                />
               ))}
             </div>
           </div>
@@ -77,13 +90,41 @@ function NavMobileClickFlyout({
 
 function NavHoverFlyout({
   item,
+  pathname,
   isActive,
   compact,
 }: NavMenuItemProps) {
+  const [hovered, setHovered] = useState(false);
+  const hideUntilLeaveRef = useRef(false);
   const closeMobileSidebar = useCloseMobileSidebarOnNavigate();
 
+  useEffect(() => {
+    hideUntilLeaveRef.current = true;
+    setHovered(false);
+  }, [pathname]);
+
+  function handleMouseEnter() {
+    if (!hideUntilLeaveRef.current) {
+      setHovered(true);
+    }
+  }
+
+  function handleMouseLeave() {
+    hideUntilLeaveRef.current = false;
+    setHovered(false);
+  }
+
+  function handleChildNavigate() {
+    hideUntilLeaveRef.current = true;
+    setHovered(false);
+  }
+
   return (
-    <li className="group/flyout relative overflow-visible">
+    <li
+      className="relative overflow-visible"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <Link
         href={item.path}
         aria-label={item.label}
@@ -100,11 +141,22 @@ function NavHoverFlyout({
         />
       </Link>
 
-      <div className={HOVER_FLYOUT_WRAPPER_CLASS}>
+      <div
+        className={cn(
+          FLYOUT_WRAPPER_BASE_CLASS,
+          hovered
+            ? FLYOUT_WRAPPER_VISIBLE_CLASS
+            : FLYOUT_WRAPPER_HIDDEN_CLASS,
+        )}
+      >
         <div className={FLYOUT_PANEL_CLASS}>
           <div className="space-y-1">
             {item.children?.map((child) => (
-              <NavChildLink key={child.path} item={child} />
+              <NavChildLink
+                key={child.path}
+                item={child}
+                onNavigate={handleChildNavigate}
+              />
             ))}
           </div>
         </div>
@@ -141,6 +193,8 @@ export function NavMenuItem({
   pathname,
   isActive,
   compact,
+  openSubmenuPath,
+  onSubmenuChange,
 }: NavMenuItemProps) {
   const { isMobile } = useCompactNav();
 
@@ -152,6 +206,8 @@ export function NavMenuItem({
           pathname={pathname}
           isActive={isActive}
           compact={compact}
+          openSubmenuPath={openSubmenuPath}
+          onSubmenuChange={onSubmenuChange}
         />
       );
     }

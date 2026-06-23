@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 import { APP_NAV_ITEMS } from "./config";
@@ -10,6 +12,11 @@ type MainNavigationProps = {
 
 export function MainNavigation({ pathname }: MainNavigationProps) {
   const { compact, isMobile } = useCompactNav();
+  const [openSubmenuPath, setOpenSubmenuPath] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOpenSubmenuPath(null);
+  }, [pathname]);
 
   return (
     <>
@@ -33,6 +40,8 @@ export function MainNavigation({ pathname }: MainNavigationProps) {
                   pathname={pathname}
                   isActive={isItemOrChildrenActive(pathname, item)}
                   compact={compact}
+                  openSubmenuPath={openSubmenuPath}
+                  onSubmenuChange={setOpenSubmenuPath}
                 />
               ))}
             </ul>

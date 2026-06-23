@@ -28,7 +28,7 @@ function AppShellContent({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-svh min-w-0 flex-1 flex-col">
-      <header className="w-full bg-background">
+      <header className="relative z-10 w-full border-b border-gray-300/80 bg-sidebar shadow-[0_4px_24px_rgba(37,99,235,0.22)]">
         <div className="flex h-14 w-full items-center justify-between gap-2 px-2 md:px-6">
         <Button
           type="button"

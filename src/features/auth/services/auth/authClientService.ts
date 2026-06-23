@@ -63,5 +63,7 @@ export async function logoutClientService(): Promise<LogoutClientResponse> {
     };
   }
 
+  console.log("logoutClientService", body);
+
   return body;
 }

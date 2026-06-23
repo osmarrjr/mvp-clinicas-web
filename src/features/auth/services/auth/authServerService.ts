@@ -35,8 +35,13 @@ function isLoginResult(value: unknown): value is LoginResult {
   );
 }
 
-function mapPasswordChangeRequiredLogin(body: LoginApiBody): LoginServerResponse | null {
-  if (body.error?.code !== "PASSWORD_CHANGE_REQUIRED" || !isLoginResult(body.data)) {
+function mapPasswordChangeRequiredLogin(
+  body: LoginApiBody,
+): LoginServerResponse | null {
+  if (
+    body.error?.code !== "PASSWORD_CHANGE_REQUIRED" ||
+    !isLoginResult(body.data)
+  ) {
     return null;
   }
 
@@ -74,8 +79,10 @@ export async function loginServerService(
       cache: "no-store",
     });
 
-    const body = (await response.json().catch(() => null)) as LoginApiBody | null;
-
+    const body = (await response
+      .json()
+      .catch(() => null)) as LoginApiBody | null;
+    console.log("loginServerServiceServices", body);
     if (!body) {
       return {
         ok: false,
