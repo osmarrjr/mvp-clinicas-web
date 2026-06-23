@@ -57,6 +57,7 @@ vi.mock("./StaffListTable", () => ({
               <th>E-mail</th>
               <th>Telefone</th>
               <th>Perfil</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>

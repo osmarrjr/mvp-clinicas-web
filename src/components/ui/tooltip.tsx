@@ -49,7 +49,11 @@ function TooltipContent({
       >
         {children}
 
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-20%-2px)] rotate-45 rounded-[2px] bg-[linear-gradient(90deg,#3b82f6_0%,#60a5fa_45%,#38bdf8_100%)] fill-blue-500" />
+        <TooltipPrimitive.Arrow
+          className="z-50 fill-[#60a5fa]"
+          width={10}
+          height={5}
+        />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

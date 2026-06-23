@@ -1,41 +1,30 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { useMemo } from "react";
 
 import DataTable from "@/components/Table";
 
-import { getStaffRoleLabel } from "../constants/roleLabels";
 import type { StaffMember } from "../types";
-
-const columns: ColumnDef<StaffMember>[] = [
-  {
-    accessorKey: "name",
-    header: "Nome",
-  },
-  {
-    accessorKey: "email",
-    header: "E-mail",
-  },
-  {
-    accessorKey: "phone",
-    header: "Telefone",
-    meta: {
-      showDashWhenEmpty: true,
-    },
-  },
-  {
-    accessorKey: "role",
-    header: "Perfil",
-    cell: ({ row }) => getStaffRoleLabel(row.original.role),
-  },
-];
+import { getStaffListColumns } from "./StaffListColumns";
 
 type StaffListTableProps = {
   data: StaffMember[];
   isLoading: boolean;
+  onEdit?: (member: StaffMember) => void;
+  onDelete?: (member: StaffMember) => void;
 };
 
-export function StaffListTable({ data, isLoading }: StaffListTableProps) {
+export function StaffListTable({
+  data,
+  isLoading,
+  onEdit,
+  onDelete,
+}: StaffListTableProps) {
+  const columns = useMemo(
+    () => getStaffListColumns({ onEdit, onDelete }),
+    [onEdit, onDelete],
+  );
+
   return (
     <DataTable
       data={data}
