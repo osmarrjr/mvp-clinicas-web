@@ -32,6 +32,7 @@ declare module "@tanstack/react-table" {
   interface ColumnMeta<TData, TValue> {
     showDashWhenEmpty?: boolean;
     allowDashInExpanded?: boolean;
+    alignCenter?: boolean;
   }
 }
 
@@ -54,7 +55,6 @@ interface DataTableProps<T extends RowData> {
   noResults?: string | ReactNode;
   isLoading?: boolean;
 
-  centralizeInformation?: boolean;
   rowSize?: RowSize;
 
   onRowSelectionChange?: (rows: T[]) => void;
@@ -84,7 +84,6 @@ export default function DataTable<T extends RowData>({
   setRowSelection,
   isLoading,
   rowSize = "md",
-  centralizeInformation = false,
   noResults = "Nenhum registro localizado.",
   onRowSelectionChange,
   tableClassName,
@@ -165,12 +164,16 @@ export default function DataTable<T extends RowData>({
         <TableHeader className="bg-white">
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id}>
-              {group.headers.map((header) => (
+              {group.headers.map((header) => {
+                const alignCenter = header.column.columnDef.meta?.alignCenter;
+
+                return (
                 <TableHead
                   key={header.id}
                   onClick={header.column.getToggleSortingHandler()}
                   className={cn(
                     "text-black",
+                    alignCenter && "text-center",
                     headerClassName,
                     header.column.getCanSort()
                       ? "cursor-pointer"
@@ -179,8 +182,8 @@ export default function DataTable<T extends RowData>({
                 >
                   <div
                     className={cn(
-                      "flex gap-2 items-center",
-                      centralizeInformation && "justify-center"
+                      "flex items-center gap-2",
+                      alignCenter ? "justify-center" : "justify-start",
                     )}
                   >
                     {flexRender(
@@ -193,7 +196,8 @@ export default function DataTable<T extends RowData>({
                     )}
                   </div>
                 </TableHead>
-              ))}
+              );
+              })}
             </TableRow>
           ))}
         </TableHeader>
@@ -203,7 +207,7 @@ export default function DataTable<T extends RowData>({
             <TableRow>
               <TableCell colSpan={columns.length}>
                 <div className="flex justify-center! items-center gap-2 w-full">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  <Loader2 className="size-[1.375rem] animate-spin text-primary" />
                   Carregando...
                 </div>
               </TableCell>
@@ -235,12 +239,19 @@ export default function DataTable<T extends RowData>({
                     (isRoot ||
                       (isExpanded && columnDef.meta?.allowDashInExpanded));
 
+                  const alignCenter = columnDef.meta?.alignCenter;
+
                   return (
-                    <TableCell key={cell.id} className={cn(cellPaddingClass)}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(cellPaddingClass, alignCenter && "text-center")}
+                    >
                       <div
                         className={cn(
                           "w-full",
-                          centralizeInformation && "flex justify-center"
+                          alignCenter
+                            ? "flex justify-center"
+                            : "text-left",
                         )}
                       >
                         {showDash ? (

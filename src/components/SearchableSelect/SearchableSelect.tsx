@@ -107,7 +107,7 @@ export function SearchableSelect({
           >
             {selectedLabel ?? placeholder}
           </span>
-          <ChevronDownIcon className="size-4 shrink-0 text-slate-500" />
+          <ChevronDownIcon className="size-[1.125rem] shrink-0 text-slate-500" />
         </button>
       </Popover.Trigger>
 
@@ -171,7 +171,7 @@ export function SearchableSelect({
                         {option.label}
                       </span>
                       {isSelected ? (
-                        <CheckIcon className="mt-0.5 size-4 shrink-0 text-primary" />
+                        <CheckIcon className="mt-0.5 size-[1.125rem] shrink-0 text-primary" />
                       ) : null}
                     </button>
                   </li>

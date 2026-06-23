@@ -31,7 +31,7 @@ export function OptionalFieldLabel({
               aria-label="Campo opcional"
               className="inline-flex items-center justify-center rounded-full text-orange-500 transition hover:text-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
             >
-              <Info className="h-4 w-4" />
+              <Info className="size-[1.125rem]" />
             </button>
           </TooltipTrigger>
 

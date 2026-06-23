@@ -3,12 +3,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TableIconAction } from "@/components/Table/TableIconAction";
+import { tableActionsColumnMeta } from "@/components/Table/tableColumnMeta";
 
 import { getStaffRoleLabel } from "../constants/roleLabels";
 import type { StaffMember } from "../types";
@@ -47,44 +43,27 @@ export function getStaffListColumns({
       id: "actions",
       header: "Ações",
       enableSorting: false,
+      meta: tableActionsColumnMeta,
       cell: ({ row }) => {
         const member = row.original;
 
         return (
           <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Editar usuário"
-                  onClick={() => onEdit?.(member)}
-                >
-                  <Pencil />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center">
-                Editar usuário
-              </TooltipContent>
-            </Tooltip>
+            <TableIconAction
+              label="Editar usuário"
+              tooltip="Editar usuário"
+              onClick={() => onEdit?.(member)}
+            >
+              <Pencil />
+            </TableIconAction>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Excluir usuário"
-                  onClick={() => onDelete?.(member)}
-                >
-                  <X />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center">
-                Excluir usuário
-              </TooltipContent>
-            </Tooltip>
+            <TableIconAction
+              label="Excluir usuário"
+              tooltip="Excluir usuário"
+              onClick={() => onDelete?.(member)}
+            >
+              <X />
+            </TableIconAction>
           </div>
         );
       },
